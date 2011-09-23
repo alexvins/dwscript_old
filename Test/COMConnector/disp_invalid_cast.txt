@@ -1,0 +1,4 @@
+Incompatible types: Cannot assign "Dispatch" to "Integer"
+Incompatible types: Cannot assign "Dispatch" to "String"
+Incompatible types: Cannot assign "Dispatch" to "Float"
+Incompatible types: Cannot assign "Dispatch" to "Boolean"

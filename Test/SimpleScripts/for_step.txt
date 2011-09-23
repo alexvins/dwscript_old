@@ -1,0 +1,5 @@
+1
+4
+5
+2
+FOR loop STEP should be strictly positive: -1
