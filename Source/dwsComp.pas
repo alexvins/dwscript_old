@@ -25,7 +25,7 @@ interface
 uses
   Variants, Classes, SysUtils, TypInfo, dwsCompiler, dwsDebugger,
   dwsExprs, dwsSymbols, dwsStack, dwsFunctions, dwsStrings, dwsFileSystem,
-  dwsLanguageExtension, dwsTokenizer,
+  dwsLanguageExtension, dwsTokenizer, dwsXPlatform,
   // Built-In functions
 {$IFNDEF DWS_NO_BUILTIN_FUNCTIONS}
   dwsMathFunctions, dwsStringFunctions, dwsTimeFunctions, dwsVariantFunctions,
@@ -279,7 +279,7 @@ type
   protected
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
   protected
     function GetDisplayName: string; override;
     procedure Call(Caller: TdwsProgram; Func: TFuncSymbol); virtual;
@@ -1561,7 +1561,7 @@ begin
     begin
       PropertyName := String(PropList^[i]^.Name);
       propIsDefault := WordBool(PropList^[i]^.Default);
-      propTypeData := GetTypeData(PropList^[i]^.PropType^);
+      propTypeData := GetTypeData(PropList^[i]^.PropType);
 
       Include := True;
       if IsTypeSupported(String(PropList^[i]^.PropType^.Name)) then
@@ -1579,7 +1579,7 @@ begin
         tkVariant : PropertyType := SYS_VARIANT;
         tkEnumeration :    // Booleans are reported as enumerations. Only support booleans
           begin
-            if propTypeData^.BaseType^ = TypeInfo(Boolean) then
+            if propTypeData^.BaseType = TypeInfo(Boolean) then
               PropertyType := SYS_BOOLEAN
             else
               Include := False;
@@ -2022,7 +2022,7 @@ begin
   Result := -1;
 end;
 
-function TdwsFunction.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TdwsFunction.QueryInterface(constref IID: TGUID; out Obj): HResult;
 begin
   Result := 0;
 end;

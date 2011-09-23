@@ -211,7 +211,7 @@ implementation
 // ------------------------------------------------------------------
 
 const cReservedNames : TTokenTypes = [
-   ttStrVal, ttSWITCH, ttSEMI, ttDIVIDE, ttTIMES, ttPLUS, ttMINUS, ttAT, ttSEMI,
+   ttStrVal, ttSWITCH, ttSEMI, ttDIVIDE, ttTIMES, ttPLUS, ttMINUS, ttAT, {ttSEMI,}
    ttBLEFT, ttBRIGHT, ttALEFT, ttARIGHT, ttEQ, ttLESS, ttLESSEQ, ttNOTEQ, ttGTR,
    ttGTREQ, ttCOLON,
    ttASSIGN, ttPLUS_ASSIGN, ttMINUS_ASSIGN, ttTIMES_ASSIGN, ttDIVIDE_ASSIGN,

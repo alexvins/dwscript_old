@@ -23,7 +23,7 @@ unit dwsCoreExprs;
 interface
 
 uses Windows, Classes, Variants, SysUtils, dwsSymbols, dwsErrors, dwsStrings,
-   dwsStack, dwsExprs, dwsUtils, dwsTokenizer, dwsRelExprs;
+   dwsStack, dwsExprs, dwsUtils, dwsTokenizer, dwsRelExprs, dwsXPlatform;
 
 type
 
@@ -181,7 +181,7 @@ type
 
    // TUnifiedConstList
    //
-   TUnifiedConstList = class (TSortedList<TExprBase>)
+   TUnifiedConstList = class (TSortedExprBaseList)
       protected
          function Compare(const item1, item2 : TExprBase) : Integer; override;
       public
@@ -1525,7 +1525,11 @@ begin
          rawResult:=Integer(vd1.VType)-Integer(vd2.VType);
          if rawResult=0 then begin
             case vd1.VType of
+               {$IFDEF FPC}
+               varString : rawResult:=CompareStr(String(vd1.VString), String(vd2.VString));
+               {$ELSE}
                varUString : rawResult:=CompareStr(String(vd1.VUString), String(vd2.VUString));
+               {$ENDIF}
                varInt64 : rawResult:=vd1.VInt64-vd2.VInt64;
                varBoolean : rawResult:=Integer(vd1.VBoolean)-Integer(vd2.VBoolean);
             else

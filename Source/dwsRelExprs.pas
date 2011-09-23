@@ -17,6 +17,7 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
+{$I dws.inc}
 unit dwsRelExprs;
 
 interface

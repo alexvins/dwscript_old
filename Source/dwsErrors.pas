@@ -54,7 +54,11 @@ type
       public
          SourceFile : TSourceFile;
 
-         constructor Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+{$IFDEF FPC}
+        procedure Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+{$ELSE}
+        constructor Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+{$ENDIF}
 
          property LineCol : Cardinal read FLineCol write FLineCol;
          property Line : Integer read GetLine write SetLine;
@@ -237,7 +241,11 @@ implementation
 
 // Create
 //
+{$IFDEF FPC}
+procedure TScriptPos.Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+{$ELSE}
 constructor TScriptPos.Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+{$ENDIF}
 begin
    SourceFile:=aSourceFile;
    Line:=(aCol shr 20)+aLine;
@@ -609,7 +617,7 @@ end;
 //
 function TInfoMessage.AsInfo: String;
 begin
-   Result:=Format(MSG_Info, [inherited AsInfo]);
+   Result:=Format(MSG_Info, [FText]);
 end;
 
 // ------------------
@@ -620,7 +628,7 @@ end;
 //
 function TErrorMessage.AsInfo: String;
 begin
-   Result:=Format(MSG_Error, [inherited AsInfo]);
+   Result:=Format(MSG_Error, [FText]);
 end;
 
 // ------------------

@@ -23,7 +23,7 @@ unit dwsSymbols;
 interface
 
 uses Windows, SysUtils, Variants, Classes, dwsStrings, dwsStack, dwsErrors,
-   dwsUtils, dwsTokenizer;
+   dwsUtils, dwsTokenizer, dwsXPlatform;
 
 type
    TBaseTypeID = (
@@ -127,8 +127,13 @@ type
          function GetDataSize : Integer;
 
       public
+         {$IFDEF FPC}
+         procedure CreatePositive(aLevel : SmallInt; anInitialSize : Integer = 0);
+         procedure CreateNegative(aLevel : SmallInt);
+         {$ELSE}
          constructor CreatePositive(aLevel : SmallInt; anInitialSize : Integer = 0);
          constructor CreateNegative(aLevel : SmallInt);
+         {$ENDIF}
 
          function GetStackAddr(Size : Integer) : Integer;
 
@@ -1186,7 +1191,11 @@ constructor TFuncSymbol.Create(const Name: string; FuncKind: TFuncKind;
 begin
   inherited Create(Name, nil);
   FKind := FuncKind;
+  {$IFDEF FPC}
+  FAddrGenerator.CreateNegative(FuncLevel);
+  {$ELSE}
   FAddrGenerator := TAddrGeneratorRec.CreateNegative(FuncLevel);
+  {$ENDIF}
   FInternalParams := TUnSortedSymbolTable.Create(nil, @FAddrGenerator);
   FParams := TParamsSymbolTable.Create(FInternalParams, @FAddrGenerator);
   FSize := 1;
@@ -2705,7 +2714,11 @@ end;
 
 // CreatePositive
 //
+{$IFDEF FPC}
+procedure TAddrGeneratorRec.CreatePositive(aLevel : SmallInt; anInitialSize: Integer = 0);
+{$ELSE}
 constructor TAddrGeneratorRec.CreatePositive(aLevel : SmallInt; anInitialSize: Integer = 0);
+{$ENDIF}
 begin
    FLevel := aLevel;
    FDataSize := anInitialSize;
@@ -2714,7 +2727,11 @@ end;
 
 // CreateNegative
 //
+{$IFDEF FPC}
+procedure TAddrGeneratorRec.CreateNegative(aLevel : SmallInt);
+{$ELSE}
 constructor TAddrGeneratorRec.CreateNegative(aLevel : SmallInt);
+{$ENDIF}
 begin
    FLevel := aLevel;
    FDataSize := 0;

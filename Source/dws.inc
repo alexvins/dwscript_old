@@ -28,6 +28,13 @@
 
 {global compiler options}
 
+{$ifdef FPC}
+  {$MODE DELPHI}
+  {$T-}
+  {$A+}
+  {$H+}
+{$ELSE}
+
 {$A+} // align on
 {$B-} // BoolEval off
 {$X+} // extended syntax
@@ -38,4 +45,4 @@
 
 {.$DEFINE PUREPASCAL}
 
-
+{$ENDIF}

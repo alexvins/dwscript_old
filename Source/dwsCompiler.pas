@@ -131,6 +131,10 @@ type
 
    TLoopExitable = (leNotExitable, leBreak, leExit);
 
+   TNoResultExprStack = TSimpleStack<TNoResultExpr>;
+   TLoopExitableStack = TSimpleStack<TLoopExitable>;
+   TSwitchInstructionStack = TSimpleStack<TSwitchInstruction>;
+
    // TdwsCompiler
    //
    TdwsCompiler = class
@@ -140,9 +144,9 @@ type
       FProg : TdwsProgram;
       FTok : TTokenizer;
       FBinaryOperators : TBinaryOperators;
-      FLoopExprs : TSimpleStack<TNoResultExpr>;
-      FLoopExitable : TSimpleStack<TLoopExitable>;
-      FConditionalDepth : TSimpleStack<TSwitchInstruction>;
+      FLoopExprs : TNoResultExprStack;
+      FLoopExitable : TLoopExitableStack;
+      FConditionalDepth : TSwitchInstructionStack;
 
       FConnectors : TStrings;
       FCompileFileSystem : IdwsFileSystem;
@@ -364,9 +368,9 @@ end;
 constructor TdwsCompiler.Create;
 begin
    inherited;
-   FLoopExprs:=TSimpleStack<TNoResultExpr>.Create;
-   FLoopExitable:=TSimpleStack<TLoopExitable>.Create;
-   FConditionalDepth:=TSimpleStack<TSwitchInstruction>.Create;
+   FLoopExprs:=TNoResultExprStack.Create;
+   FLoopExitable:=TLoopExitableStack.Create;
+   FConditionalDepth:=TSwitchInstructionStack.Create;
 end;
 
 // Destroy
@@ -4426,7 +4430,7 @@ begin
          fname:=IncludeTrailingPathDelimiter(FScriptPaths[i])+scriptName
       else fname:=scriptName;
       if FCompileFileSystem.FileExists(fname) then
-         Exit(FCompileFileSystem.OpenFileStream(fname, fomReadOnly);
+         Exit(FCompileFileSystem.OpenFileStream(fname, fomReadOnly));
    end;
    Result:=nil;
 end;

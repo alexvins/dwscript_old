@@ -23,7 +23,7 @@ unit dwsExprs;
 interface
 
 uses Classes, Variants, SysUtils, TypInfo, dwsSymbols, dwsErrors, dwsUtils,
-   dwsStrings, dwsStack, SyncObjs, dwsFileSystem, dwsTokenizer;
+   dwsStrings, dwsStack, SyncObjs, dwsFileSystem, dwsTokenizer, dwsXPlatform;
 
 const
   C_DefaultStackChunkSize = 4096;
@@ -261,6 +261,8 @@ type
 
   TExecutionStatusResult = (esrNone, esrExit, esrBreak, esrContinue);
 
+  TSortedExprBaseList =  TSortedList<TExprBase>;
+
   // A script executable program
   TdwsProgram = class(TInterfacedObject)
   private
@@ -281,7 +283,7 @@ type
     FResult: TdwsResult;
     FResultType: TdwsResultType;
     FRoot: TdwsProgram;
-    FUnifiedConstList: TSortedList<TExprBase>;
+    FUnifiedConstList: TSortedExprBaseList;
     FRootTable: TProgramSymbolTable;
     FSourceList: TScriptSourceList;
     FStack: TStack;
@@ -366,7 +368,7 @@ type
     property Table: TSymbolTable read FTable write FTable;
     property TimeoutMilliseconds : Integer read FTimeoutMilliseconds write FTimeoutMilliseconds;
 
-    property UnifiedConstList: TSortedList<TExprBase> read FUnifiedConstList;
+    property UnifiedConstList: TSortedExprBaseList read FUnifiedConstList;
 
     property TypBoolean: TTypeSymbol read FTypBoolean;
     property TypFloat: TTypeSymbol read FTypFloat;
@@ -1454,8 +1456,13 @@ begin
    // Create the program stack
    FStack := TStack.Create(StackChunkSize, MaxDataSize, MaxRecursionDepth);
    FStack.Reset;
+   {$IFDEF FPC}
+   FAddrGenerator.CreatePositive(0);
+   FGlobalAddrGenerator.CreatePositive(0);
+   {$ELSE}
    FAddrGenerator := TAddrGeneratorRec.CreatePositive(0);
    FGlobalAddrGenerator := TAddrGeneratorRec.CreatePositive(0);
+   {$ENDIF}
 
    FUnifiedConstList:=TUnifiedConstList.Create;
 
@@ -1907,7 +1914,11 @@ begin
   FParent := Parent;
 
   // Create a local symbol table and connect it to the parent symboltable
+  {$IFDEF FPC}
+  FAddrGenerator.CreatePositive(Parent.Level + 1);
+  {$ELSE}
   FAddrGenerator := TAddrGeneratorRec.CreatePositive(Parent.Level + 1);
+  {$ENDIF}
   FRootTable := TProgramSymbolTable.Create(Parent.Table, @FAddrGenerator);
   FTable := FRootTable;
 
@@ -4019,8 +4030,13 @@ var
    p : PVarData;
 begin
    p:=PVarData(GetParamAsPVariant(index));
+   {$IFDEF FPC}
+   if p^.VType=varString then
+      Result:=String(p.VString)
+   {$ELSE}
    if p^.VType=varUString then
       Result:=String(p.VUString)
+   {$ENDIF}
    else Result:=PVariant(p)^;
 end;
 
@@ -4131,7 +4147,7 @@ end;
 
 function TProgramInfo.FindClassMatch(AObject: TObject; ExactMatch: Boolean): TClassSymbol;
 var
-  ParentRTTI: PPTypeInfo;
+  ParentRTTI: PTypeInfo;
   unitList: TList;      // build the list once, may search for many symbols
   typeSym: TSymbol;
 begin
@@ -4164,7 +4180,7 @@ begin
             Break;
           end
           else                               // if no match found yet, try higher ancestor
-            ParentRTTI := GetTypeData(ParentRTTI^)^.ParentInfo;
+            ParentRTTI := GetTypeData(ParentRTTI)^.ParentInfo;
         until ParentRTTI = nil;
       end;{if Assigned}
     end;{if not ExactMatch}
@@ -4569,8 +4585,13 @@ var
 begin
    if (FDataMaster=nil) and (FTypeSym<>nil) and (FTypeSym.Size=1) then begin
       varData:=@FData[FOffset];
+      {$IFDEF FPC}
+      if varData.VType=varString then
+         Result:=String(varData.VString)
+      {$ELSE}
       if varData.VType=varUString then
          Result:=String(varData.VUString)
+      {$ENDIF}
       else Result:=PVariant(varData)^;
    end else Result:=inherited GetValueAsString;
 end;

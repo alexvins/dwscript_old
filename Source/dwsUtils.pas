@@ -18,6 +18,7 @@
 {                                                                      }
 {**********************************************************************}
 {$I dws.inc}
+
 unit dwsUtils;
 
 interface
@@ -93,7 +94,7 @@ type
       protected
          function GetItem(index : Integer) : T;
          function Find(const item : T; var index : Integer) : Boolean;
-         function Compare(const item1, item2 : T) : Integer; virtual; abstract;
+         function Compare(const item1, item2 : T) : Integer; virtual;
          procedure InsertItem(index : Integer; const anItem : T);
       public
          function Add(const anItem : T) : Integer;
@@ -108,7 +109,7 @@ type
    //
    {: A minimalistic generic stack }
    TSimpleStack<T> = class
-      private
+      public
          FItems : array of T;
          FCount : Integer;
       protected
@@ -199,7 +200,9 @@ type
    end;
 
    TFastCompareStringList = class (TStringList)
+      {$IFNDEF FPC}
       function CompareStrings(const S1, S2: string): Integer; override;
+      {$ENDIF}
    end;
 
 var
@@ -207,10 +210,15 @@ var
 
 // CompareStrings
 //
+{$IFNDEF FPC}
 function TFastCompareStringList.CompareStrings(const S1, S2: string): Integer;
 begin
    Result:=CompareStr(S1, S2);
 end;
+
+   end;
+
+{$ENDIF}
 
 // UnifyAssignString
 //
@@ -225,12 +233,12 @@ begin
       i:=Ord(fromStr[1]);
       if i<=High(vCharStrings) then begin
          sl:=vCharStrings[i];
-         System.MonitorEnter(sl);
+{$IFNDEF FPC}          System.MonitorEnter(sl);  {$ENDIF} //TODO: Syncronized access
          i:=sl.IndexOf(fromStr);
          if i<0 then
             i:=sl.Add(fromStr);
          toStr:=TStringListCracker(sl).FList[i].FString;
-         System.MonitorExit(sl);
+{$IFNDEF FPC}          System.MonitorExit(sl);  {$ENDIF}  //TODO: Syncronized access
       end else toStr:=fromStr;
    end;
 end;
@@ -244,9 +252,9 @@ var
 begin
    for i:=Low(vCharStrings) to High(vCharStrings) do begin
       sl:=vCharStrings[i];
-      System.MonitorEnter(sl);
+{$IFNDEF FPC}       System.MonitorEnter(sl);   {$ENDIF} //TODO: Syncronized access
       sl.Clear;
-      System.MonitorExit(sl);
+{$IFNDEF FPC}       System.MonitorExit(sl);  {$ENDIF} //TODO: Syncronized access
    end;
 end;
 
@@ -650,6 +658,11 @@ begin
       end;
    end;
    index:=lo;
+end;
+
+function TSortedList<T>.Compare(const item1, item2: T): Integer;
+begin
+  Result := 0;
 end;
 
 // InsertItem

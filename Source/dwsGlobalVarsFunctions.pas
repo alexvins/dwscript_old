@@ -396,7 +396,7 @@ const
     varBoolean, varError, varError, varString, varEmpty, varError, varSingle,
     varCurrency, varDate, varOleStr, varError
     , varError // UTF8
-    , varDouble
+    , varDouble , varerror
     );
 
 var

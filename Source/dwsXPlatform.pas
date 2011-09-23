@@ -18,6 +18,9 @@
 {                                                                      }
 {**********************************************************************}
 {$I dws.inc}
+{$IFDEF FPC}
+  {$define VER200}
+{$ENDIF}
 unit dwsXPlatform;
 
 //
@@ -46,6 +49,13 @@ function GetDecimalSeparator : Char;
 
 procedure CollectFiles(const directory, fileMask : String; list : TStrings);
 
+{$IFDEF FPC}
+type
+  TBytes = array of byte;
+
+  RawByteString = string;
+{$ENDIF}
+
 type
    TPath = class
       class function GetTempFileName : String; static;
@@ -54,6 +64,10 @@ type
    TFile = class
       class function ReadAllBytes(const filename : String) : TBytes; static;
    end;
+
+{$IFDEF FPC}
+   procedure VarCopy(var ADest: Variant; const ASource: Variant);
+{$ENDIF}
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -67,22 +81,30 @@ implementation
 //
 procedure SetDecimalSeparator(c : Char);
 begin
+   {$IFDEF FPC}
+   FormatSettings.DecimalSeparator := c;
+   {$ELSE}
    {$IF CompilerVersion >= 22.0}
    FormatSettings.DecimalSeparator:=c;
    {$ELSE}
    DecimalSeparator:=c;
    {$IFEND}
+   {$ENDIF}
 end;
 
 // GetDecimalSeparator
 //
 function GetDecimalSeparator : Char;
 begin
+   {$IFDEF FPC}
+   Result:=FormatSettings.DecimalSeparator;
+   {$ELSE}
    {$IF CompilerVersion >= 22.0}
    Result:=FormatSettings.DecimalSeparator;
    {$ELSE}
    Result:=DecimalSeparator;
    {$IFEND}
+   {$ENDIF}
 end;
 
 // CollectFiles
@@ -101,6 +123,16 @@ begin
    end;
    FindClose(searchRec);
 end;
+
+{$IFDEF FPC}
+procedure VarCopy(var ADest: Variant; const ASource: Variant);
+var
+   vm: Tvariantmanager;
+begin
+  GetVariantManager(vm);
+  vm.varcopy(ADest,ASource);
+end;
+{$ENDIF}
 
 
 // ------------------

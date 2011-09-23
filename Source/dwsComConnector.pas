@@ -23,7 +23,7 @@ unit dwsComConnector;
 interface
 
 uses Windows, Variants, Classes, SysUtils, SysConst, dwsComp, dwsSymbols,
-   dwsExprs, dwsStrings, dwsFunctions, dwsStack, ComObj, ComConst, ActiveX, AxCtrls;
+   dwsExprs, dwsStrings, dwsFunctions, dwsStack, ComObj, ComConst, ActiveX{, AxCtrls};
 
 const
   COM_ConnectorCaption = 'COM Connector 1.0';
@@ -279,7 +279,7 @@ end;
 
 procedure TOleInt32Func.Execute;
 begin
-  Info.ResultAsVariant := Int32(Info.ValueAsInteger['v']);
+  Info.ResultAsVariant := Longint(Info.ValueAsInteger['v']);
 end;
 
 { TOleInt64Func }
@@ -442,6 +442,7 @@ begin
               end;
               Inc(strCount);
             end;
+          {$IFNDEF FPC}
           varUString:
             begin
               // Transform Delphi-strings to OLE-strings
@@ -454,6 +455,7 @@ begin
               end;
               Inc(strCount);
             end;
+          {$ENDIF}
           varOleStr:
             begin
               argPtr.vt := VT_BSTR or VT_BYREF;

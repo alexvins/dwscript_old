@@ -17,24 +17,39 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
-{$I dws.inc}
+
+{$ifdef FPC}
+  {$MODE OBJFPC}
+  {$T-}
+  {$A+}
+  {$H+}
+{$ENDIF}
+
+{.$I dws.inc}
+
 unit dwsStack;
 
 interface
 
-uses Variants, Classes, SysUtils, dwsStrings, dwsUtils;
+uses Variants, Classes, SysUtils, dwsStrings, dwsUtils, dwsXPlatform;
 
 type
 
    TData = array of Variant;
    PData = ^TData;
 
+   {$IFDEF FPC}
+     TSimpleStackInteger = specialize TSimpleStack<Integer>;
+   {$ELSE}
+     TSimpleStackInteger = TSimpleStack<Integer>;
+   {$ENDIF}
+
    // TStack
    //
    TStack = class
       private
          FBasePointer: Integer;
-         FBpStore : array of TSimpleStack<Integer>;
+         FBpStore : array of TSimpleStackInteger;
          FChunkSize: Integer;
          FMaxLevel: Integer;
          FMaxSize: Integer;
@@ -266,7 +281,7 @@ begin
    ClearBpStore;
    SetLength(FBpStore, FMaxLevel + 1);
    for i:=0 to High(FBpStore) do begin
-      FBpStore[i]:=TSimpleStack<Integer>.Create;
+      FBpStore[i]:=TSimpleStackInteger.Create;
       FBpStore[i].Push(0);
    end;
 end;
@@ -330,8 +345,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   if varData.VType=varInt64 then
-      Result:=varData.VInt64
+   if varData^.VType=varInt64 then
+      Result:=varData^.VInt64
    else Result:=PVariant(varData)^;
 end;
 
@@ -342,8 +357,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   Assert(varData.VType=varInt64);
-   Result:=varData.VInt64;
+   Assert(varData^.VType=varInt64);
+   Result:=varData^.VInt64;
 end;
 
 // ReadFloatValue
@@ -353,8 +368,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   if varData.VType=varDouble then
-      Result:=varData.VDouble
+   if varData^.VType=varDouble then
+      Result:=varData^.VDouble
    else Result:=PVariant(varData)^;
 end;
 
@@ -365,8 +380,12 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   if varData.VType=varUString then
-      Result:=String(varData.VUString)
+   if varData^.VType=varUString then
+{$IFDEF FPC}
+     Result:=String(varData^.VString)
+{$ELSE}
+     Result:=String(varData.VUString)
+{$ENDIF}
    else Result:=PVariant(varData)^;
 end;
 
@@ -377,8 +396,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   if varData.VType=varBoolean then
-      Result:=varData.VBoolean
+   if varData^.VType=varBoolean then
+      Result:=varData^.VBoolean
    else Result:=PVariant(varData)^;
 end;
 
@@ -389,8 +408,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   if varData.VType=varUnknown then
-      Result:=IUnknown(varData.VUnknown)
+   if varData^.VType=varUnknown then
+      Result:=IUnknown(varData^.VUnknown)
    else Result:=PVariant(varData)^;
 end;
 
@@ -401,8 +420,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[addr];
-   Assert(varData.VType=varInt64);
-   Result:=@varData.VInt64;
+   Assert(varData^.VType=varInt64);
+   Result:=@varData^.VInt64;
 end;
 
 // PointerToFloatValue
@@ -412,8 +431,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[addr];
-   Assert(varData.VType=varDouble);
-   Result:=@varData.VDouble;
+   Assert(varData^.VType=varDouble);
+   Result:=@varData^.VDouble;
 end;
 
 // IncIntValue
@@ -423,8 +442,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[destAddr];
-   Assert(varData.VType=varInt64);
-   varData.VInt64:=varData.VInt64+value
+   Assert(varData^.VType=varInt64);
+   varData^.VInt64:=varData^.VInt64+value
 end;
 
 // AppendStringValue
@@ -440,8 +459,13 @@ var
    varData : PVarData;
 begin
    varData:=@Data[destAddr];
+   {$IFDEF FPC}
+   if varData^.VType=varString then
+      String(varData^.VString):=String(varData^.VString)+value
+   {$ELSE}
    if varData.VType=varUString then
       String(varData.VUString):=String(varData.VUString)+value
+   {$ENDIF}
    else Fallback(varData);
 end;
 
@@ -471,8 +495,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   if varData.VType=varInt64 then
-      varData.VInt64:=Value
+   if varData^.VType=varInt64 then
+      varData^.VInt64:=Value
    else PVariant(varData)^:=Value;
 end;
 
@@ -483,8 +507,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   if varData.VType=varInt64 then
-      varData.VInt64:=pValue^
+   if varData^.VType=varInt64 then
+      varData^.VInt64:=pValue^
    else PVariant(varData)^:=pValue^;
 end;
 
@@ -495,8 +519,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   if varData.VType=varDouble then
-      varData.VDouble:=Value
+   if varData^.VType=varDouble then
+      varData^.VDouble:=Value
    else PVariant(varData)^:=Value;
 end;
 
@@ -507,8 +531,13 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
+   {$IFDEF FPC}
+   if varData^.VType=varString then
+      String(varData^.VString):=Value
+   {$ELSE}
    if varData.VType=varUString then
       String(varData.VUString):=Value
+   {$ENDIF}
    else PVariant(varData)^:=Value;
 end;
 
@@ -519,8 +548,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   if varData.VType=varBoolean then
-      varData.VBoolean:=Value
+   if varData^.VType=varBoolean then
+      varData^.VBoolean:=Value
    else PVariant(varData)^:=Value;
 end;
 
@@ -531,8 +560,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   if varData.VType=varUnknown then
-      PUnknown(@varData.VUnknown)^:=intf
+   if varData^.VType=varUnknown then
+      PUnknown(@varData^.VUnknown)^:=intf
    else PVariant(varData)^:=intf;
 end;
 
@@ -543,10 +572,17 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
+   {$IFDEF FPC}
+   if varData^.VType=varString then
+      if index>Length(String(varData^.VString)) then
+         Exit(False)
+      else String(varData^.VString)[index]:=c
+   {$ELSE}
    if varData.VType=varUString then
       if index>Length(String(varData.VUString)) then
          Exit(False)
       else String(varData.VUString)[index]:=c
+   {$ENDIF}
    else PVariant(varData)^[index]:=c;
    Result:=True;
 end;

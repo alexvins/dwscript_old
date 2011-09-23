@@ -129,7 +129,7 @@ type
     procedure SetStaticSymbols(const Value: Boolean);
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
     function GetDependencies: TStrings;
     function GetUnitName: string;
     procedure InitUnitTable(SystemTable, UnitSyms, UnitTable: TSymbolTable);
@@ -695,7 +695,7 @@ begin
   end;
 end;
 
-function TInternalUnit.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TInternalUnit.QueryInterface(constref IID: TGUID; out Obj): HResult;
 begin
   Result := 0;
 end;

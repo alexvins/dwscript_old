@@ -25,21 +25,23 @@ interface
 procedure Register;
 
 implementation
-
+{$IFDEF FPC}
+{$ELSE}
 {$R 'dws.dcr'}
+{$ENDIF}
 
 uses
-  Classes, Controls, dwsComp, dwsComConnector, dwsDebugger, dwsGlobalVarsFunctions,
-  dwsVCLGUIFunctions, dwsHtmlFilter, dwsClasses, dwsClassesLibModule, dwsFileSystem;
+  Classes, Controls, dwsComp, {dwsComConnector,} dwsDebugger, dwsGlobalVarsFunctions,
+  dwsVCLGUIFunctions, dwsHtmlFilter, {dwsClasses, dwsClassesLibModule,} dwsFileSystem;
 
 procedure Register;
 begin
-  RegisterClass(TdwsComConnector);
+  //RegisterClass(TdwsComConnector);
 
   RegisterComponents('dws',
                      [
                      TDelphiWebScript,
-                     TdwsComConnector,
+                     //TdwsComConnector,
                      TdwsSimpleDebugger,
                      TdwsUnit,
                      TdwsHtmlFilter,
