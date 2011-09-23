@@ -6,10 +6,10 @@
     <General>
       <Flags>
         <SaveClosedFiles Value="False"/>
-        <MainUnitHasCreateFormStatements Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
+      <Title Value="lang_tests"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
@@ -33,65 +33,78 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="4">
       <Item1>
         <PackageName Value="dwscript"/>
+        <MaxVersion Major="2" Minor="999" Valid="True"/>
+        <MinVersion Major="2" Minor="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="fptest"/>
+        <PackageName Value="FPCUnitTestRunner"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="FCL"/>
+      </Item4>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="lang_tests.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="lang_tests"/>
       </Unit0>
       <Unit1>
-        <Filename Value="UdwsUnitTests.pas"/>
+        <Filename Value="dws_fpcunit.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="UdwsUnitTests"/>
+        <UnitName Value="dws_fpcunit"/>
       </Unit1>
       <Unit2>
-        <Filename Value="UdwsUtilsTests.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="UdwsUtilsTests"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="UHTMLFilterTests.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="UHTMLFilterTests"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="UMemoryTests.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="UMemoryTests"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="UScriptTests.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="UScriptTests"/>
-      </Unit5>
-      <Unit6>
         <Filename Value="UTestDispatcher.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UTestDispatcher"/>
-      </Unit6>
-      <Unit7>
+      </Unit2>
+      <Unit3>
         <Filename Value="UAlgorithmsTests.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UAlgorithmsTests"/>
-      </Unit7>
-      <Unit8>
+      </Unit3>
+      <Unit4>
         <Filename Value="UCornerCasesTests.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UCornerCasesTests"/>
-      </Unit8>
-      <Unit9>
+      </Unit4>
+      <Unit5>
         <Filename Value="UdwsFunctionsTests.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="UdwsFunctionsTests"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="UdwsUnitTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UdwsUnitTests"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="UdwsUtilsTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UdwsUtilsTests"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="UHTMLFilterTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UHTMLFilterTests"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="UMemoryTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UMemoryTests"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="UScriptTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UScriptTests"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -104,6 +117,11 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <CodeGeneration>
       <Checks>
         <IOChecks Value="True"/>
@@ -115,14 +133,9 @@
       <Debugging>
         <GenerateDebugInfo Value="True"/>
         <DebugInfoType Value="dsStabs"/>
-        <UseHeaptrc Value="True"/>
       </Debugging>
     </Linking>
     <Other>
-      <Verbosity>
-        <ShowNotes Value="False"/>
-        <ShowHints Value="False"/>
-      </Verbosity>
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>

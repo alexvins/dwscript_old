@@ -4,8 +4,6 @@
 *.res
 *.lps
 /Test/units/*
-dunit2.ini
-log.txt
 *.compiled
 
 /Source/Libraries/ConverterBackup/dwsClassesLibModule.dfm
