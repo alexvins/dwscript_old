@@ -17,13 +17,6 @@
           <IncludeAssertionCode Value="True"/>
         </SyntaxOptions>
       </Parsing>
-      <CodeGeneration>
-        <Checks>
-          <IOChecks Value="True"/>
-          <RangeChecks Value="True"/>
-          <OverflowChecks Value="True"/>
-        </Checks>
-      </CodeGeneration>
       <Linking>
         <Debugging>
           <GenerateDebugInfo Value="True"/>
