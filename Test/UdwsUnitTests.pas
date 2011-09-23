@@ -1,3 +1,4 @@
+{$I dws_tests_conf.inc}
 unit UdwsUnitTests;
 
 interface
@@ -37,15 +38,16 @@ type
       published
 
          procedure DesignTimeDisplayValues;
-         procedure CompiledDescriptions;
 
+         procedure CompiledDescriptions;
          procedure CompilationNormal;
          procedure CompilationWithMapAndSymbols;
          procedure ExecutionNonOptimized;
          procedure ExecutionOptimized;
-
+        public
          procedure DelphiException;
          procedure DelphiExceptionReRaise;
+        published
          procedure ListOrdAutoEnum;
          procedure CallFunc;
    end;

@@ -155,7 +155,7 @@ type
          function Read(var Buffer; Count: Longint): Longint; override;
          function Write(const buffer; count: Longint): Longint; override;
          // must be strictly an utf16 string
-         procedure WriteString(const utf16String : String);
+         procedure WriteString(const utf16String : UnicodeString);
          // assumes data is an utf16 string
          function ToString : String; override;
 
@@ -879,10 +879,13 @@ end;
 
 // Read
 //
+{$PUSH}
+{$WARNINGS OFF}
 function TWriteOnlyBlockStream.Read(var Buffer; Count: Longint): Longint;
 begin
    raise EStreamError.Create('not allowed');
 end;
+{$POP}
 
 // Write
 //
@@ -930,13 +933,19 @@ end;
 
 // WriteString
 //
-procedure TWriteOnlyBlockStream.WriteString(const utf16String : String);
+procedure TWriteOnlyBlockStream.WriteString(const utf16String : UnicodeString);
 var
    stringCracker : NativeInt;
 begin
    if utf16String<>'' then begin
+      {$IFDEF FPC}
+      Write(utf16String[1], Length(utf16String));
+      //stringCracker:=NativeInt(utf16String);
+      //Write(Pointer(stringCracker)^, PInteger(stringCracker-SizeOf(Integer))^*SizeOf(Char));
+      {$ELSE}
       stringCracker:=NativeInt(utf16String);
       Write(Pointer(stringCracker)^, PInteger(stringCracker-SizeOf(Integer))^*SizeOf(Char));
+      {$ENDIF}
    end;
 end;
 
@@ -946,9 +955,15 @@ function TWriteOnlyBlockStream.ToString : String;
 begin
    if FTotalSize>0 then begin
 
+      {$IFDEF FPC}
+      //Assert((FTotalSize and 1) = 0);
+      SetLength(Result, FTotalSize);
+      StoreData(Result[1]);
+      {$ELSE}
       Assert((FTotalSize and 1) = 0);
       SetLength(Result, FTotalSize div 2);
       StoreData(Result[1]);
+      {$ENDIF}
 
    end else Result:='';
 end;

@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <SaveClosedFiles Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="dwscript"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="fptest"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="10">
+      <Unit0>
+        <Filename Value="lang_tests.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="lang_tests"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="UdwsUnitTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UdwsUnitTests"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="UdwsUtilsTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UdwsUtilsTests"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="UHTMLFilterTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UHTMLFilterTests"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="UMemoryTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UMemoryTests"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="UScriptTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UScriptTests"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="UTestDispatcher.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UTestDispatcher"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="UAlgorithmsTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UAlgorithmsTests"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="UCornerCasesTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UCornerCasesTests"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="UdwsFunctionsTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UdwsFunctionsTests"/>
+      </Unit9>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="10"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value=".\lang_tests"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)"/>
+    </SearchPaths>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+        <DebugInfoType Value="dsStabs"/>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+    </Linking>
+    <Other>
+      <Verbosity>
+        <ShowNotes Value="False"/>
+        <ShowHints Value="False"/>
+      </Verbosity>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

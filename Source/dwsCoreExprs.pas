@@ -1544,7 +1544,7 @@ begin
             end;
          end;
       end else rawResult:=NativeInt(unified1.Typ)-NativeInt(unified2.Typ);
-   end else rawResult:=NativeInt(unified1.ClassType)-NativeInt(unified2.ClassType);
+   end else rawResult:=NativeUInt(unified1.ClassType)-NativeUInt(unified2.ClassType);
 
    if rawResult=0 then
       Result:=0
@@ -1661,8 +1661,10 @@ end;
 //
 class function TUnifiedConstExpr.CreateUnified(Prog: TdwsProgram; Typ: TSymbol;
                                                const Value: Variant) : TUnifiedConstExpr;
+{$IFNDEF FPC}
 const
    vmtDestroy = -4;
+{$ENDIF}
 var
    i : Integer;
    p : Pointer;
@@ -1679,9 +1681,9 @@ begin
    end;
 
    p:=@TUnifiedConstExpr.DoNothing;
-   if PPointer(NativeInt(Self)+vmtDestroy)^<>p then begin
+   if PPointer(NativeUInt(Self)+vmtDestroy)^<>p then begin
       WriteProcessMemory(GetCurrentProcess,
-                         Pointer(NativeInt(Self)+vmtDestroy),
+                         Pointer(NativeUInt(Self)+vmtDestroy),
                          @p, SizeOf(Pointer), n);
    end;
 end;

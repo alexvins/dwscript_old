@@ -1,3 +1,4 @@
+{$I dws_tests_conf.inc}
 unit UdwsUtilsTests;
 
 interface
@@ -5,7 +6,7 @@ interface
 uses Windows, Classes, SysUtils, TestFrameWork, dwsUtils;
 
 type
-
+   TSimpleStackInt = TSimpleStack<Integer>;
    TdwsUtilsTests = class (TTestCase)
       private
          FTightList : TTightList;
@@ -35,9 +36,9 @@ implementation
 //
 procedure TdwsUtilsTests.StackIntegerTest;
 var
-   stack : TSimpleStack<Integer>;
+   stack : TSimpleStackInt;
 begin
-   stack:=TSimpleStack<Integer>.Create;
+   stack:=TSimpleStackInt.Create;
 
    CheckEquals(0, stack.Count);
 

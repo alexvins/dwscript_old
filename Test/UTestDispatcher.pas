@@ -1,3 +1,4 @@
+{$I dws_tests_conf.inc}
 unit UTestDispatcher;
 
 interface
@@ -152,7 +153,7 @@ Const
 Var
 
  Index : Integer;
- S     : String;
+ S     : String = '';
 
 Begin
 

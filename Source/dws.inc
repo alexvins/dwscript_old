@@ -29,10 +29,17 @@
 {global compiler options}
 
 {$ifdef FPC}
-  {$MODE DELPHI}
-  {$T-}
-  {$A+}
+
+  {$IFDEF DWS_FPC}
+     {$MODE OBJFPC}
+     {.$MODESWITCH ADVANCEDRECORDS}
+  {$ELSE}
+    {$MODE DELPHI}
+  {$ENDIF}
+  {.$T-}
+  {.$A+}
   {$H+}
+  // B+ X+ are default
 {$ELSE}
 
 {$A+} // align on

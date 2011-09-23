@@ -1,0 +1,8 @@
+/lib/*
+/Test/bin/*
+/Test/*.exe
+*.res
+*.lps
+/Test/units/*
+dunit2.ini
+log.txt

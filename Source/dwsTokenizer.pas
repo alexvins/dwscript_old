@@ -17,6 +17,7 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
+{.$DEFINE DWS_FPC}
 {$I dws.inc}
 unit dwsTokenizer;
 
@@ -153,7 +154,7 @@ type
      procedure AddCompilerStopFmtTokenBuffer(const formatString : String);
 
    public
-     constructor Create(const Text, SourceFile: string; Msgs: TdwsMessageList);
+     constructor Create(const AText, ASourceFile: string; AMsgs: TdwsMessageList);
      destructor Destroy; override;
      function GetToken: TToken; inline;
      function HasTokens: Boolean;
@@ -616,14 +617,14 @@ var
 
 { TTokenizer }
 
-constructor TTokenizer.Create(const Text, SourceFile: string; Msgs: TdwsMessageList);
+constructor TTokenizer.Create(const AText, ASourceFile: string; AMsgs: TdwsMessageList);
 begin
-   FText := Text + (cLineTerminator+#0);
+   FText := AText + (cLineTerminator+#0);
    FToken := nil;
-   FMsgs := Msgs;
+   FMsgs := AMsgs;
    FNextToken := nil;
    FDefaultPos := cNullPos;
-   FDefaultPos.SourceFile := FMsgs.RegisterSourceFile(SourceFile, Text);
+   FDefaultPos.SourceFile := FMsgs.RegisterSourceFile(ASourceFile, AText);
    FHotPos := FDefaultPos;
    FPos := FDefaultPos;
    FPosPtr := PChar(FText);
@@ -1153,7 +1154,7 @@ initialization
 finalization
 
    sStart.Free;
-   sSpace.Free;
+   //sSpace.Free;
    sComment.Free;
    sCommentF.Free;
    sSwitch.Free;

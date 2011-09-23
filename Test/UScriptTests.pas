@@ -1,3 +1,4 @@
+{$I dws_tests_conf.inc}
 unit UScriptTests;
 
 interface

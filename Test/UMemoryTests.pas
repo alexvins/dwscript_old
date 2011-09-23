@@ -1,9 +1,10 @@
+{$I dws_tests_conf.inc}
 unit UMemoryTests;
 
 interface
 
 uses Windows, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
-   dwsComConnector, Variants, ActiveX, ComObj, dwsXPlatform;
+   {dwsComConnector,} Variants, {ActiveX, ComObj,} dwsXPlatform;
 
 type
 

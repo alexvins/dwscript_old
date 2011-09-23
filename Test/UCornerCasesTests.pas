@@ -199,7 +199,7 @@ begin
       prog.Free;
    end;
 
-   FCompiler.OnInclude:=DoOnInclude;
+   FCompiler.OnInclude:=@DoOnInclude;
    prog:=FCompiler.Compile('{$include ''test.dummy''}');
    try
       CheckEquals('', prog.Msgs.AsInfo, 'include via event');
