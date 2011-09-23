@@ -11,12 +11,12 @@ uses
   UdwsUnitTests, //ok
   UdwsUtilsTests,//ok
   UHTMLFilterTests,
-  //UMemoryTests,
-  //UScriptTests,
-  //UTestDispatcher,
-  //UAlgorithmsTests,
-  //UCornerCasesTests,
-  //UdwsFunctionsTests,
+  UMemoryTests,
+  UScriptTests,
+  UTestDispatcher,
+  UAlgorithmsTests,
+  UCornerCasesTests,
+  UdwsFunctionsTests,
   CustApp
   { you can add units after this };
 

@@ -155,7 +155,7 @@ type
          function Read(var Buffer; Count: Longint): Longint; override;
          function Write(const buffer; count: Longint): Longint; override;
          // must be strictly an utf16 string
-         procedure WriteString(const utf16String : UnicodeString);
+         procedure WriteString(const utf16String : String);
          // assumes data is an utf16 string
          function ToString : String; override;
 
@@ -933,7 +933,7 @@ end;
 
 // WriteString
 //
-procedure TWriteOnlyBlockStream.WriteString(const utf16String : UnicodeString);
+procedure TWriteOnlyBlockStream.WriteString(const utf16String : String);
 var
    stringCracker : NativeInt;
 begin
