@@ -1,5 +1,7 @@
 unit dwsClassesLibModule;
 
+{$MODE Delphi}
+
 interface
 
 uses
@@ -185,7 +187,7 @@ procedure Register;
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 procedure Register;
 begin
