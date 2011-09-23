@@ -2,7 +2,10 @@ unit UCornerCasesTests;
 
 interface
 
-uses Windows, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+uses Windows, Classes, SysUtils,
+   fpcunit,testregistry,
+   //TestFrameWork,
+   dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsXPlatform, dwsFileSystem, dwsErrors;
 
 type
@@ -385,6 +388,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('CornerCasesTests', TCornerCasesTests.Suite);
+   RegisterTest('CornerCasesTests', TCornerCasesTests.Suite);
 
 end.

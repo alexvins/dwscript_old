@@ -2,7 +2,10 @@ unit UAlgorithmsTests;
 
 interface
 
-uses Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
+uses Classes, SysUtils,
+  fpcunit,testregistry,
+  //TestFrameWork,
+  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
 
 type
 
@@ -166,6 +169,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('AlgorithmsTests', TAlgorithmsTests.Suite);
+   RegisterTest('AlgorithmsTests', TAlgorithmsTests.Suite);
 
 end.

@@ -4,7 +4,10 @@ unit UHTMLFilterTests;
 interface
 
 uses
-  Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+  Classes, SysUtils,
+    fpcunit,testregistry,
+  //TestFrameWork,
+  dwsComp, dwsCompiler, dwsExprs,
   dwsHtmlFilter, dwsXPlatform;
 
 type
@@ -111,15 +114,16 @@ begin
    locFilter:=TdwsHtmlFilter.Create(nil);
    try
       locFilter.PatternClose:='';
-      CheckException(locFilter.CheckPatterns, EHTMLFilterException);
+      AssertException(EHTMLFilterException,locFilter.CheckPatterns);
+
       locFilter.PatternClose:='a';
 
       locFilter.PatternOpen:='';
-      CheckException(locFilter.CheckPatterns, EHTMLFilterException);
+      AssertException(EHTMLFilterException,locFilter.CheckPatterns);
       locFilter.PatternOpen:='b';
 
       locFilter.PatternEval:='';
-      CheckException(locFilter.CheckPatterns, EHTMLFilterException);
+      AssertException(EHTMLFilterException,locFilter.CheckPatterns);
       locFilter.PatternEval:='c';
    finally
       locFilter.Free;
@@ -150,6 +154,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-TestFrameWork.RegisterTest('HTMLFilterTests', THTMLFilterTests.Suite);
+RegisterTest('HTMLFilterTests', THTMLFilterTests.Suite);
 
 end.

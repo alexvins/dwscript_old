@@ -3,7 +3,10 @@ unit UdwsUnitTests;
 
 interface
 
-uses Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+uses Classes, SysUtils,
+   fpcunit,testregistry,
+   //TestFrameWork,
+   dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsSymbols;
 
 type
@@ -547,6 +550,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('dwsUnitTests', TdwsUnitTests.Suite);
+   RegisterTest('dwsUnitTests', TdwsUnitTests.Suite);
 
 end.

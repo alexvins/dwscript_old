@@ -6,6 +6,7 @@
 /Test/units/*
 dunit2.ini
 log.txt
+*.compiled
 
 /Source/Libraries/ConverterBackup/dwsClassesLibModule.dfm
 /Source/Libraries/ConverterBackup/dwsClassesLibModule.pas
