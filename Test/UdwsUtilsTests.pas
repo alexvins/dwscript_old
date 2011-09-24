@@ -3,10 +3,7 @@ unit UdwsUtilsTests;
 
 interface
 
-uses Windows, Classes, SysUtils,
-    fpcunit,testregistry,
-  //TestFrameWork,
-  dwsUtils;
+uses Classes, SysUtils, fpcunit, testregistry, dwsUtils;
 
 type
    TSimpleStackInt = TSimpleStack<Integer>;

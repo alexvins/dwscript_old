@@ -143,7 +143,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="10">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -153,6 +153,27 @@
       <Item3>
         <Name Value="EFOpenError"/>
       </Item3>
+      <Item4>
+        <Name Value="EAssertionFailedError"/>
+      </Item4>
+      <Item5>
+        <Name Value="EScriptError"/>
+      </Item5>
+      <Item6>
+        <Name Value="ECompileError"/>
+      </Item6>
+      <Item7>
+        <Name Value="EScriptException"/>
+      </Item7>
+      <Item8>
+        <Name Value="EConvertError"/>
+      </Item8>
+      <Item9>
+        <Name Value="EHTMLFilterException"/>
+      </Item9>
+      <Item10>
+        <Name Value="EScriptOutOfBounds"/>
+      </Item10>
     </Exceptions>
   </Debugging>
 </CONFIG>

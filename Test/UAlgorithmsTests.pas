@@ -4,16 +4,18 @@ interface
 
 uses Classes, SysUtils,
   fpcunit,testregistry,
-  //TestFrameWork,
+  dws_fpcunit,
   dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
 
 type
 
-   TAlgorithmsTests = class (TTestCase)
-      private
-         FTests : TStringList;
-         FCompiler : TDelphiWebScript;
+   { TAlgorithmsTests }
 
+   TAlgorithmsTests = class (TDWSCompilerTestCase)
+      private
+         //FTests : TStringList;
+      protected
+        class function GetTestDataPath: string; override;
       public
          procedure SetUp; override;
          procedure TearDown; override;
@@ -41,24 +43,28 @@ implementation
 // ------------------ TAlgorithmsTests ------------------
 // ------------------
 
+class function TAlgorithmsTests.GetTestDataPath: string;
+begin
+  Result := 'Algorithms';
+end;
+
 // SetUp
 //
 procedure TAlgorithmsTests.SetUp;
 begin
-   FTests:=TStringList.Create;
+   inherited;
+   //FTests:=TStringList.Create;
 
-   CollectFiles(ExtractFilePath(ParamStr(0))+'Algorithms'+PathDelim, '*.pas', FTests);
+   //CollectFiles(ExtractFilePath(ParamStr(0))+'Algorithms'+PathDelim, '*.pas', FTests);
 
-   FCompiler:=TDelphiWebScript.Create(nil);
 end;
 
 // TearDown
 //
 procedure TAlgorithmsTests.TearDown;
 begin
-   FCompiler.Free;
-
-   FTests.Free;
+   //FTests.Free;
+   inherited;
 end;
 
 // Compilation
@@ -66,24 +72,24 @@ end;
 procedure TAlgorithmsTests.Compilation;
 var
    source : TStringList;
-   i : Integer;
+   //i : Integer;
    prog : TdwsProgram;
 begin
    source:=TStringList.Create;
    try
 
-      for i:=0 to FTests.Count-1 do begin
+      //for i:=0 to FTests.Count-1 do begin
 
-         source.LoadFromFile(FTests[i]);
+         source.LoadFromFile(FTestFilename);
 
          prog:=FCompiler.Compile(source.Text);
          try
-            CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
+            CheckEquals('', prog.Msgs.AsInfo, FTestFilename);
          finally
             prog.Free;
          end;
 
-      end;
+      //end;
 
    finally
       source.Free;
@@ -127,7 +133,7 @@ end;
 procedure TAlgorithmsTests.Execution;
 var
    source, expectedResult : TStringList;
-   i : Integer;
+   //i : Integer;
    prog : TdwsProgram;
    resultsFileName : String;
 begin
@@ -135,25 +141,25 @@ begin
    expectedResult:=TStringList.Create;
    try
 
-      for i:=0 to FTests.Count-1 do begin
+      //for i:=0 to FTests.Count-1 do begin
 
-         source.LoadFromFile(FTests[i]);
+         source.LoadFromFile(FTestFilename);
 
          prog:=FCompiler.Compile(source.Text);
          try
-            CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
+            CheckEquals('', prog.Msgs.AsInfo, FTestFilename);
             prog.Execute;
-            resultsFileName:=ChangeFileExt(FTests[i], '.txt');
+            resultsFileName:=ChangeFileExt(FTestFilename, '.txt');
             if FileExists(resultsFileName) then begin
                expectedResult.LoadFromFile(resultsFileName);
-               CheckEquals(expectedResult.Text, (prog.Result as TdwsDefaultResult).Text, FTests[i]);
-            end else CheckEquals('', (prog.Result as TdwsDefaultResult).Text, FTests[i]);
-            CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
+               CheckEquals(expectedResult.Text, (prog.Result as TdwsDefaultResult).Text, FTestFilename);
+            end else CheckEquals('', (prog.Result as TdwsDefaultResult).Text, FTestFilename);
+            CheckEquals('', prog.Msgs.AsInfo, FTestFilename);
          finally
             prog.Free;
          end;
 
-      end;
+      //end;
 
    finally
       expectedResult.Free;

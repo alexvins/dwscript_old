@@ -3,7 +3,7 @@ unit UMemoryTests;
 
 interface
 
-uses Windows, Classes, SysUtils,
+uses Classes, SysUtils,
     fpcunit,testregistry,
   //TestFrameWork,
   dwsComp, dwsCompiler, dwsExprs,
