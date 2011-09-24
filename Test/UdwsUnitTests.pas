@@ -47,10 +47,8 @@ type
          procedure CompilationWithMapAndSymbols;
          procedure ExecutionNonOptimized;
          procedure ExecutionOptimized;
-        public
          procedure DelphiException;
          procedure DelphiExceptionReRaise;
-        published
          procedure ListOrdAutoEnum;
          procedure CallFunc;
    end;
