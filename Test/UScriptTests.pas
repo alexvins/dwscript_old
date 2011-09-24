@@ -3,10 +3,8 @@ unit UScriptTests;
 
 interface
 
-uses Classes, SysUtils,
-      fpcunit,testregistry,
-  dws_fpcunit,
-  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
+uses Classes,testregistry,
+  dws_fpcunit, dwsCompiler;
 
 type
 

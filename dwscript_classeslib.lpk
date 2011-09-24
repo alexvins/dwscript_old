@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="dwscript_classeslib"/>
+    <CompilerOptions>
+      <Version Value="10"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="Source"/>
+        <OtherUnitFiles Value="Source\Libraries"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <IncludeAssertionCode Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Checks>
+          <IOChecks Value="True"/>
+          <RangeChecks Value="True"/>
+          <OverflowChecks Value="True"/>
+        </Checks>
+      </CodeGeneration>
+      <Linking>
+        <Debugging>
+          <GenerateDebugInfo Value="True"/>
+          <DebugInfoType Value="dsAuto"/>
+        </Debugging>
+      </Linking>
+      <Other>
+        <Verbosity>
+          <ShowHints Value="False"/>
+        </Verbosity>
+        <CompilerMessages>
+          <UseMsgFile Value="True"/>
+        </CompilerMessages>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Delphi Web Script for Free Pascal. Classes library"/>
+    <License Value="MPL 1.1"/>
+    <Version Major="2" Minor="1"/>
+    <Files Count="5">
+      <Item1>
+        <Filename Value="Source\Libraries\dwsAsmLibModule.pas"/>
+        <UnitName Value="dwsAsmLibModule"/>
+      </Item1>
+      <Item2>
+        <Filename Value="Source\Libraries\dwsClasses.pas"/>
+        <UnitName Value="dwsClasses"/>
+      </Item2>
+      <Item3>
+        <Filename Value="Source\Libraries\dwsClassesLibModule.lfm"/>
+        <Type Value="LFM"/>
+      </Item3>
+      <Item4>
+        <Filename Value="Source\Libraries\dwsClassesLibModule.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="dwsClassesLibModule"/>
+      </Item4>
+      <Item5>
+        <Filename Value="Source\Libraries\dwsHashtables.pas"/>
+        <UnitName Value="dwsHashtables"/>
+      </Item5>
+    </Files>
+    <Type Value="DesignTime"/>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="dwscript"/>
+        <MaxVersion Major="2" Minor="999" Valid="True"/>
+        <MinVersion Major="2" Minor="1" Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

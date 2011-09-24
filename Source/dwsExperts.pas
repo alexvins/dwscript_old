@@ -27,19 +27,24 @@ procedure Register;
 
 implementation
 
-uses Classes, Forms, SysUtils, DesignIntf, DesignEditors,
+uses Classes, Forms, SysUtils,
+{$IFDEF FPC}
+  PropEdits,
+{$ELSE}
+  DesignIntf, DesignEditors,
+{$ENDIF}
   dwsStrings, dwsComp, dwsSymbols;
 
 type
   TdwsDataTypeProperty = class(TStringProperty)
-  protected
+  public
     { Protected Declarations }
     function GetAttributes: TPropertyAttributes; override;
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
   TdwsAncestorProperty = class(TStringProperty)
-  protected
+  public
     { Protected Declarations }
     function GetAttributes: TPropertyAttributes; override;
     procedure GetValues(Proc: TGetStrProc); override;

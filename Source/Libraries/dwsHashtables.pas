@@ -1,3 +1,4 @@
+{$I dws.inc}
 unit dwsHashtables;
 
 interface

@@ -203,6 +203,8 @@ var
    processInfo : TProcessInformation;
    pCurrentDirectory : PChar;
    errors : TStringList;
+
+   script_pos: TScriptPos;
 begin
    tempFileNameAsm:=TPath.GetTempFileName;
    tempFileNameBin:=tempFileNameAsm+'.bin';
@@ -238,9 +240,8 @@ begin
                      p:=Pos(')', errorLine);
                      k:=StrToInt(Copy(errorLine, 1, p-1));
                      Delete(errorLine, 1, p+2);
-                     msgs.AddCompilerError(TScriptPos.Create(basePos.SourceFile,
-                                                             Integer(code.Objects[k-1]), 1),
-                                           'asm '+errorLine);
+                     script_pos.Create(basePos.SourceFile, Integer(code.Objects[k-1]), 1);
+                     msgs.AddCompilerError(script_pos,'asm '+errorLine);
                   end else msgs.AddError(errorLine);
                end;
                if errors.Count>0 then

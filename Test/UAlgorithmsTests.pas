@@ -2,10 +2,8 @@ unit UAlgorithmsTests;
 
 interface
 
-uses Classes, SysUtils,
-  fpcunit,testregistry,
-  dws_fpcunit,
-  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
+uses testregistry,
+  dws_fpcunit;
 
 type
 

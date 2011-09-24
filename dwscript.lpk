@@ -27,7 +27,7 @@
       <Linking>
         <Debugging>
           <GenerateDebugInfo Value="True"/>
-          <DebugInfoType Value="dsStabs"/>
+          <DebugInfoType Value="dsAuto"/>
           <UseHeaptrc Value="True"/>
         </Debugging>
       </Linking>
@@ -47,133 +47,112 @@
     </CompilerOptions>
     <License Value="MPL"/>
     <Version Major="2" Minor="1"/>
-    <Files Count="30">
+    <Files Count="26">
       <Item1>
         <Filename Value="Source\dws.inc"/>
         <Type Value="Include"/>
       </Item1>
       <Item2>
-        <Filename Value="Source\dwsComConnector.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="dwsComConnector"/>
-      </Item2>
-      <Item3>
         <Filename Value="Source\dwsComp.pas"/>
         <UnitName Value="dwsComp"/>
-      </Item3>
-      <Item4>
+      </Item2>
+      <Item3>
         <Filename Value="Source\dwsCompiler.pas"/>
         <UnitName Value="dwsCompiler"/>
-      </Item4>
-      <Item5>
+      </Item3>
+      <Item4>
         <Filename Value="Source\dwsCoreExprs.pas"/>
         <UnitName Value="dwsCoreExprs"/>
-      </Item5>
-      <Item6>
+      </Item4>
+      <Item5>
         <Filename Value="Source\dwsDebugger.pas"/>
         <UnitName Value="dwsDebugger"/>
-      </Item6>
-      <Item7>
+      </Item5>
+      <Item6>
         <Filename Value="Source\dwsErrors.pas"/>
         <UnitName Value="dwsErrors"/>
-      </Item7>
-      <Item8>
-        <Filename Value="Source\dwsExperts.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="dwsExperts"/>
-      </Item8>
-      <Item9>
+      </Item6>
+      <Item7>
         <Filename Value="Source\dwsExprs.pas"/>
         <UnitName Value="dwsExprs"/>
-      </Item9>
-      <Item10>
+      </Item7>
+      <Item8>
         <Filename Value="Source\dwsFileSystem.pas"/>
         <UnitName Value="dwsFileSystem"/>
-      </Item10>
-      <Item11>
+      </Item8>
+      <Item9>
         <Filename Value="Source\dwsFunctions.pas"/>
         <UnitName Value="dwsFunctions"/>
-      </Item11>
-      <Item12>
+      </Item9>
+      <Item10>
         <Filename Value="Source\dwsGlobalVarsFunctions.pas"/>
         <UnitName Value="dwsGlobalVarsFunctions"/>
-      </Item12>
-      <Item13>
+      </Item10>
+      <Item11>
         <Filename Value="Source\dwsHtmlFilter.pas"/>
         <UnitName Value="dwsHtmlFilter"/>
-      </Item13>
-      <Item14>
+      </Item11>
+      <Item12>
         <Filename Value="Source\dwsLanguageExtension.pas"/>
         <UnitName Value="dwsLanguageExtension"/>
-      </Item14>
-      <Item15>
+      </Item12>
+      <Item13>
         <Filename Value="Source\dwsMagicExprs.pas"/>
         <UnitName Value="dwsMagicExprs"/>
-      </Item15>
-      <Item16>
+      </Item13>
+      <Item14>
         <Filename Value="Source\dwsMathFunctions.pas"/>
         <UnitName Value="dwsMathFunctions"/>
-      </Item16>
-      <Item17>
-        <Filename Value="Source\dwsRegister.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="dwsRegister"/>
-      </Item17>
-      <Item18>
+      </Item14>
+      <Item15>
         <Filename Value="Source\dwsRelExprs.pas"/>
         <UnitName Value="dwsRelExprs"/>
-      </Item18>
-      <Item19>
-        <Filename Value="Source\dwsRTTIExposer.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="dwsRTTIExposer"/>
-      </Item19>
-      <Item20>
+      </Item15>
+      <Item16>
         <Filename Value="Source\dwsStack.pas"/>
         <UnitName Value="dwsStack"/>
-      </Item20>
-      <Item21>
+      </Item16>
+      <Item17>
         <Filename Value="Source\dwsStringFunctions.pas"/>
         <UnitName Value="dwsStringFunctions"/>
-      </Item21>
-      <Item22>
+      </Item17>
+      <Item18>
         <Filename Value="Source\dwsStringResult.pas"/>
         <UnitName Value="dwsStringResult"/>
-      </Item22>
-      <Item23>
+      </Item18>
+      <Item19>
         <Filename Value="Source\dwsStrings.pas"/>
         <UnitName Value="dwsStrings"/>
-      </Item23>
-      <Item24>
+      </Item19>
+      <Item20>
         <Filename Value="Source\dwsSymbols.pas"/>
         <UnitName Value="dwsSymbols"/>
-      </Item24>
-      <Item25>
+      </Item20>
+      <Item21>
         <Filename Value="Source\dwsTimeFunctions.pas"/>
         <UnitName Value="dwsTimeFunctions"/>
-      </Item25>
-      <Item26>
+      </Item21>
+      <Item22>
         <Filename Value="Source\dwsTokenizer.pas"/>
         <UnitName Value="dwsTokenizer"/>
-      </Item26>
-      <Item27>
+      </Item22>
+      <Item23>
         <Filename Value="Source\dwsUtils.pas"/>
         <UnitName Value="dwsUtils"/>
-      </Item27>
-      <Item28>
+      </Item23>
+      <Item24>
         <Filename Value="Source\dwsVariantFunctions.pas"/>
         <UnitName Value="dwsVariantFunctions"/>
-      </Item28>
-      <Item29>
+      </Item24>
+      <Item25>
         <Filename Value="Source\dwsVCLGUIFunctions.pas"/>
         <UnitName Value="dwsVCLGUIFunctions"/>
-      </Item29>
-      <Item30>
+      </Item25>
+      <Item26>
         <Filename Value="Source\dwsXPlatform.pas"/>
         <UnitName Value="dwsXPlatform"/>
-      </Item30>
+      </Item26>
     </Files>
-    <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="lcl"/>

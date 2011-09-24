@@ -1,3 +1,4 @@
+{$I dws.inc}
 unit dwsClasses;
 
 interface
@@ -149,6 +150,17 @@ uses RTLConsts, SysConst, Types;
 uses RTLConsts, SysConst;
 {$ENDIF}
 
+
+{$IFDEF FPC}
+   //todo: move to common lib unit
+   type
+     __TCharSet = set of char;
+
+   function CharInSet(c: char; s: __TCharSet): boolean;
+   begin
+     Result := c in s;
+   end;
+{$ENDIF}
 { TdwsStrings }
 
 destructor TdwsStrings.Destroy;
@@ -223,9 +235,17 @@ procedure TdwsStrings.DefineProperties(Filer: TFiler);
     end
     else Result := Count > 0;
   end;
-
+{$IFDEF FPC}
+var
+  has_data: boolean;
+{$ENDIF}
 begin
-  Filer.DefineProperty('Strings', ReadData, WriteData, DoWrite);
+{$IFDEF FPC}
+   has_data := DoWrite;
+   Filer.DefineProperty('Strings', ReadData, WriteData, has_data);
+{$ELSE}
+   Filer.DefineProperty('Strings', ReadData, WriteData, DoWrite);
+{$ENDIF}
 end;
 
 procedure TdwsStrings.EndUpdate;

@@ -9,18 +9,11 @@ interface
 uses
   dwsComp, dwsCompiler, dwsCoreExprs, dwsDebugger, dwsErrors, dwsExprs, 
   dwsFileSystem, dwsFunctions, dwsGlobalVarsFunctions, dwsHtmlFilter, 
-  dwsLanguageExtension, dwsMagicExprs, dwsMathFunctions, dwsRegister, 
-  dwsRelExprs, dwsStack, dwsStringFunctions, dwsStringResult, dwsStrings, 
-  dwsSymbols, dwsTimeFunctions, dwsTokenizer, dwsUtils, dwsVariantFunctions, 
-  dwsVCLGUIFunctions, dwsXPlatform, LazarusPackageIntf;
+  dwsLanguageExtension, dwsMagicExprs, dwsMathFunctions, dwsRelExprs, 
+  dwsStack, dwsStringFunctions, dwsStringResult, dwsStrings, dwsSymbols, 
+  dwsTimeFunctions, dwsTokenizer, dwsUtils, dwsVariantFunctions, 
+  dwsVCLGUIFunctions, dwsXPlatform;
 
 implementation
 
-procedure Register; 
-begin
-  RegisterUnit('dwsRegister', @dwsRegister.Register); 
-end; 
-
-initialization
-  RegisterPackage('dwscript', @Register); 
 end.
