@@ -21,21 +21,30 @@ type
     procedure SetUp; override; 
     procedure TearDown; override;
 
-    class function GetTestDataPath: string; virtual; abstract;
+    procedure Execution; virtual; abstract;
+    procedure Compilation; virtual; abstract;
+
+
+    //class function GetTestDataPath: string; virtual; abstract;
     class function GetTestFileMask: string; virtual;
   public
     constructor CreateWith(const ATestName: string;
       const ATestSuiteName: string; const ATestFile: String); reintroduce;virtual;
-    class function Suite: TTest;
+    class function Suite (const AName, AFolder:string): TTest;
+  published
+    procedure CompilationNormal;
+    procedure CompilationWithMapAndSymbols;
+    procedure ExecutionNonOptimized;
+    procedure ExecutionOptimized;
   end;
 
   TDWSCompilerTestCaseClass = class of TDWSCompilerTestCase;
 
-  { TTestFactory }
+  { TTestFolderSuite }
 
-  TTestFactory = class (TTestSuite)
+  TTestFolderSuite = class (TTestSuite)
   public
-    constructor Create(AClass: TDWSCompilerTestCaseClass); reintroduce;
+    constructor Create(ASuiteName, AFolder: string; AClass: TDWSCompilerTestCaseClass); reintroduce;
   end;
 
   { TTestFileSuite }
@@ -43,10 +52,11 @@ type
   TTestFileSuite = class(TTestSuite)
   public
     constructor Create(ATestFile: string; ATestClass: TDWSCompilerTestCaseClass);reintroduce;
-
   end;
 
+
 implementation
+
 
 { TTestFileSuite }
 
@@ -72,19 +82,20 @@ begin
   end
 end;
 
-{ TTestFactory }
+{ TTestFolderSuite }
 
-constructor TTestFactory.Create(AClass: TDWSCompilerTestCaseClass);
+constructor TTestFolderSuite.Create(ASuiteName, AFolder: string;
+  AClass: TDWSCompilerTestCaseClass);
 var
   test_data_path: string;
   FFiles: TStringList;
   s: String;
   file_suite: TTestFileSuite;
 begin
-  inherited Create(AClass.ClassName);
+  inherited Create (ASuiteName);
   //collect tests
   test_data_path := ExtractFilePath(ParamStr(0))
-    +AClass.GetTestDataPath+DirectorySeparator;
+    + AFolder+DirectorySeparator;
   FFiles := TStringList.Create;
   try
     try
@@ -101,6 +112,8 @@ begin
     AddTest(Warning('Exception during test creation'));
   end;
 end;
+
+{ TDWSCompilerTestCase }
 
 procedure TDWSCompilerTestCase.SetUp;
 begin
@@ -126,9 +139,34 @@ begin
   FTestFilename := ATestFile;
 end;
 
-class function TDWSCompilerTestCase.Suite: TTest;
+class function TDWSCompilerTestCase.Suite(const AName, AFolder: string): TTest;
 begin
-  Result := TTestFactory.Create(Self);
+  Result := TTestFolderSuite.Create(AName, AFolder, Self);
+end;
+
+procedure TDWSCompilerTestCase.CompilationNormal;
+begin
+     FCompiler.Config.CompilerOptions:=[coOptimize];
+   Compilation;
+
+end;
+
+procedure TDWSCompilerTestCase.CompilationWithMapAndSymbols;
+begin
+    FCompiler.Config.CompilerOptions:=[coSymbolDictionary, coContextMap];
+   Compilation;
+end;
+
+procedure TDWSCompilerTestCase.ExecutionNonOptimized;
+begin
+  FCompiler.Config.CompilerOptions:=[];
+  Execution;
+end;
+
+procedure TDWSCompilerTestCase.ExecutionOptimized;
+begin
+  FCompiler.Config.CompilerOptions:=[coOptimize];
+  Execution;
 end;
 
 end.
