@@ -6,19 +6,20 @@ interface
 uses
   Classes, SysUtils,
     fpcunit,testregistry,
-  //TestFrameWork,
+  dws_fpcunit,
   dwsComp, dwsCompiler, dwsExprs,
   dwsHtmlFilter, dwsXPlatform;
 
 type
 
-   THTMLFilterTests = class(TTestCase)
+   { THTMLFilterTests }
+
+   THTMLFilterTests = class(TDWSCompilerTestCase)
    private
-      FTests: TStringList;
-      FCompiler: TDelphiWebScript;
       FFilter: TdwsHTMLFilter;
       FUnit: TdwsHTMLUnit;
-
+   protected
+      class function GetTestFileMask: string; override;
    public
       procedure SetUp; override;
       procedure TearDown; override;
@@ -27,87 +28,24 @@ type
 
    published
       procedure TestHTMLScript;
-      procedure TestPatterns;
 
+   end;
+
+   { TPatternsTests }
+
+   TPatternsTests = class(TTestCase)
+   published
+     procedure TestPatterns;
    end;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 implementation
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
 
-// ------------------
-// ------------------ THTMLFilterTests ------------------
-// ------------------
+{ TPatternsTests }
 
-// SetUp
-//
-procedure THTMLFilterTests.SetUp;
-begin
-  FTests := TStringList.Create;
-
-  CollectFiles(ExtractFilePath(ParamStr(0)) + 'HTMLFilterScripts' + PathDelim, '*.dws', FTests);
-
-  FCompiler := TDelphiWebScript.Create(nil);
-  FCompiler.OnInclude := DoInclude;
-
-  FFilter := TdwsHTMLFilter.Create(nil);
-  FFilter.PatternOpen := '<?pas';
-  FFilter.PatternClose := '?>';
-  FFilter.PatternEval := '=';
-
-  FCompiler.Config.Filter := FFilter;
-
-  FUnit := TdwsHTMLUnit.Create(nil);
-  FCompiler.AddUnit(FUnit);
-end;
-
-// TearDown
-//
-procedure THTMLFilterTests.TearDown;
-begin
-  FCompiler.Free;
-  FFilter.Free;
-  FUnit.Free;
-  FTests.Free;
-end;
-
-procedure THTMLFilterTests.TestHTMLScript;
-var
-  s: string;
-  resultFileName : String;
-  prog: TdwsProgram;
-  sl : TStringList;
-begin
-   sl:=TStringList.Create;
-   try
-      for s in FTests do begin
-         sl.LoadFromFile(s);
-         prog := FCompiler.Compile(sl.Text);
-         try
-            CheckEquals('', prog.Msgs.AsInfo, s);
-            prog.Execute;
-
-            resultFileName:=ChangeFileExt(s, '.txt');
-            if FileExists(resultFileName) then
-               sl.LoadFromFile(ChangeFileExt(resultFileName, '.txt'))
-            else sl.Clear;
-            CheckEquals(sl.Text, (prog.Result as TdwsDefaultResult).Text, s);
-         finally
-            prog.Free;
-         end;
-      end;
-   finally
-      sl.Free;
-   end;
-end;
-
-// TestPatterns
-//
-procedure THTMLFilterTests.TestPatterns;
+procedure TPatternsTests.TestPatterns;
 var
    locFilter : TdwsHtmlFilter;
 begin
@@ -128,7 +66,64 @@ begin
    finally
       locFilter.Free;
    end;
+
 end;
+
+// ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// ------------------------------------------------------------------
+
+// ------------------
+// ------------------ THTMLFilterTests ------------------
+// ------------------
+
+class function THTMLFilterTests.GetTestFileMask: string;
+begin
+  Result := '*.dws';
+end;
+
+// SetUp
+//
+procedure THTMLFilterTests.SetUp;
+begin
+  inherited;
+  FCompiler.OnInclude := DoInclude;
+
+  FFilter := TdwsHTMLFilter.Create(nil);
+  FFilter.PatternOpen := '<?pas';
+  FFilter.PatternClose := '?>';
+  FFilter.PatternEval := '=';
+
+  FCompiler.Config.Filter := FFilter;
+
+  FUnit := TdwsHTMLUnit.Create(nil);
+  FCompiler.AddUnit(FUnit);
+end;
+
+// TearDown
+//
+procedure THTMLFilterTests.TearDown;
+begin
+  FFilter.Free;
+  FUnit.Free;
+  inherited;
+end;
+
+procedure THTMLFilterTests.TestHTMLScript;
+var
+  resultFileName : String;
+begin
+  Compilation;
+
+  FProg.Execute;
+
+  resultFileName:=ChangeFileExt(FTestFilename, '.txt');
+  if FileExists(resultFileName) then
+     FSource.LoadFromFile(ChangeFileExt(resultFileName, '.txt'))
+  else FSource.Clear;
+  CheckEquals(FSource.Text, (FProg.Result as TdwsDefaultResult).Text, FTestFilename);
+end;
+
 
 // DoInclude
 //
@@ -145,15 +140,9 @@ begin
   end;
 end;
 
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
 initialization
 
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-
-RegisterTest('HTMLFilterTests', THTMLFilterTests.Suite);
+  RegisterTest('HTMLFilterTests', TPatternsTests.Suite);
+  RegisterTest('',THTMLFilterTests.Suite('HTMLFilterTests','HTMLFilterScripts'));
 
 end.

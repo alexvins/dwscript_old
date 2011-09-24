@@ -171,10 +171,8 @@ end;
 
 procedure TDWSCompilerTestCase.Compilation;
 begin
-
   FProg:=FCompiler.Compile(FSource.Text);
   CheckEquals('', FProg.Msgs.AsInfo, FTestFilename);
-
 end;
 
 procedure TDWSCompilerTestCase.Execution;
