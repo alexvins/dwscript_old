@@ -6,32 +6,36 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  dwsComp, dwsCompiler, dwsXPlatform;
+  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
 
 type
 
   { TDWSCompilerTestCase }
 
-  TDWSCompilerTestCase = class abstract(TTestCase)
+  TDWSCompilerTestCase = class (TTestCase)
   strict protected
     FCompiler: TDelphiWebScript;
     FTestFilename: string;
+
+    FSource : TStringList;
+    FProg : TdwsProgram;
+
   protected
     property TestFilename:string read FTestFilename;
     procedure SetUp; override; 
     procedure TearDown; override;
 
-    procedure Execution; virtual; abstract;
-    procedure Compilation; virtual; abstract;
+    procedure Compilation; virtual;
+    procedure Execution; virtual;
 
+    procedure PostExec; virtual;
 
-    //class function GetTestDataPath: string; virtual; abstract;
     class function GetTestFileMask: string; virtual;
   public
     constructor CreateWith(const ATestName: string;
       const ATestSuiteName: string; const ATestFile: String); reintroduce;virtual;
     class function Suite (const AName, AFolder:string): TTest;
-  published
+  public
     procedure CompilationNormal;
     procedure CompilationWithMapAndSymbols;
     procedure ExecutionNonOptimized;
@@ -39,6 +43,16 @@ type
   end;
 
   TDWSCompilerTestCaseClass = class of TDWSCompilerTestCase;
+
+  { TDWSCustomTest }
+
+  TDWSCustomTest = class (TDWSCompilerTestCase)
+  published
+    procedure CompilationNormal;
+    procedure CompilationWithMapAndSymbols;
+    procedure ExecutionNonOptimized;
+    procedure ExecutionOptimized;
+  end;
 
   { TTestFolderSuite }
 
@@ -56,6 +70,28 @@ type
 
 
 implementation
+
+{ TDWSCustomTest }
+
+procedure TDWSCustomTest.CompilationNormal;
+begin
+  inherited;
+end;
+
+procedure TDWSCustomTest.CompilationWithMapAndSymbols;
+begin
+  inherited;
+end;
+
+procedure TDWSCustomTest.ExecutionNonOptimized;
+begin
+  inherited;
+end;
+
+procedure TDWSCustomTest.ExecutionOptimized;
+begin
+  inherited;
+end;
 
 
 { TTestFileSuite }
@@ -119,12 +155,53 @@ procedure TDWSCompilerTestCase.SetUp;
 begin
   inherited;
   FCompiler := TDelphiWebScript.Create(nil);
+  FSource:=TStringList.Create;
+  FSource.LoadFromFile(FTestFilename);
+  FProg := nil;
+
 end; 
 
 procedure TDWSCompilerTestCase.TearDown;
 begin
   FCompiler.Free;
+  FSource.Free;
+  FreeAndNil(FProg);
   inherited;
+end;
+
+procedure TDWSCompilerTestCase.Compilation;
+begin
+
+  FProg:=FCompiler.Compile(FSource.Text);
+  CheckEquals('', FProg.Msgs.AsInfo, FTestFilename);
+
+end;
+
+procedure TDWSCompilerTestCase.Execution;
+var
+  expectedResult : TStringList;
+  resultsFileName : String;
+begin
+   expectedResult:=TStringList.Create;
+   try
+     Compilation;
+      FProg.Execute;
+      resultsFileName:=ChangeFileExt(FTestFilename, '.txt');
+      if FileExists(resultsFileName) then begin
+         expectedResult.LoadFromFile(resultsFileName);
+         CheckEquals(expectedResult.Text, (FProg.Result as TdwsDefaultResult).Text, FTestFilename);
+      end else CheckEquals('', (FProg.Result as TdwsDefaultResult).Text, FTestFilename);
+      CheckEquals('', FProg.Msgs.AsInfo, FTestFilename);
+      PostExec;
+   finally
+      expectedResult.Free;
+   end;
+
+end;
+
+procedure TDWSCompilerTestCase.PostExec;
+begin
+  //do nothing in base class
 end;
 
 class function TDWSCompilerTestCase.GetTestFileMask: string;
@@ -146,15 +223,15 @@ end;
 
 procedure TDWSCompilerTestCase.CompilationNormal;
 begin
-     FCompiler.Config.CompilerOptions:=[coOptimize];
-   Compilation;
+  FCompiler.Config.CompilerOptions:=[coOptimize];
+  Compilation;
 
 end;
 
 procedure TDWSCompilerTestCase.CompilationWithMapAndSymbols;
 begin
-    FCompiler.Config.CompilerOptions:=[coSymbolDictionary, coContextMap];
-   Compilation;
+  FCompiler.Config.CompilerOptions:=[coSymbolDictionary, coContextMap];
+  Compilation;
 end;
 
 procedure TDWSCompilerTestCase.ExecutionNonOptimized;
