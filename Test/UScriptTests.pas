@@ -13,11 +13,8 @@ type
    { TScriptTests }
 
    TScriptTests = class (TDWSCustomTest)
-      private
-         FOldDS: char;
       public
          procedure SetUp; override;
-         procedure TearDown; override;
 
          procedure DoInclude(const scriptName: string; var scriptSource: string);
 
@@ -59,18 +56,8 @@ end;
 procedure TScriptTests.SetUp;
 begin
    inherited;
-   FOldDS := GetDecimalSeparator;
-   SetDecimalSeparator('.');
 
    FCompiler.OnInclude:=DoInclude;
-end;
-
-// TearDown
-//
-procedure TScriptTests.TearDown;
-begin
-   SetDecimalSeparator(FOldDS);
-   inherited;
 end;
 
 // DoInclude

@@ -7,7 +7,7 @@ uses Classes, SysUtils,
   dws_fpcunit,
   dwsComp, dwsCompiler, dwsExprs,
   dwsTokenizer, dwsSymbols, dwsMathFunctions, dwsTimeFunctions,
-  dwsVariantFunctions;
+  dwsVariantFunctions, dwsXPlatform;
 
 type
 

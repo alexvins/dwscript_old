@@ -384,7 +384,7 @@ begin
    SetLength(FStrings, n+1);
    FStrings[n]:=s;
    with AddVarRec^ do begin
-      VType:=vtUnicodeString;
+      VType:=vtAnsiString;
       VInteger:=n;
    end;
 end;
@@ -401,7 +401,7 @@ begin
       case rec.VType of
          vtInt64 : rec.VInt64:=@FIntegers[rec.VInteger];
          vtExtended : rec.VExtended:=@FFloats[rec.VInteger];
-         vtUnicodeString : rec.VString:=Pointer(FStrings[rec.VInteger]);
+         vtAnsiString : rec.VString:=Pointer(FStrings[rec.VInteger]);
       end;
    end;
 end;

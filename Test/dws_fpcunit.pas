@@ -13,6 +13,8 @@ type
   { TDWSCompilerTestCase }
 
   TDWSCompilerTestCase = class (TTestCase)
+  private
+     FOldDS: char;
   strict protected
     FCompiler: TDelphiWebScript;
     FTestFilename: string;
@@ -158,6 +160,9 @@ end;
 procedure TDWSCompilerTestCase.SetUp;
 begin
   inherited;
+  FOldDS := GetDecimalSeparator;
+  SetDecimalSeparator('.');
+
   FCompiler := TDelphiWebScript.Create(nil);
   FSource:=TStringList.Create;
   FSource.LoadFromFile(FTestFilename);
@@ -179,6 +184,7 @@ begin
   FCompiler.Free;
   FSource.Free;
   FreeAndNil(FProg);
+  SetDecimalSeparator(FOldDS);
   inherited;
 end;
 
