@@ -41,27 +41,17 @@ implementation
 { TScriptFailureTests }
 
 procedure TScriptFailureTests.CompilationFailure;
-var
-   expectedError : TStringList;
-   expectedErrorsFileName : String;
 begin
-      //TODO: refactor code duplication with base class
    FCompiler.Config.CompilerOptions:=[coOptimize];
-   expectedError:=TStringList.Create;
-   try
+   FProg:=FCompiler.Compile(FSource.Text);
 
-         FProg:=FCompiler.Compile(FSource.Text);
-            expectedErrorsFileName:=ChangeFileExt(FTestFilename, '.txt');
-            if FileExists(expectedErrorsFileName) then begin
-               expectedError.LoadFromFile(expectedErrorsFileName);
-               CheckEquals(expectedError.Text, FProg.Msgs.AsInfo, FTestFilename);
-            end else Check(fprog.Msgs.AsInfo<>'', FTestFilename+': undetected error');
-
-
-   finally
-      expectedError.Free;
+   if FExpectedResult.Count=0 then
+   begin
+      Check(fprog.Msgs.AsInfo<>'', 'undetected error');
+   end else
+   begin
+     CheckEquals(FExpectedResult.Text, FProg.Msgs.AsInfo, 'Error messages');
    end;
-
 end;
 
 { TScriptTests }
@@ -101,33 +91,19 @@ end;
 
 procedure TScriptTests.Execution;
 var
-    expectedResult : TStringList;
-   resultsFileName : String;
    output : String;
 begin
-   //TODO: refactor code duplication with base class
-   expectedResult:=TStringList.Create;
-   try
-     Compilation;
-            fprog.Execute;
-            if fprog.Msgs.Count=0 then
-               output:=(fprog.Result as TdwsDefaultResult).Text
-            else begin
-               output:= 'Errors >>>>'#13#10
-                       +fprog.Msgs.AsInfo
-                       +'Result >>>>'#13#10
-                       +(fprog.Result as TdwsDefaultResult).Text;
-            end;
-            resultsFileName:=ChangeFileExt(FTestFilename, '.txt');
-            if FileExists(resultsFileName) then begin
-               expectedResult.LoadFromFile(resultsFileName);
-               CheckEquals(expectedResult.Text, output, FTestFilename);
-            end else CheckEquals('', output, FTestFilename);
-
-
-   finally
-      expectedResult.Free;
-   end;
+  Compilation;
+  fprog.Execute;
+  if fprog.Msgs.Count=0 then
+     output:=(fprog.Result as TdwsDefaultResult).Text
+  else begin
+     output:= 'Errors >>>>'#13#10
+             +fprog.Msgs.AsInfo
+             +'Result >>>>'#13#10
+             +(fprog.Result as TdwsDefaultResult).Text;
+  end;
+  CheckEquals(FExpectedResult.Text,output,'ouput');
 end;
 
 initialization

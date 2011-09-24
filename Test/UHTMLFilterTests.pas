@@ -110,18 +110,10 @@ begin
 end;
 
 procedure THTMLFilterTests.TestHTMLScript;
-var
-  resultFileName : String;
 begin
   Compilation;
-
   FProg.Execute;
-
-  resultFileName:=ChangeFileExt(FTestFilename, '.txt');
-  if FileExists(resultFileName) then
-     FSource.LoadFromFile(ChangeFileExt(resultFileName, '.txt'))
-  else FSource.Clear;
-  CheckEquals(FSource.Text, (FProg.Result as TdwsDefaultResult).Text, FTestFilename);
+  CheckEquals(FExpectedResult.Text, (FProg.Result as TdwsDefaultResult).Text, 'Exec result');
 end;
 
 

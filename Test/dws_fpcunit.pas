@@ -20,6 +20,9 @@ type
     FSource : TStringList;
     FProg : TdwsProgram;
 
+    FResultFileName: string;
+    FExpectedResult: TStringList;
+
   protected
     property TestFilename:string read FTestFilename;
     procedure SetUp; override; 
@@ -27,6 +30,7 @@ type
 
     procedure Compilation; virtual;
     procedure Execution; virtual;
+
 
     procedure PostExec; virtual;
 
@@ -158,11 +162,20 @@ begin
   FSource:=TStringList.Create;
   FSource.LoadFromFile(FTestFilename);
   FProg := nil;
-
-end; 
+  FResultFileName := ChangeFileExt(FTestFilename, '.txt');
+  FExpectedResult := TStringList.Create;
+  if FileExists(FResultFileName) then
+  begin
+    FExpectedResult.LoadFromFile(FResultFileName);
+  end else
+  begin
+    FExpectedResult.Clear;
+  end;
+end;
 
 procedure TDWSCompilerTestCase.TearDown;
 begin
+  FExpectedResult.Clear;
   FCompiler.Free;
   FSource.Free;
   FreeAndNil(FProg);
@@ -176,25 +189,12 @@ begin
 end;
 
 procedure TDWSCompilerTestCase.Execution;
-var
-  expectedResult : TStringList;
-  resultsFileName : String;
 begin
-   expectedResult:=TStringList.Create;
-   try
-     Compilation;
-      FProg.Execute;
-      resultsFileName:=ChangeFileExt(FTestFilename, '.txt');
-      if FileExists(resultsFileName) then begin
-         expectedResult.LoadFromFile(resultsFileName);
-         CheckEquals(expectedResult.Text, (FProg.Result as TdwsDefaultResult).Text, FTestFilename);
-      end else CheckEquals('', (FProg.Result as TdwsDefaultResult).Text, FTestFilename);
-      CheckEquals('', FProg.Msgs.AsInfo, FTestFilename);
-      PostExec;
-   finally
-      expectedResult.Free;
-   end;
-
+  Compilation;
+  FProg.Execute;
+  CheckEquals(FExpectedResult.Text, (FProg.Result as TdwsDefaultResult).Text, 'Exec result');
+  CheckEquals('', FProg.Msgs.AsInfo, 'Exec info');
+  PostExec;
 end;
 
 procedure TDWSCompilerTestCase.PostExec;
