@@ -220,24 +220,25 @@ end;
 // UnifyAssignString
 //
 procedure UnifyAssignString(const fromStr : String; var toStr : String);
-var
-   i : Integer;
-   sl : TStringList;
+//var
+//   i : Integer;
+//   sl : TStringList;
 begin
-   if fromStr='' then
-      toStr:=''
-   else begin
-      i:=Ord(fromStr[1]);
-      if i<=High(vCharStrings) then begin
-         sl:=vCharStrings[i];
-{$IFNDEF FPC}          System.MonitorEnter(sl);  {$ENDIF} //TODO: Syncronized access
-         i:=sl.IndexOf(fromStr);
-         if i<0 then
-            i:=sl.Add(fromStr);
-         toStr:=TStringListCracker(sl).FList[i].FString;
-{$IFNDEF FPC}          System.MonitorExit(sl);  {$ENDIF}  //TODO: Syncronized access
-      end else toStr:=fromStr;
-   end;
+toStr := fromStr; //TODO: fix me UnifyAssignString
+//   if fromStr='' then
+//      toStr:=''
+//   else begin
+//      i:=Ord(fromStr[1]);
+//      if i<=High(vCharStrings) then begin
+//         sl:=vCharStrings[i];
+//{$IFNDEF FPC}          System.MonitorEnter(sl);  {$ENDIF} //TODO: Syncronized access
+//         i:=sl.IndexOf(fromStr);
+//         if i<0 then
+//            i:=sl.Add(fromStr);
+//         toStr:=TStringListCracker(sl).FList[i].FString;
+//{$IFNDEF FPC}          System.MonitorExit(sl);  {$ENDIF}  //TODO: Syncronized access
+//      end else toStr:=fromStr;
+//   end;
 end;
 
 // TidyStringsUnifier
