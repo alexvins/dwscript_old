@@ -131,7 +131,7 @@ const
       (n:'ShortInt'; v:varShortInt),   (n:'Byte'; v:varByte),
       (n:'Word'; v:varWord),           (n:'LongWord'; v:varLongWord),
       (n:'Int64'; v:varInt64),         (n:'StrArg'; v:varStrArg),
-      (n:'String'; v:varUString),      (n:'Any'; v:varAny),
+      (n:'String'; v:varstring),      (n:'Any'; v:varAny),
       (n:'TypeMask'; v:varTypeMask),   (n:'Array'; v:varArray),
       (n:'ByRef'; v:varByRef) );
 var

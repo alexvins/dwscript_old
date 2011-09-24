@@ -10,17 +10,14 @@ uses Classes, SysUtils,
 
 type
 
-   { TScriptTests }
+  { TScriptTests }
 
-   TScriptTests = class (TDWSCustomTest)
-      public
-         procedure SetUp; override;
-
-         procedure DoInclude(const scriptName: string; var scriptSource: string);
-
-         procedure Execution; override;
-
-   end;
+  TScriptTests = class (TDWSCustomTest)
+  public
+    procedure SetUp; override;
+    procedure DoInclude(const scriptName: string; var scriptSource: string);
+    procedure Execution; override;
+  end;
 
 
    { TScriptFailureTests }
@@ -96,7 +93,7 @@ end;
 initialization
 
    RegisterTest('', TScriptTests.Suite('SimpleScripts','SimpleScripts'));
-   RegisterTest('', TScriptTests.Suite('Algorithms','Algorithms'));
+   //RegisterTest('', TScriptTests.Suite('Algorithms','Algorithms'));
    RegisterTest('', TScriptFailureTests.Suite('FailureScripts','FailureScripts'));
 
 end.

@@ -380,7 +380,7 @@ var
    varData : PVarData;
 begin
    varData:=@Data[SourceAddr];
-   if varData^.VType=varUString then
+   if varData^.VType=varstring then
 {$IFDEF FPC}
      Result:=String(varData^.VString)
 {$ELSE}

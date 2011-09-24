@@ -215,9 +215,6 @@ function TFastCompareStringList.CompareStrings(const S1, S2: string): Integer;
 begin
    Result:=CompareStr(S1, S2);
 end;
-
-   end;
-
 {$ENDIF}
 
 // UnifyAssignString
@@ -401,7 +398,7 @@ begin
       case rec.VType of
          vtInt64 : rec.VInt64:=@FIntegers[rec.VInteger];
          vtExtended : rec.VExtended:=@FFloats[rec.VInteger];
-         vtAnsiString : rec.VString:=Pointer(FStrings[rec.VInteger]);
+         vtAnsiString : rec.VAnsiString:=Pointer(FStrings[rec.VInteger]);
       end;
    end;
 end;
