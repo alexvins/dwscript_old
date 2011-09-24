@@ -5,7 +5,8 @@ program lang_tests;
 uses
   Interfaces, Forms, GuiTestRunner, dws_fpcunit, UTestDispatcher,
   UAlgorithmsTests, UCornerCasesTests, UdwsFunctionsTests, UdwsUnitTests,
-  UdwsUtilsTests, UHTMLFilterTests, UMemoryTests, UScriptTests;
+  UdwsUtilsTests, UHTMLFilterTests, UMemoryTests, UScriptTests,
+  UdwsClassesTests;
 
 {$R *.res}
 

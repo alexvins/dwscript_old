@@ -180,7 +180,7 @@ end;
 
 procedure TDWSCompilerTestCase.TearDown;
 begin
-  FExpectedResult.Clear;
+  FExpectedResult.Free;
   FCompiler.Free;
   FSource.Free;
   FreeAndNil(FProg);

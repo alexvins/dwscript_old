@@ -1,8 +1,11 @@
+{$I dws_tests_conf.inc}
 unit UdwsClassesTests;
 
 interface
 
-uses Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+uses Classes, SysUtils, fpcunit,testregistry,
+   dws_fpcunit,
+   dwsComp, dwsCompiler, dwsExprs,
    dwsClassesLibModule, dwsXPlatform, dwsSymbols;
 
 type
@@ -192,6 +195,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('dwsClassesLibTests', TdwsClassesTests.Suite);
+   RegisterTest('dwsClassesLibTests', TdwsClassesTests.Suite);
 
 end.
