@@ -87,7 +87,7 @@ begin
              +'Result >>>>'#13#10
              +(fprog.Result as TdwsDefaultResult).Text;
   end;
-  CheckEquals(FExpectedResult.Text,output,'ouput');
+  CheckEquals(FExpectedResult.Text,output,'output');
 end;
 
 initialization
