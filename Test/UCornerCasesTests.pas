@@ -3,7 +3,7 @@ unit UCornerCasesTests;
 
 interface
 
-uses Windows, Classes, SysUtils,
+uses Classes, SysUtils,
   fpcunit, testregistry,
   dws_fpcunit,
   dwsComp, dwsCompiler, dwsExprs,
@@ -83,15 +83,6 @@ implementation
  // ------------------------------------------------------------------
  // ------------------------------------------------------------------
 
-function GetTemporaryFilesPath: string;
-var
-  n: Integer;
-begin
-  SetLength(Result, MAX_PATH);
-  n := GetTempPath(MAX_PATH - 1, PChar(Result));
-  SetLength(Result, n);
-end;
-
 
 type
   // TTokenBufferWrapper
@@ -158,7 +149,7 @@ var
   s: string;
 begin
   inherited SetUp;
-  FTempDir  := GetTemporaryFilesPath;
+  FTempDir  := TPath.GetTemporaryFilesPath;
   FDummiFileName := FTempDir + 'test.dummy';
 
   if FileExists(FDummiFileName) then DeleteFile(FDummiFileName);

@@ -746,10 +746,10 @@ type
         procedure ExposeInstanceToUnit(const AName, AClassType: string; AInstance: TObject);
         property Table: TUnitSymbolTable read FTable;
 
-      published
+
         constructor Create(AOwner: TComponent); override;
         destructor Destroy; override;
-
+      published
         property Arrays: TdwsArrays read FArrays write SetArrays stored StoreArrays;
         property Classes: TdwsClasses read FClasses write SetClasses stored StoreClasses;
         property Constants: TdwsConstants read FConstants write SetConstants stored StoreConstants;

@@ -208,7 +208,7 @@ var
 begin
    tempFileNameAsm:=TPath.GetTempFileName;
    tempFileNameBin:=tempFileNameAsm+'.bin';
-   tempFileNameErr:=tempFileNameErr+'.err';
+   tempFileNameErr:=tempFileNameAsm+'.err';
    try
       commandLine:='nasm -Xvc -f bin -o "'+tempFileNameBin+'" -Z "'+tempFileNameErr+'" "'+tempFileNameAsm+'"';
       code.SaveToFile(tempFileNameAsm);
@@ -240,7 +240,7 @@ begin
                      p:=Pos(')', errorLine);
                      k:=StrToInt(Copy(errorLine, 1, p-1));
                      Delete(errorLine, 1, p+2);
-                     script_pos.Create(basePos.SourceFile, Integer(code.Objects[k-1]), 1);
+                     script_pos := TScriptPos.Create(basePos.SourceFile, Integer(code.Objects[k-1]), 1);
                      msgs.AddCompilerError(script_pos,'asm '+errorLine);
                   end else msgs.AddError(errorLine);
                end;

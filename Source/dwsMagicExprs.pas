@@ -320,6 +320,7 @@ begin
    status:=esrNone;
    EvalNoResult(status);
    Assert(status=esrNone);
+   Result := Unassigned;
 end;
 
 end.

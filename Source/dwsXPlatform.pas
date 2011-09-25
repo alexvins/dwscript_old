@@ -29,16 +29,12 @@ unit dwsXPlatform;
 //
 // no ifdefs in the main code.
 
-{$WARN SYMBOL_PLATFORM OFF}
-
 interface
 
-uses Windows, Classes, SysUtils
-   {$IFNDEF VER200}, IOUtils{$ENDIF}
-   ;
+uses Classes, SysUtils;
 
 const
-{$IFDEF LINUX}
+{$IFDEF UNIX}
    cLineTerminator  = #10;
 {$ELSE}
    cLineTerminator  = #13#10;
@@ -57,8 +53,12 @@ type
 {$ENDIF}
 
 type
+
+   { TPath }
+
    TPath = class
       class function GetTempFileName : String; static;
+      class function GetTemporaryFilesPath: string; static;
    end;
 
    TFile = class
@@ -142,21 +142,14 @@ end;
 // GetTempFileName
 //
 
-//todo: make portable
 class function TPath.GetTempFileName : String;
-{$IFDEF VER200} // Delphi 2009
-var
-   tempPath, tempFileName : array [0..MAX_PATH] of Char; // Buf sizes are MAX_PATH+1
 begin
-   if Windows.GetTempPath(MAX_PATH, @tempPath[0])=0 then
-      tempPath:='.'; // Current directory
-   if Windows.GetTempFileName(@tempPath[0], 'DWS', 0, tempFileName)=0 then
-      RaiseLastOSError; // should never happen
-   Result:=tempFileName;
-{$ELSE}
+  Result := SysUtils.GetTempFileName(GetTempDir,'DWS');
+end;
+
+class function TPath.GetTemporaryFilesPath: string;
 begin
-   Result:=IOUTils.TPath.GetTempFileName;
-{$ENDIF}
+  Result := SysUtils.GetTempDir;
 end;
 
 // ------------------
@@ -165,7 +158,6 @@ end;
 
 // ReadAllBytes
 //
-//todo: make portable
 class function TFile.ReadAllBytes(const filename : String) : TBytes;
 {$IFDEF VER200} // Delphi 2009
 var

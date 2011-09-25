@@ -55,7 +55,7 @@ type
          SourceFile : TSourceFile;
 
 {$IFDEF FPC}
-        procedure Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+        class function Create(aSourceFile : TSourceFile; aLine, aCol : Integer):TScriptPos; static;
 {$ELSE}
         constructor Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
 {$ENDIF}
@@ -224,8 +224,8 @@ type
 
    EReraise = class(Exception);
 
-const
-   cNullPos: TScriptPos = (FLineCol: 0; SourceFile: nil);
+var
+   cNullPos: TScriptPos;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -242,13 +242,14 @@ implementation
 // Create
 //
 {$IFDEF FPC}
-procedure TScriptPos.Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+class function TScriptPos.Create(aSourceFile: TSourceFile; aLine, aCol: Integer
+  ): TScriptPos;
 {$ELSE}
 constructor TScriptPos.Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
 {$ENDIF}
 begin
-   SourceFile:=aSourceFile;
-   Line:=(aCol shr 20)+aLine;
+   Result.SourceFile:=aSourceFile;
+   Result.Line:=(aCol shr 20)+aLine;
 end;
 
 // GetLine
@@ -713,4 +714,6 @@ begin
    Result:=Format(MSG_RuntimeError, [inherited AsInfo]);
 end;
 
+initialization
+  cNullPos := TScriptPos.Create (nil, 0,0);
 end.

@@ -266,14 +266,14 @@ begin
 end;
 
 procedure TdwsStrings.Error(const Msg: string; Data: Integer);
-
-  function ReturnAddr: Pointer;
-  asm
-          MOV     EAX,[EBP+4]
-  end;
-
+//
+//  function ReturnAddr: Pointer;
+//  asm
+//          MOV     EAX,[EBP+4]
+//  end;
+//
 begin
-  raise EStringListError.CreateFmt(Msg, [Data]) at ReturnAddr;
+  raise EStringListError.CreateFmt(Msg, [Data]) {at ReturnAddr};
 end;
 
 procedure TdwsStrings.Error(Msg: PResStringRec; Data: Integer);
@@ -331,7 +331,7 @@ begin
   finally
     FDelimiter := FOldDelimiter;
     FQuoteChar := FOldQuoteChar;
-    FDefined := FDefined;
+    FDefined := FOldDefined;
   end;
 end;
 

@@ -207,11 +207,12 @@ type
   private
     FResultType: TdwsResultType;
   protected
-    constructor Create(ResultType: TdwsResultType); virtual;
+
     procedure InitializeProgram(Prog: TdwsProgram); virtual;
     procedure FinalizeProgram(Prog: TdwsProgram); virtual;
     property ResultType: TdwsResultType read FResultType;
   public
+    constructor Create(ResultType: TdwsResultType); virtual;
     procedure AddString(const str : String); virtual;
   end;
 
@@ -2469,6 +2470,7 @@ begin
    status:=esrNone;
    EvalNoResult(status);
    Assert(status=esrNone);
+   Result := Unassigned;
 end;
 
 // EvalNoResult
@@ -4413,51 +4415,61 @@ end;
 function TInfo.Call(const Params: array of Variant): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Call', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.Call: IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Call', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.Element(const Indices: array of Integer): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Element', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetConstructor(const MethName: string; ExtObject: TObject): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['GetConstructor', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetData: TData;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Data', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetExternalObject: TObject;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['ExternalObject', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetMember(const s: string): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Member', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetMethod(const s: string): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Method', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetScriptObj: IScriptObj;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Obj', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetParameter(const s: string): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Parameter', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 function TInfo.GetTypeSym: TSymbol;
@@ -4468,6 +4480,7 @@ end;
 function TInfo.GetValue: Variant;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Value', FTypeSym.Caption]);
+  Result := Unassigned; //never executed but fix warning
 end;
 
 function TInfo.GetValueAsString : String;
@@ -4550,6 +4563,7 @@ end;
 function TInfo.GetInherited: IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['GetInherited', FTypeSym.Caption]);
+  Result := nil; //never executed but fix warning
 end;
 
 { TInfoData }

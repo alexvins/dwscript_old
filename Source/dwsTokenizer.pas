@@ -218,8 +218,8 @@ const cReservedNames : TTokenTypes = [
    ttASSIGN, ttPLUS_ASSIGN, ttMINUS_ASSIGN, ttTIMES_ASSIGN, ttDIVIDE_ASSIGN,
    ttCOMMA, ttCRIGHT, ttDOT ];
 
-const
-   cFormatSettings : TFormatSettings = ( DecimalSeparator : '.' );
+VAR
+   cFormatSettings : TFormatSettings;
 
 // AppendChar
 //
@@ -1150,6 +1150,9 @@ initialization
    sDotDot.AddTransition(['.'], TConsumeTransition.Create(sStart, [toFinal], caDotDot));
    sDotDot.AddTransition(NAM, TCheckTransition.Create(sStart, [toFinal], caName));
    sDotDot.SetElse(TErrorTransition.Create(TOK_DotExpected));
+
+   cFormatSettings := DefaultFormatSettings;
+   cFormatSettings.DecimalSeparator := '.';
 
 finalization
 

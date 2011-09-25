@@ -2818,6 +2818,7 @@ end;
 procedure TdwsCompiler.ReadNameList(Names: TStrings; out PosArray: TScriptPosArray);
 begin
   Names.Clear;
+  SetLength(PosArray,0);
   repeat
     if not FTok.TestName then
       FMsgs.AddCompilerStop(FTok.HotPos, CPE_NameExpected);
