@@ -4,21 +4,17 @@ interface
 
 uses Windows, Classes, SysUtils,
    fpcunit,testregistry,
-   //TestFrameWork,
+   dws_fpcunit,
    dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsXPlatform, dwsFileSystem, dwsErrors;
 
 type
 
-   TCornerCasesTests = class (TTestCase)
-      private
-         FCompiler : TDelphiWebScript;
+   { TCornerCasesTests }
 
+   TCornerCasesTests = class (TDWSTestCaseBase)
       public
-         procedure SetUp; override;
-         procedure TearDown; override;
          procedure DoOnInclude(const scriptName : String; var scriptSource : String);
-
       published
          procedure EmptyTokenBuffer;
          procedure IgnoreDecimalSeparator;
@@ -26,6 +22,8 @@ type
          procedure TimeOutTestFinite;
          procedure TimeOutTestInfinite;
          procedure IncludeViaEvent;
+         procedure IncludeViaEvent2;
+         procedure IncludeViaEvent3;
          procedure IncludeViaFile;
          procedure IncludeViaFileRestricted;
          procedure StackMaxRecursion;
@@ -40,6 +38,17 @@ implementation
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
+function GetTemporaryFilesPath : String;
+var
+   n: Integer;
+begin
+   SetLength(Result, MAX_PATH);
+   n:=GetTempPath(MAX_PATH-1, PChar(Result));
+   SetLength(Result, n);
+end;
+
+
+
 type
    // TTokenBufferWrapper
    //
@@ -50,20 +59,6 @@ type
 // ------------------
 // ------------------ TCornerCasesTests ------------------
 // ------------------
-
-// SetUp
-//
-procedure TCornerCasesTests.SetUp;
-begin
-   FCompiler:=TDelphiWebScript.Create(nil);
-end;
-
-// TearDown
-//
-procedure TCornerCasesTests.TearDown;
-begin
-   FCompiler.Free;
-end;
 
 // EmptyTokenBuffer
 //
@@ -142,31 +137,19 @@ end;
 // TimeOutTestFinite
 //
 procedure TCornerCasesTests.TimeOutTestFinite;
-var
-   prog : TdwsProgram;
 begin
-   prog:=FCompiler.Compile('while false do;');
-   try
-      prog.TimeoutMilliseconds:=1000;
-      prog.Execute;
-   finally
-      prog.Free;
-   end;
+  FProg:=FCompiler.Compile('while false do;');
+  FProg.TimeoutMilliseconds:=1000;
+  FProg.Execute;
 end;
 
 // TimeOutTestInfinite
 //
 procedure TCornerCasesTests.TimeOutTestInfinite;
-var
-   prog : TdwsProgram;
 begin
-   prog:=FCompiler.Compile('while true do;');
-   try
-      prog.TimeoutMilliseconds:=100;
-      prog.Execute;
-   finally
-      prog.Free;
-   end;
+   FProg:=FCompiler.Compile('while true do;');
+   FProg.TimeoutMilliseconds:=100;
+   FProg.Execute;
 end;
 
 // DoOnInclude
@@ -180,52 +163,36 @@ end;
 // IncludeViaEvent
 //
 procedure TCornerCasesTests.IncludeViaEvent;
-var
-   prog : TdwsProgram;
 begin
    FCompiler.OnInclude:=nil;
    FCompiler.Config.ScriptPaths.Clear;
+   Compile('{$include}');
+   CheckEqualsInfo('Syntax Error: Name of include file expected [line: 1, column: 10]'#13#10,
+                   'include missing');
+end;
 
-   prog:=FCompiler.Compile('{$include}');
-   try
-      CheckEquals('Syntax Error: Name of include file expected [line: 1, column: 10]'#13#10,
-                  prog.Msgs.AsInfo, 'include missing');
-   finally
-      prog.Free;
-   end;
+procedure TCornerCasesTests.IncludeViaEvent2;
+begin
+  FCompiler.OnInclude:=nil;
+  FCompiler.Config.ScriptPaths.Clear;
+  Compile('{$include ''test.dummy''}');
+  CheckEqualsInfo('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
+                  'include forbidden');
+end;
 
-   prog:=FCompiler.Compile('{$include ''test.dummy''}');
-   try
-      CheckEquals('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
-                  prog.Msgs.AsInfo, 'include forbidden');
-   finally
-      prog.Free;
-   end;
-
-   FCompiler.OnInclude:=@DoOnInclude;
-   prog:=FCompiler.Compile('{$include ''test.dummy''}');
-   try
-      CheckEquals('', prog.Msgs.AsInfo, 'include via event');
-      prog.Execute;
-      CheckEquals('hello', (prog.Result as TdwsDefaultResult).Text, 'exec include via event');
-   finally
-      prog.Free;
-   end;
+procedure TCornerCasesTests.IncludeViaEvent3;
+begin
+  FCompiler.Config.ScriptPaths.Clear;
+  FCompiler.OnInclude:=@DoOnInclude;
+  Compile('{$include ''test.dummy''}');
+  CheckEmptyInfo('include via event');
+  Execute;
+  CheckEqualsResult('hello', 'exec include via event');
 end;
 
 // IncludeViaFile
 //
 procedure TCornerCasesTests.IncludeViaFile;
-
-   function GetTemporaryFilesPath : String;
-   var
-      n: Integer;
-   begin
-      SetLength(Result, MAX_PATH);
-      n:=GetTempPath(MAX_PATH-1, PChar(Result));
-      SetLength(Result, n);
-   end;
-
 var
    prog : TdwsProgram;
    sl : TStringList;

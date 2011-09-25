@@ -10,130 +10,55 @@ uses Classes, SysUtils, fpcunit,testregistry,
 
 type
 
-   TdwsClassesTests = class (TTestCase)
-      private
-         FTests : TStringList;
-         FCompiler : TDelphiWebScript;
-         FClassesLib : TdwsClassesLib;
+   { TdwsClassesTests }
 
+   TdwsClassesTests = class (TDWSCustomTest)
+      private
+         FClassesLib : TdwsClassesLib;
       public
          procedure SetUp; override;
          procedure TearDown; override;
 
-         procedure Execution;
-         procedure Compilation;
-
-      published
-
-         procedure CompilationNormal;
-         procedure CompilationWithMapAndSymbols;
-         procedure ExecutionNonOptimized;
-         procedure ExecutionOptimized;
-
-         procedure SymbolDescriptions;
    end;
+
+  { TSymbolDescriptionsTests }
+
+  TSymbolDescriptionsTests = class(TTestCase)
+  private
+    FCompiler : TDelphiWebScript;
+    FClassesLib : TdwsClassesLib;
+  public
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure testTstrings;
+  end;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 implementation
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
 
-// ------------------
-// ------------------ TdwsClassesTests ------------------
-// ------------------
+{ TSymbolDescriptionsTests }
 
-// SetUp
-//
-procedure TdwsClassesTests.SetUp;
+procedure TSymbolDescriptionsTests.SetUp;
 begin
-   FTests:=TStringList.Create;
+  inherited SetUp;
+  FCompiler:=TDelphiWebScript.Create(nil);
 
-   CollectFiles(ExtractFilePath(ParamStr(0))+'ClassesLib'+PathDelim, '*.pas', FTests);
+  FClassesLib:=TdwsClassesLib.Create(nil);
+  FClassesLib.Script:=FCompiler;
 
-   FCompiler:=TDelphiWebScript.Create(nil);
-
-   FClassesLib:=TdwsClassesLib.Create(nil);
-   FClassesLib.Script:=FCompiler;
 end;
 
-// TearDown
-//
-procedure TdwsClassesTests.TearDown;
+procedure TSymbolDescriptionsTests.TearDown;
 begin
-   FClassesLib.Free;
-
-   FCompiler.Free;
-
-   FTests.Free;
+  FCompiler.Free;
+  FClassesLib.Free;
+  inherited TearDown;
 end;
 
-// Compilation
-//
-procedure TdwsClassesTests.Compilation;
-var
-   source : TStringList;
-   i : Integer;
-   prog : TdwsProgram;
-begin
-   source:=TStringList.Create;
-   try
-
-      for i:=0 to FTests.Count-1 do begin
-
-         source.LoadFromFile(FTests[i]);
-
-         prog:=FCompiler.Compile(source.Text);
-         try
-            CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
-         finally
-            prog.Free;
-         end;
-
-      end;
-
-   finally
-      source.Free;
-   end;
-end;
-
-// CompilationNormal
-//
-procedure TdwsClassesTests.CompilationNormal;
-begin
-   FCompiler.Config.CompilerOptions:=[coOptimize];
-   Compilation;
-end;
-
-// CompilationWithMapAndSymbols
-//
-procedure TdwsClassesTests.CompilationWithMapAndSymbols;
-begin
-   FCompiler.Config.CompilerOptions:=[coSymbolDictionary, coContextMap];
-   Compilation;
-end;
-
-// ExecutionNonOptimized
-//
-procedure TdwsClassesTests.ExecutionNonOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=[];
-   Execution;
-end;
-
-// ExecutionOptimized
-//
-procedure TdwsClassesTests.ExecutionOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=[coOptimize];
-   Execution;
-end;
-
-// SymbolDescriptions
-//
-procedure TdwsClassesTests.SymbolDescriptions;
+procedure TSymbolDescriptionsTests.testTstrings;
 var
    prog : TdwsProgram;
    stringsSymbol : TClassSymbol;
@@ -146,55 +71,29 @@ begin
    finally
       prog.Free;
    end;
+
 end;
 
-// Execution
-//
-procedure TdwsClassesTests.Execution;
-var
-   source, expectedResult : TStringList;
-   i : Integer;
-   prog : TdwsProgram;
-   resultsFileName : String;
+{ TdwsClassesTests }
+
+procedure TdwsClassesTests.SetUp;
 begin
-   source:=TStringList.Create;
-   expectedResult:=TStringList.Create;
-   try
-
-      for i:=0 to FTests.Count-1 do begin
-
-         source.LoadFromFile(FTests[i]);
-
-         prog:=FCompiler.Compile(source.Text);
-         try
-            CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
-            prog.Execute;
-            resultsFileName:=ChangeFileExt(FTests[i], '.txt');
-            if FileExists(resultsFileName) then begin
-               expectedResult.LoadFromFile(resultsFileName);
-               CheckEquals(expectedResult.Text, (prog.Result as TdwsDefaultResult).Text, FTests[i]);
-            end else CheckEquals('', (prog.Result as TdwsDefaultResult).Text, FTests[i]);
-            CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
-         finally
-            prog.Free;
-         end;
-
-      end;
-
-   finally
-      expectedResult.Free;
-      source.Free;
-   end;
+   inherited;
+   FClassesLib:=TdwsClassesLib.Create(nil);
+   FClassesLib.Script:=FCompiler;
 end;
 
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
+procedure TdwsClassesTests.TearDown;
+begin
+   inherited;
+   FClassesLib.Free; //must be freed after compiler
+end;
+
+
+
+
 initialization
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
 
-   RegisterTest('dwsClassesLibTests', TdwsClassesTests.Suite);
-
+  RegisterTest('dwsClassesLibTests', TSymbolDescriptionsTests.Suite);
+  RegisterTest('', TdwsClassesTests.Suite('ClassesLibTests','ClassesLib'));
 end.

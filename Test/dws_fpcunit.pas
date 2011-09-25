@@ -10,17 +10,37 @@ uses
 
 type
 
-  { TDWSCompilerTestCase }
+  { TDWSTestCaseBase }
 
-  TDWSCompilerTestCase = class (TTestCase)
-  private
-     FOldDS: char;
+  TDWSTestCaseBase = class(TTestCase)
   strict protected
     FCompiler: TDelphiWebScript;
+    FProg : TdwsProgram;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+
+    procedure SetOptions(const AOptions:TCompilerOptions);
+    procedure Compile(const ASource:string);
+    procedure Compile(const ASource:TStrings);
+    procedure Execute;
+
+    procedure CheckEqualsInfo(Expected: string;msg: string = '');
+    procedure CheckEmptyInfo(msg: string = '');
+    procedure CheckEqualsResult(Expected: string;msg: string = ''); //default result as text
+
+  end;
+
+  { TDWSCompilerTestCase }
+
+  TDWSCompilerTestCase = class (TDWSTestCaseBase)
+  private
+    FOldDS: char;
+  strict protected
     FTestFilename: string;
 
     FSource : TStringList;
-    FProg : TdwsProgram;
+
 
     FResultFileName: string;
     FExpectedResult: TStringList;
@@ -37,6 +57,8 @@ type
     procedure PostExec; virtual;
 
     class function GetTestFileMask: string; virtual;
+
+
   public
     constructor CreateWith(const ATestName: string;
       const ATestSuiteName: string; const ATestFile: String); reintroduce;virtual;
@@ -76,6 +98,58 @@ type
 
 
 implementation
+
+{ TDWSTestCaseBase }
+
+procedure TDWSTestCaseBase.SetUp;
+begin
+  inherited SetUp;
+  FCompiler := TDelphiWebScript.Create(nil);
+  FProg := nil;
+end;
+
+procedure TDWSTestCaseBase.TearDown;
+begin
+  FreeAndNil(FProg);
+  FreeAndNil(FCompiler);
+  inherited TearDown;
+end;
+
+procedure TDWSTestCaseBase.SetOptions(const AOptions: TCompilerOptions);
+begin
+  FCompiler.Config.CompilerOptions := AOptions;
+end;
+
+procedure TDWSTestCaseBase.Compile(const ASource: string);
+begin
+  CheckNull(FProg,'FProg before compile'); //avoid memleak in tests
+  FProg := FCompiler.Compile(ASource);
+end;
+
+procedure TDWSTestCaseBase.Compile(const ASource: TStrings);
+begin
+  Compile(ASource.Text);
+end;
+
+procedure TDWSTestCaseBase.Execute;
+begin
+  FProg.Execute;
+end;
+
+procedure TDWSTestCaseBase.CheckEqualsInfo(Expected: string; msg: string);
+begin
+  CheckEquals(Expected, FProg.Msgs.AsInfo, msg);
+end;
+
+procedure TDWSTestCaseBase.CheckEmptyInfo(msg: string);
+begin
+  CheckEqualsInfo('',msg);
+end;
+
+procedure TDWSTestCaseBase.CheckEqualsResult(Expected: string; msg: string);
+begin
+  CheckEquals(Expected, (FProg.Result as TdwsDefaultResult).Text, msg);
+end;
 
 { TDWSCustomTest }
 
@@ -163,10 +237,9 @@ begin
   FOldDS := GetDecimalSeparator;
   SetDecimalSeparator('.');
 
-  FCompiler := TDelphiWebScript.Create(nil);
   FSource:=TStringList.Create;
   FSource.LoadFromFile(FTestFilename);
-  FProg := nil;
+
   FResultFileName := ChangeFileExt(FTestFilename, '.txt');
   FExpectedResult := TStringList.Create;
   if FileExists(FResultFileName) then
@@ -181,25 +254,23 @@ end;
 procedure TDWSCompilerTestCase.TearDown;
 begin
   FExpectedResult.Free;
-  FCompiler.Free;
   FSource.Free;
-  FreeAndNil(FProg);
   SetDecimalSeparator(FOldDS);
   inherited;
 end;
 
 procedure TDWSCompilerTestCase.Compilation;
 begin
-  FProg:=FCompiler.Compile(FSource.Text);
-  CheckEquals('', FProg.Msgs.AsInfo, FTestFilename);
+  Compile(FSource);
+  CheckEmptyInfo('Info after compile');
 end;
 
 procedure TDWSCompilerTestCase.Execution;
 begin
   Compilation;
-  FProg.Execute;
-  CheckEquals(FExpectedResult.Text, (FProg.Result as TdwsDefaultResult).Text, 'Exec result');
-  CheckEquals('', FProg.Msgs.AsInfo, 'Exec info');
+  Execute;
+  CheckEqualsResult(FExpectedResult.Text, 'Exec result');
+  CheckEmptyInfo('Info after exec');
   PostExec;
 end;
 
@@ -227,26 +298,25 @@ end;
 
 procedure TDWSCompilerTestCase.CompilationNormal;
 begin
-  FCompiler.Config.CompilerOptions:=[coOptimize];
+  SetOptions([coOptimize]);
   Compilation;
-
 end;
 
 procedure TDWSCompilerTestCase.CompilationWithMapAndSymbols;
 begin
-  FCompiler.Config.CompilerOptions:=[coSymbolDictionary, coContextMap];
+  SetOptions([coSymbolDictionary, coContextMap]);
   Compilation;
 end;
 
 procedure TDWSCompilerTestCase.ExecutionNonOptimized;
 begin
-  FCompiler.Config.CompilerOptions:=[];
+  SetOptions([]);
   Execution;
 end;
 
 procedure TDWSCompilerTestCase.ExecutionOptimized;
 begin
-  FCompiler.Config.CompilerOptions:=[coOptimize];
+  SetOptions([coOptimize]);
   Execution;
 end;
 

@@ -34,7 +34,7 @@ implementation
 
 procedure TScriptFailureTests.CompilationFailure;
 begin
-   FCompiler.Config.CompilerOptions:=[coOptimize];
+  SetOptions([coOptimize]);
    FProg:=FCompiler.Compile(FSource.Text);
 
    if FExpectedResult.Count=0 then
