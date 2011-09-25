@@ -20,15 +20,20 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
 
+    procedure AddScriptPath(const APath: string);
     procedure SetOptions(const AOptions: TCompilerOptions);
+    procedure SetMaxRecursionDepth(AValue: Integer);
+    procedure SetMaxDataSize(AValue: Integer);
     procedure Compile(const ASource: string);
     procedure Compile(const ASource: TStrings);
     procedure Execute;
+    procedure ExecuteWTimeout(TimeOut: Integer);
 
     procedure CheckEqualsInfo(Expected: string; msg: string = '');
     procedure CheckEmptyInfo(msg: string = '');
-    procedure CheckEqualsResult(Expected: string; msg: string = '');
     //default result as text
+    procedure CheckEqualsResult(Expected: string; msg: string = '');
+    procedure CheckCompileSuccessful(const ASource: string);
 
   end;
 
@@ -118,9 +123,24 @@ begin
   inherited TearDown;
 end;
 
+procedure TDWSTestCaseBase.AddScriptPath(const APath: string);
+begin
+  FCompiler.Config.ScriptPaths.Add(APath);
+end;
+
 procedure TDWSTestCaseBase.SetOptions(const AOptions: TCompilerOptions);
 begin
   FCompiler.Config.CompilerOptions := AOptions;
+end;
+
+procedure TDWSTestCaseBase.SetMaxRecursionDepth(AValue: Integer);
+begin
+  FCompiler.Config.MaxRecursionDepth := AValue;
+end;
+
+procedure TDWSTestCaseBase.SetMaxDataSize(AValue: Integer);
+begin
+  FCompiler.Config.MaxDataSize := AValue;
 end;
 
 procedure TDWSTestCaseBase.Compile(const ASource: string);
@@ -139,9 +159,15 @@ begin
   FProg.Execute;
 end;
 
+procedure TDWSTestCaseBase.ExecuteWTimeout(TimeOut: Integer);
+begin
+  FProg.TimeoutMilliseconds := TimeOut;
+  Execute;
+end;
+
 procedure TDWSTestCaseBase.CheckEqualsInfo(Expected: string; msg: string);
 begin
-  CheckEquals(Expected, FProg.Msgs.AsInfo, msg);
+  CheckEquals(Expected, FProg.Msgs.AsInfo, 'Prog.Info ' + msg);
 end;
 
 procedure TDWSTestCaseBase.CheckEmptyInfo(msg: string);
@@ -151,7 +177,14 @@ end;
 
 procedure TDWSTestCaseBase.CheckEqualsResult(Expected: string; msg: string);
 begin
-  CheckEquals(Expected, (FProg.Result as TdwsDefaultResult).Text, msg);
+  CheckEquals(Expected, (FProg.Result as TdwsDefaultResult).Text,
+    'Prog default result ' + msg);
+end;
+
+procedure TDWSTestCaseBase.CheckCompileSuccessful(const ASource: string);
+begin
+  Compile(ASource);
+  CheckEmptyInfo('Errors on compilation');
 end;
 
 { TDWSCustomTest }
@@ -247,8 +280,7 @@ begin
   if FileExists(FResultFileName) then
   begin
     FExpectedResult.LoadFromFile(FResultFileName);
-  end
-  else
+  end else
   begin
     FExpectedResult.Clear;
   end;

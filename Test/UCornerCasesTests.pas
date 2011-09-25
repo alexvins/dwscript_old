@@ -20,13 +20,9 @@ type
     procedure TokenizerSpecials;
     procedure TimeOutTestFinite;
     procedure TimeOutTestInfinite;
-    procedure IncludeViaFile;
-    procedure IncludeViaFileRestricted;
     procedure StackMaxRecursion;
     procedure StackOverFlow;
   end;
-
-  { TIncludeCornerCasesTests }
 
   { TIncludeTestCase }
 
@@ -47,6 +43,36 @@ type
     procedure MissingIncludeName;
     procedure IncludeForbidden;
     procedure IncludeOK;
+  end;
+
+  { TIncludeViaFileTests }
+
+  TRestrictedTestMethod = procedure of object;
+
+  TIncludeViaFileTests = class(TIncludeTestCase)
+  private
+    FDummiFileName: string;
+    FTempDir: string;
+    FRestricted: TdwsRestrictedFileSystem;
+
+    procedure BeginRestricted;
+    procedure EndRestricted;
+    procedure DoRestricted(const AMethod: TRestrictedTestMethod);
+
+    procedure DoIncludeRestrictedNoPaths;
+    procedure DoIncludeRestrictedPath;
+    procedure DoIncludeRestrictedOK;
+
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure IncludeNoPaths;
+    procedure IncludePathOK;
+
+    procedure IncludeRestrictedNoPaths;
+    procedure IncludeRestrictedPath;
+    procedure IncludeRestrictedOK;
   end;
 
  // ------------------------------------------------------------------
@@ -73,6 +99,115 @@ type
   TTokenBufferWrapper = class
     Buffer: TTokenBuffer;
   end;
+
+{ TIncludeViaFileTests }
+
+procedure TIncludeViaFileTests.BeginRestricted;
+begin
+  CheckNull(FRestricted,'BeginRestricted');
+  FRestricted := TdwsRestrictedFileSystem.Create(nil);
+  FCompiler.Config.CompileFileSystem := FRestricted;
+end;
+
+procedure TIncludeViaFileTests.EndRestricted;
+begin
+  FreeAndNil(FRestricted);
+  CheckNull(FCompiler.Config.CompileFileSystem, 'Notification release');
+end;
+
+procedure TIncludeViaFileTests.DoRestricted(const AMethod: TRestrictedTestMethod
+  );
+begin
+  try
+    BeginRestricted;
+    AMethod();
+  finally
+    EndRestricted;
+  end;
+end;
+
+procedure TIncludeViaFileTests.DoIncludeRestrictedNoPaths;
+begin
+  FRestricted.Paths.Text := FTempDir +DirectorySeparator+ 'nothing';
+  Compile('{$include ''test.dummy''}');
+  CheckEqualsInfo('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
+    'after compile');
+end;
+
+procedure TIncludeViaFileTests.DoIncludeRestrictedPath;
+begin
+  FRestricted.Paths.Text := FTempDir;
+  Compile('{$include ''test.dummy''}');
+
+  CheckEqualsInfo('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
+     'include via file restricted - no paths');
+end;
+
+procedure TIncludeViaFileTests.DoIncludeRestrictedOK;
+begin
+  FRestricted.Paths.Text := FTempDir;
+  AddScriptPath('.');
+  CheckCompileSuccessful('{$include ''test.dummy''}');
+  Execute;
+  CheckEqualsResult('world');
+end;
+
+procedure TIncludeViaFileTests.SetUp;
+var
+  fs: TFileStream;
+  s: string;
+begin
+  inherited SetUp;
+  FTempDir  := GetTemporaryFilesPath;
+  FDummiFileName := FTempDir + 'test.dummy';
+
+  if FileExists(FDummiFileName) then DeleteFile(FDummiFileName);
+
+  fs := TFileStream.Create(FDummiFileName,fmCreate+fmOpenReadWrite);
+  try
+    s :='Print(''world'');';
+    fs.Write(s[1],Length(s));
+  finally
+    fs.Free;
+  end;
+end;
+
+procedure TIncludeViaFileTests.TearDown;
+begin
+  if FileExists(FDummiFileName) then DeleteFile(FDummiFileName);
+  inherited TearDown;
+end;
+
+procedure TIncludeViaFileTests.IncludeNoPaths;
+begin
+  Compile('{$include ''test.dummy''}');
+  CheckEqualsInfo('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
+      'include via file no paths');
+end;
+
+procedure TIncludeViaFileTests.IncludePathOK;
+begin
+  AddScriptPath(FTempDir);
+  Compile('{$include ''test.dummy''}');
+  CheckEmptyInfo('After compile');
+  Execute;
+  CheckEqualsResult('world','Exec result');
+end;
+
+procedure TIncludeViaFileTests.IncludeRestrictedNoPaths;
+begin
+  DoRestricted(DoIncludeRestrictedNoPaths);
+end;
+
+procedure TIncludeViaFileTests.IncludeRestrictedPath;
+begin
+  DoRestricted(DoIncludeRestrictedPath);
+end;
+
+procedure TIncludeViaFileTests.IncludeRestrictedOK;
+begin
+  DoRestricted(DoIncludeRestrictedOK);
+end;
 
 { TIncludeViaEventTests }
 
@@ -208,171 +343,42 @@ end;
 
 procedure TCornerCasesTests.TimeOutTestFinite;
 begin
-  FProg := FCompiler.Compile('while false do;');
-  FProg.TimeoutMilliseconds := 1000;
-  FProg.Execute;
+  Compile('while false do;');
+  ExecuteWTimeout(1000);
 end;
 
 // TimeOutTestInfinite
 
 procedure TCornerCasesTests.TimeOutTestInfinite;
 begin
-  FProg := FCompiler.Compile('while true do;');
-  FProg.TimeoutMilliseconds := 100;
-  FProg.Execute;
-end;
-
-// DoOnInclude
-
-
-// IncludeViaFile
-
-procedure TCornerCasesTests.IncludeViaFile;
-var
-  prog:    TdwsProgram;
-  sl:      TStringList;
-  tempDir: string;
-  tempFile: string;
-begin
-  FCompiler.OnInclude := nil;
-
-  tempDir  := GetTemporaryFilesPath;
-  tempFile := tempDir + 'test.dummy';
-
-  sl := TStringList.Create;
-  try
-    sl.Add('Print(''world'');');
-    sl.SaveToFile(tempFile);
-  finally
-    sl.Free;
-  end;
-
-  FCompiler.Config.ScriptPaths.Clear;
-  prog := FCompiler.Compile('{$include ''test.dummy''}');
-  try
-    CheckEquals('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
-      prog.Msgs.AsInfo, 'include via file no paths');
-  finally
-    prog.Free;
-  end;
-
-  FCompiler.Config.ScriptPaths.Add(tempDir);
-  prog := FCompiler.Compile('{$include ''test.dummy''}');
-  try
-    CheckEquals('', prog.Msgs.AsInfo, 'include via file');
-    prog.Execute;
-    CheckEquals('world', (prog.Result as TdwsDefaultResult).Text,
-      'exec include via file');
-  finally
-    prog.Free;
-  end;
-
-  FCompiler.Config.ScriptPaths.Clear;
-  DeleteFile(tempFile);
-end;
-
-// IncludeViaFileRestricted
-
-procedure TCornerCasesTests.IncludeViaFileRestricted;
-var
-  prog:    TdwsProgram;
-  sl:      TStringList;
-  tempDir: string;
-  tempFile: string;
-  restricted: TdwsRestrictedFileSystem;
-begin
-  restricted := TdwsRestrictedFileSystem.Create(nil);
-  FCompiler.OnInclude := nil;
-  FCompiler.Config.CompileFileSystem := restricted;
-
-  tempDir  := GetTemporaryFilesPath;
-  tempFile := tempDir + 'test.dummy';
-
-  sl := TStringList.Create;
-  try
-    sl.Add('Print(''world'');');
-    sl.SaveToFile(tempFile);
-  finally
-    sl.Free;
-  end;
-
-  restricted.Paths.Text := tempDir + '\nothing';
-  prog := FCompiler.Compile('{$include ''test.dummy''}');
-  try
-    CheckEquals('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
-      prog.Msgs.AsInfo, 'include via file no paths');
-  finally
-    prog.Free;
-  end;
-
-  restricted.Paths.Text := tempDir;
-
-  prog := FCompiler.Compile('{$include ''test.dummy''}');
-  try
-    CheckEquals('Compile Error: Couldn''t find file "test.dummy" on input paths [line: 1, column: 11]'#13#10,
-      prog.Msgs.AsInfo, 'include via file restricted - no paths');
-  finally
-    prog.Free;
-  end;
-
-  FCompiler.Config.ScriptPaths.Add('.');
-  prog := FCompiler.Compile('{$include ''test.dummy''}');
-  try
-    CheckEquals('', prog.Msgs.AsInfo, 'include via file restricted - dot path');
-    prog.Execute;
-    CheckEquals('world', (prog.Result as TdwsDefaultResult).Text,
-      'exec include via file');
-  finally
-    prog.Free;
-  end;
-
-  DeleteFile(tempFile);
-  restricted.Free;
-
-  CheckTrue(FCompiler.Config.CompileFileSystem = nil, 'Notification release');
+  Compile('while true do;');
+  ExecuteWTimeout(100);
 end;
 
 // StackMaxRecursion
 
 procedure TCornerCasesTests.StackMaxRecursion;
-var
-  prog: TdwsProgram;
+const
+  script = 'procedure Dummy; begin Dummy; end; Dummy;';
 begin
-  FCompiler.Config.MaxRecursionDepth := 20;
-
-  prog := FCompiler.Compile('procedure Dummy; begin Dummy; end; Dummy;');
-  try
-    CheckEquals('', prog.Msgs.AsInfo, 'compile');
-    prog.Execute;
-    CheckEquals('Runtime Error: Maximal recursion exceeded (20 calls)'#13#10,
-      prog.Msgs.AsInfo, 'stack max recursion');
-  finally
-    prog.Free;
-  end;
-
-  FCompiler.Config.MaxDataSize := cDefaultMaxRecursionDepth;
+  SetMaxRecursionDepth(20);
+  CheckCompileSuccessful(script);
+  Execute;
+  CheckEqualsInfo('Runtime Error: Maximal recursion exceeded (20 calls)'#13#10,
+       'after execute');
 end;
 
 // StackOverFlow
 
 procedure TCornerCasesTests.StackOverFlow;
-var
-  prog: TdwsProgram;
+const
+  script = 'procedure Dummy; var i : Integer; begin Dummy; end; Dummy;';
 begin
-  FCompiler.Config.MaxDataSize := 1024;
-
-  prog := FCompiler.Compile(
-    'procedure Dummy; var i : Integer; begin Dummy; end; Dummy;');
-  try
-    CheckEquals('', prog.Msgs.AsInfo, 'compile');
-    prog.Execute;
-    CheckEquals('Runtime Error: Maximal data size exceeded (64 Variants)'#13#10,
-      prog.Msgs.AsInfo, 'stack overflow');
-  finally
-    prog.Free;
-  end;
-
-  FCompiler.Config.MaxDataSize := 0;
+  SetMaxDataSize(1024);
+  CheckCompileSuccessful(script);
+  Execute;
+  CheckEqualsInfo('Runtime Error: Maximal data size exceeded (64 Variants)'#13#10,
+       'after execute');
 end;
 
  // ------------------------------------------------------------------
@@ -385,6 +391,8 @@ initialization
 
   RegisterTest('CornerCasesTests', TCornerCasesTests.Suite);
   RegisterTest('CornerCasesTests', TIncludeViaEventTests.Suite);
+  RegisterTest('CornerCasesTests', TIncludeViaFileTests.Suite);
 
 end.
+
 
