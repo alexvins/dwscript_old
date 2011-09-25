@@ -4030,13 +4030,8 @@ var
    p : PVarData;
 begin
    p:=PVarData(GetParamAsPVariant(index));
-   {$IFDEF FPC}
    if p^.VType=varString then
       Result:=String(p.VString)
-   {$ELSE}
-   if p^.VType=varUString then
-      Result:=String(p.VUString)
-   {$ENDIF}
    else Result:=PVariant(p)^;
 end;
 
@@ -4585,13 +4580,8 @@ var
 begin
    if (FDataMaster=nil) and (FTypeSym<>nil) and (FTypeSym.Size=1) then begin
       varData:=@FData[FOffset];
-      {$IFDEF FPC}
       if varData.VType=varString then
          Result:=String(varData.VString)
-      {$ELSE}
-      if varData.VType=varUString then
-         Result:=String(varData.VUString)
-      {$ENDIF}
       else Result:=PVariant(varData)^;
    end else Result:=inherited GetValueAsString;
 end;

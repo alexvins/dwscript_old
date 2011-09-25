@@ -38,11 +38,8 @@ type
    TData = array of Variant;
    PData = ^TData;
 
-   {$IFDEF FPC}
-     TSimpleStackInteger = specialize TSimpleStack<Integer>;
-   {$ELSE}
-     TSimpleStackInteger = TSimpleStack<Integer>;
-   {$ENDIF}
+   TSimpleStackInteger = specialize TSimpleStack<Integer>;
+
 
    // TStack
    //
@@ -381,11 +378,7 @@ var
 begin
    varData:=@Data[SourceAddr];
    if varData^.VType=varstring then
-{$IFDEF FPC}
      Result:=String(varData^.VString)
-{$ELSE}
-     Result:=String(varData.VUString)
-{$ENDIF}
    else Result:=PVariant(varData)^;
 end;
 
@@ -459,13 +452,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[destAddr];
-   {$IFDEF FPC}
    if varData^.VType=varString then
       String(varData^.VString):=String(varData^.VString)+value
-   {$ELSE}
-   if varData.VType=varUString then
-      String(varData.VUString):=String(varData.VUString)+value
-   {$ENDIF}
    else Fallback(varData);
 end;
 
@@ -531,13 +519,8 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   {$IFDEF FPC}
    if varData^.VType=varString then
       String(varData^.VString):=Value
-   {$ELSE}
-   if varData.VType=varUString then
-      String(varData.VUString):=Value
-   {$ENDIF}
    else PVariant(varData)^:=Value;
 end;
 
@@ -572,17 +555,10 @@ var
    varData : PVarData;
 begin
    varData:=@Data[DestAddr];
-   {$IFDEF FPC}
    if varData^.VType=varString then
       if index>Length(String(varData^.VString)) then
          Exit(False)
       else String(varData^.VString)[index]:=c
-   {$ELSE}
-   if varData.VType=varUString then
-      if index>Length(String(varData.VUString)) then
-         Exit(False)
-      else String(varData.VUString)[index]:=c
-   {$ENDIF}
    else PVariant(varData)^[index]:=c;
    Result:=True;
 end;

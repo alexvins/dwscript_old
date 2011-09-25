@@ -28,7 +28,6 @@
         <Debugging>
           <GenerateDebugInfo Value="True"/>
           <DebugInfoType Value="dsAuto"/>
-          <UseHeaptrc Value="True"/>
         </Debugging>
       </Linking>
       <Other>

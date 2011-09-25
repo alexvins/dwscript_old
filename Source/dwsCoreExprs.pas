@@ -1525,11 +1525,7 @@ begin
          rawResult:=Integer(vd1.VType)-Integer(vd2.VType);
          if rawResult=0 then begin
             case vd1.VType of
-               {$IFDEF FPC}
                varString : rawResult:=CompareStr(String(vd1.VString), String(vd2.VString));
-               {$ELSE}
-               varUString : rawResult:=CompareStr(String(vd1.VUString), String(vd2.VUString));
-               {$ENDIF}
                varInt64 : rawResult:=vd1.VInt64-vd2.VInt64;
                varBoolean : rawResult:=Integer(vd1.VBoolean)-Integer(vd2.VBoolean);
             else
