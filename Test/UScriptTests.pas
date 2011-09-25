@@ -3,14 +3,14 @@ unit UScriptTests;
 
 interface
 
-uses Classes,testregistry,
+uses Classes, testregistry,
   dws_fpcunit, dwsCompiler;
 
 type
 
   { TScriptTests }
 
-  TScriptTests = class (TDWSCustomTest)
+  TScriptTests = class(TDWSCustomTest)
   public
     procedure SetUp; override;
     procedure DoInclude(const scriptName: string; var scriptSource: string);
@@ -18,16 +18,16 @@ type
   end;
 
 
-   { TScriptFailureTests }
+  { TScriptFailureTests }
 
-   TScriptFailureTests = class (TDWSCompilerTestCase)
-   published
-     procedure CompilationFailure;
-   end;
+  TScriptFailureTests = class(TDWSCompilerTestCase)
+  published
+    procedure CompilationFailure;
+  end;
 
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
+ // ------------------------------------------------------------------
+ // ------------------------------------------------------------------
+ // ------------------------------------------------------------------
 implementation
 
 { TScriptFailureTests }
@@ -35,63 +35,64 @@ implementation
 procedure TScriptFailureTests.CompilationFailure;
 begin
   SetOptions([coOptimize]);
-   FProg:=FCompiler.Compile(FSource.Text);
+  FProg := FCompiler.Compile(FSource.Text);
 
-   if FExpectedResult.Count=0 then
-   begin
-      Check(fprog.Msgs.AsInfo<>'', 'undetected error');
-   end else
-   begin
-     CheckEquals(FExpectedResult.Text, FProg.Msgs.AsInfo, 'Error messages');
-   end;
+  if FExpectedResult.Count = 0 then
+  begin
+    Check(fprog.Msgs.AsInfo <> '', 'undetected error');
+  end else
+  begin
+    CheckEquals(FExpectedResult.Text, FProg.Msgs.AsInfo, 'Error messages');
+  end;
 end;
 
 { TScriptTests }
 
 procedure TScriptTests.SetUp;
 begin
-   inherited;
+  inherited;
 
-   FCompiler.OnInclude:=DoInclude;
+  FCompiler.OnInclude := DoInclude;
 end;
 
 // DoInclude
-//
+
 procedure TScriptTests.DoInclude(const scriptName: string; var scriptSource: string);
 var
-   sl : TStringList;
+  sl: TStringList;
 begin
-   sl:=TStringList.Create;
-   try
-      sl.LoadFromFile('SimpleScripts\'+scriptName);
-      scriptSource:=sl.Text;
-   finally
-      sl.Free;
-   end;
+  sl := TStringList.Create;
+  try
+    sl.LoadFromFile('SimpleScripts\' + scriptName);
+    scriptSource := sl.Text;
+  finally
+    sl.Free;
+  end;
 end;
 
 
 procedure TScriptTests.Execution;
 var
-   output : String;
+  output: string;
 begin
   Compilation;
   fprog.Execute;
-  if fprog.Msgs.Count=0 then
-     output:=(fprog.Result as TdwsDefaultResult).Text
-  else begin
-     output:= 'Errors >>>>'#13#10
-             +fprog.Msgs.AsInfo
-             +'Result >>>>'#13#10
-             +(fprog.Result as TdwsDefaultResult).Text;
+  if fprog.Msgs.Count = 0 then
+  begin
+    output := (fprog.Result as TdwsDefaultResult).Text;
+  end else
+  begin
+    output := 'Errors >>>>'#13#10 + fprog.Msgs.AsInfo
+      + 'Result >>>>'#13#10 + (fprog.Result as TdwsDefaultResult).Text;
   end;
-  CheckEquals(FExpectedResult.Text,output,'output');
+  CheckEquals(FExpectedResult.Text, output, 'output');
 end;
 
 initialization
 
-   RegisterTest('', TScriptTests.Suite('SimpleScripts','SimpleScripts'));
-   //RegisterTest('', TScriptTests.Suite('Algorithms','Algorithms'));
-   RegisterTest('', TScriptFailureTests.Suite('FailureScripts','FailureScripts'));
+  RegisterTest('', TScriptTests.Suite('SimpleScripts', 'SimpleScripts'));
+  //RegisterTest('', TScriptTests.Suite('Algorithms','Algorithms'));
+  RegisterTest('', TScriptFailureTests.Suite('FailureScripts', 'FailureScripts'));
 
 end.
+

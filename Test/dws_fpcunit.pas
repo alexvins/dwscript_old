@@ -15,39 +15,40 @@ type
   TDWSTestCaseBase = class(TTestCase)
   strict protected
     FCompiler: TDelphiWebScript;
-    FProg : TdwsProgram;
+    FProg:     TdwsProgram;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
 
-    procedure SetOptions(const AOptions:TCompilerOptions);
-    procedure Compile(const ASource:string);
-    procedure Compile(const ASource:TStrings);
+    procedure SetOptions(const AOptions: TCompilerOptions);
+    procedure Compile(const ASource: string);
+    procedure Compile(const ASource: TStrings);
     procedure Execute;
 
-    procedure CheckEqualsInfo(Expected: string;msg: string = '');
+    procedure CheckEqualsInfo(Expected: string; msg: string = '');
     procedure CheckEmptyInfo(msg: string = '');
-    procedure CheckEqualsResult(Expected: string;msg: string = ''); //default result as text
+    procedure CheckEqualsResult(Expected: string; msg: string = '');
+    //default result as text
 
   end;
 
   { TDWSCompilerTestCase }
 
-  TDWSCompilerTestCase = class (TDWSTestCaseBase)
+  TDWSCompilerTestCase = class(TDWSTestCaseBase)
   private
-    FOldDS: char;
+    FOldDS: Char;
   strict protected
     FTestFilename: string;
 
-    FSource : TStringList;
+    FSource: TStringList;
 
 
     FResultFileName: string;
     FExpectedResult: TStringList;
 
   protected
-    property TestFilename:string read FTestFilename;
-    procedure SetUp; override; 
+    property TestFilename: string read FTestFilename;
+    procedure SetUp; override;
     procedure TearDown; override;
 
     procedure Compilation; virtual;
@@ -60,9 +61,9 @@ type
 
 
   public
-    constructor CreateWith(const ATestName: string;
-      const ATestSuiteName: string; const ATestFile: String); reintroduce;virtual;
-    class function Suite (const AName, AFolder:string): TTest;
+    constructor CreateWith(const ATestName: string; const ATestSuiteName: string;
+      const ATestFile: string); reintroduce; virtual;
+    class function Suite(const AName, AFolder: string): TTest;
   public
     procedure CompilationNormal;
     procedure CompilationWithMapAndSymbols;
@@ -74,7 +75,7 @@ type
 
   { TDWSCustomTest }
 
-  TDWSCustomTest = class (TDWSCompilerTestCase)
+  TDWSCustomTest = class(TDWSCompilerTestCase)
   published
     procedure CompilationNormal;
     procedure CompilationWithMapAndSymbols;
@@ -84,16 +85,18 @@ type
 
   { TTestFolderSuite }
 
-  TTestFolderSuite = class (TTestSuite)
+  TTestFolderSuite = class(TTestSuite)
   public
-    constructor Create(ASuiteName, AFolder: string; AClass: TDWSCompilerTestCaseClass); reintroduce;
+    constructor Create(ASuiteName, AFolder: string; AClass: TDWSCompilerTestCaseClass);
+      reintroduce;
   end;
 
   { TTestFileSuite }
 
   TTestFileSuite = class(TTestSuite)
   public
-    constructor Create(ATestFile: string; ATestClass: TDWSCompilerTestCaseClass);reintroduce;
+    constructor Create(ATestFile: string; ATestClass: TDWSCompilerTestCaseClass);
+      reintroduce;
   end;
 
 
@@ -105,7 +108,7 @@ procedure TDWSTestCaseBase.SetUp;
 begin
   inherited SetUp;
   FCompiler := TDelphiWebScript.Create(nil);
-  FProg := nil;
+  FProg     := nil;
 end;
 
 procedure TDWSTestCaseBase.TearDown;
@@ -122,7 +125,7 @@ end;
 
 procedure TDWSTestCaseBase.Compile(const ASource: string);
 begin
-  CheckNull(FProg,'FProg before compile'); //avoid memleak in tests
+  CheckNull(FProg, 'FProg before compile'); //avoid memleak in tests
   FProg := FCompiler.Compile(ASource);
 end;
 
@@ -143,7 +146,7 @@ end;
 
 procedure TDWSTestCaseBase.CheckEmptyInfo(msg: string);
 begin
-  CheckEqualsInfo('',msg);
+  CheckEqualsInfo('', msg);
 end;
 
 procedure TDWSTestCaseBase.CheckEqualsResult(Expected: string; msg: string);
@@ -180,7 +183,7 @@ constructor TTestFileSuite.Create(ATestFile: string;
   ATestClass: TDWSCompilerTestCaseClass);
 var
   ml: TStringList;
-  s: String;
+  s:  string;
   the_test: TDWSCompilerTestCase;
 begin
   inherited Create(ExtractFileName(ATestFile));
@@ -195,7 +198,7 @@ begin
     end;
   finally
     ml.Free;
-  end
+  end;
 end;
 
 { TTestFolderSuite }
@@ -205,20 +208,19 @@ constructor TTestFolderSuite.Create(ASuiteName, AFolder: string;
 var
   test_data_path: string;
   FFiles: TStringList;
-  s: String;
+  s:      string;
   file_suite: TTestFileSuite;
 begin
-  inherited Create (ASuiteName);
+  inherited Create(ASuiteName);
   //collect tests
-  test_data_path := ExtractFilePath(ParamStr(0))
-    + AFolder+DirectorySeparator;
+  test_data_path := ExtractFilePath(ParamStr(0)) + AFolder + DirectorySeparator;
   FFiles := TStringList.Create;
   try
     try
       CollectFiles(test_data_path, AClass.GetTestFileMask, FFiles);
       for s in FFiles do
       begin
-        file_suite := TTestFileSuite.Create(s,AClass);
+        file_suite := TTestFileSuite.Create(s, AClass);
         AddTest(file_suite);
       end;
     finally
@@ -237,7 +239,7 @@ begin
   FOldDS := GetDecimalSeparator;
   SetDecimalSeparator('.');
 
-  FSource:=TStringList.Create;
+  FSource := TStringList.Create;
   FSource.LoadFromFile(FTestFilename);
 
   FResultFileName := ChangeFileExt(FTestFilename, '.txt');
@@ -245,7 +247,8 @@ begin
   if FileExists(FResultFileName) then
   begin
     FExpectedResult.LoadFromFile(FResultFileName);
-  end else
+  end
+  else
   begin
     FExpectedResult.Clear;
   end;
@@ -285,9 +288,9 @@ begin
 end;
 
 constructor TDWSCompilerTestCase.CreateWith(const ATestName: string;
-  const ATestSuiteName: string; const ATestFile: String);
+  const ATestSuiteName: string; const ATestFile: string);
 begin
-  inherited CreateWith(ATestName,ATestSuiteName);
+  inherited CreateWith(ATestName, ATestSuiteName);
   FTestFilename := ATestFile;
 end;
 

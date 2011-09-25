@@ -3,30 +3,29 @@ unit UdwsClassesTests;
 
 interface
 
-uses Classes, SysUtils, fpcunit,testregistry,
-   dws_fpcunit,
-   dwsComp, dwsCompiler, dwsExprs,
-   dwsClassesLibModule, dwsXPlatform, dwsSymbols;
+uses Classes, SysUtils, fpcunit, testregistry,
+  dws_fpcunit,
+  dwsComp, dwsCompiler, dwsExprs,
+  dwsClassesLibModule, dwsXPlatform, dwsSymbols;
 
 type
 
-   { TdwsClassesTests }
+  { TdwsClassesTests }
 
-   TdwsClassesTests = class (TDWSCustomTest)
-      private
-         FClassesLib : TdwsClassesLib;
-      public
-         procedure SetUp; override;
-         procedure TearDown; override;
-
-   end;
+  TdwsClassesTests = class(TDWSCustomTest)
+  private
+    FClassesLib: TdwsClassesLib;
+  public
+    procedure SetUp; override;
+    procedure TearDown; override;
+  end;
 
   { TSymbolDescriptionsTests }
 
   TSymbolDescriptionsTests = class(TTestCase)
   private
-    FCompiler : TDelphiWebScript;
-    FClassesLib : TdwsClassesLib;
+    FCompiler:   TDelphiWebScript;
+    FClassesLib: TdwsClassesLib;
   public
     procedure SetUp; override;
     procedure TearDown; override;
@@ -34,9 +33,9 @@ type
     procedure testTstrings;
   end;
 
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
-// ------------------------------------------------------------------
+ // ------------------------------------------------------------------
+ // ------------------------------------------------------------------
+ // ------------------------------------------------------------------
 implementation
 
 { TSymbolDescriptionsTests }
@@ -44,10 +43,10 @@ implementation
 procedure TSymbolDescriptionsTests.SetUp;
 begin
   inherited SetUp;
-  FCompiler:=TDelphiWebScript.Create(nil);
+  FCompiler := TDelphiWebScript.Create(nil);
 
-  FClassesLib:=TdwsClassesLib.Create(nil);
-  FClassesLib.Script:=FCompiler;
+  FClassesLib := TdwsClassesLib.Create(nil);
+  FClassesLib.Script := FCompiler;
 
 end;
 
@@ -60,17 +59,18 @@ end;
 
 procedure TSymbolDescriptionsTests.testTstrings;
 var
-   prog : TdwsProgram;
-   stringsSymbol : TClassSymbol;
+  prog: TdwsProgram;
+  stringsSymbol: TClassSymbol;
 begin
-   prog:=FCompiler.Compile('');
-   try
-      stringsSymbol:=prog.Table.FindSymbol('TStrings') as TClassSymbol;
-      CheckEquals('property Strings[x: Integer]: String read GetStrings write SetStrings; default;',
-                  stringsSymbol.Members.FindSymbol('Strings').Description, 'Strings Description');
-   finally
-      prog.Free;
-   end;
+  prog := FCompiler.Compile('');
+  try
+    stringsSymbol := prog.Table.FindSymbol('TStrings') as TClassSymbol;
+    CheckEquals('property Strings[x: Integer]: String read GetStrings write SetStrings; default;',
+      stringsSymbol.Members.FindSymbol('Strings').Description,
+      'Strings Description');
+  finally
+    prog.Free;
+  end;
 
 end;
 
@@ -78,22 +78,20 @@ end;
 
 procedure TdwsClassesTests.SetUp;
 begin
-   inherited;
-   FClassesLib:=TdwsClassesLib.Create(nil);
-   FClassesLib.Script:=FCompiler;
+  inherited;
+  FClassesLib := TdwsClassesLib.Create(nil);
+  FClassesLib.Script := FCompiler;
 end;
 
 procedure TdwsClassesTests.TearDown;
 begin
-   inherited;
-   FClassesLib.Free; //must be freed after compiler
+  inherited;
+  FClassesLib.Free; //must be freed after compiler
 end;
 
 
-
-
 initialization
-
   RegisterTest('dwsClassesLibTests', TSymbolDescriptionsTests.Suite);
-  RegisterTest('', TdwsClassesTests.Suite('ClassesLibTests','ClassesLib'));
+  RegisterTest('', TdwsClassesTests.Suite('ClassesLibTests', 'ClassesLib'));
 end.
+

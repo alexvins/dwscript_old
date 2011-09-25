@@ -1,3 +1,4 @@
+{$I dws_tests_conf.inc}
 unit UAlgorithmsTests;
 
 interface
@@ -9,15 +10,15 @@ type
 
   { TAlgorithmsTests }
 
-  TAlgorithmsTests = class (TDWSCustomTest)
+  TAlgorithmsTests = class(TDWSCustomTest)
   end;
 
 implementation
 
 
-
 initialization
 
-   RegisterTest('',TAlgorithmsTests.Suite('AlgorithmsTests','Algorithms'));
+  RegisterTest('', TAlgorithmsTests.Suite('AlgorithmsTests', 'Algorithms'));
 
 end.
+
