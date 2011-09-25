@@ -22,9 +22,8 @@ type
 
   { TSymbolDescriptionsTests }
 
-  TSymbolDescriptionsTests = class(TTestCase)
+  TSymbolDescriptionsTests = class(TDWSTestCaseBase)
   private
-    FCompiler:   TDelphiWebScript;
     FClassesLib: TdwsClassesLib;
   public
     procedure SetUp; override;
@@ -43,7 +42,6 @@ implementation
 procedure TSymbolDescriptionsTests.SetUp;
 begin
   inherited SetUp;
-  FCompiler := TDelphiWebScript.Create(nil);
 
   FClassesLib := TdwsClassesLib.Create(nil);
   FClassesLib.Script := FCompiler;
@@ -52,26 +50,19 @@ end;
 
 procedure TSymbolDescriptionsTests.TearDown;
 begin
-  FCompiler.Free;
+  inherited TearDown; //free the compiler first
   FClassesLib.Free;
-  inherited TearDown;
 end;
 
 procedure TSymbolDescriptionsTests.testTstrings;
 var
-  prog: TdwsProgram;
   stringsSymbol: TClassSymbol;
 begin
-  prog := FCompiler.Compile('');
-  try
-    stringsSymbol := prog.Table.FindSymbol('TStrings') as TClassSymbol;
-    CheckEquals('property Strings[x: Integer]: String read GetStrings write SetStrings; default;',
-      stringsSymbol.Members.FindSymbol('Strings').Description,
-      'Strings Description');
-  finally
-    prog.Free;
-  end;
-
+  Compile('');
+  stringsSymbol := fprog.Table.FindSymbol('TStrings') as TClassSymbol;
+  CheckEquals('property Strings[x: Integer]: String read GetStrings write SetStrings; default;',
+    stringsSymbol.Members.FindSymbol('Strings').Description,
+    'Strings Description');
 end;
 
 { TdwsClassesTests }
