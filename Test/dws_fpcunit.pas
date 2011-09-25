@@ -33,7 +33,7 @@ type
     procedure CheckEmptyInfo(msg: string = '');
     //default result as text
     procedure CheckEqualsResult(Expected: string; msg: string = '');
-    procedure CheckCompileSuccessful(const ASource: string);
+    procedure CheckCompile(const ASource: string);
 
   end;
 
@@ -181,10 +181,10 @@ begin
     'Prog default result ' + msg);
 end;
 
-procedure TDWSTestCaseBase.CheckCompileSuccessful(const ASource: string);
+procedure TDWSTestCaseBase.CheckCompile(const ASource: string);
 begin
   Compile(ASource);
-  CheckEmptyInfo('Errors on compilation');
+  CheckEmptyInfo('Compilation error');
 end;
 
 { TDWSCustomTest }

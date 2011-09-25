@@ -147,7 +147,7 @@ procedure TIncludeViaFileTests.DoIncludeRestrictedOK;
 begin
   FRestricted.Paths.Text := FTempDir;
   AddScriptPath('.');
-  CheckCompileSuccessful('{$include ''test.dummy''}');
+  CheckCompile('{$include ''test.dummy''}');
   Execute;
   CheckEqualsResult('world');
 end;
@@ -362,7 +362,7 @@ const
   script = 'procedure Dummy; begin Dummy; end; Dummy;';
 begin
   SetMaxRecursionDepth(20);
-  CheckCompileSuccessful(script);
+  CheckCompile(script);
   Execute;
   CheckEqualsInfo('Runtime Error: Maximal recursion exceeded (20 calls)'#13#10,
        'after execute');
@@ -375,7 +375,7 @@ const
   script = 'procedure Dummy; var i : Integer; begin Dummy; end; Dummy;';
 begin
   SetMaxDataSize(1024);
-  CheckCompileSuccessful(script);
+  CheckCompile(script);
   Execute;
   CheckEqualsInfo('Runtime Error: Maximal data size exceeded (64 Variants)'#13#10,
        'after execute');
