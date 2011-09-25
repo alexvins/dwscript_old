@@ -141,6 +141,8 @@ end;
 
 // GetTempFileName
 //
+
+//todo: make portable
 class function TPath.GetTempFileName : String;
 {$IFDEF VER200} // Delphi 2009
 var
@@ -163,6 +165,7 @@ end;
 
 // ReadAllBytes
 //
+//todo: make portable
 class function TFile.ReadAllBytes(const filename : String) : TBytes;
 {$IFDEF VER200} // Delphi 2009
 var
