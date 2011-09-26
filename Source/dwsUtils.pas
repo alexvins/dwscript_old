@@ -126,6 +126,8 @@ type
          property Count : Integer read FCount;
    end;
 
+   TSimpleStackInteger = TSimpleStack<Integer>;
+
 const
    cWriteOnlyBlockStreamBlockSize = $2000 - 2*SizeOf(Pointer);
 
@@ -194,10 +196,10 @@ end;
 // ------------------
 
 type
-   TStringListCracker = class (TStrings)
-      private
-         FList: PStringItemList;
-   end;
+   //TStringListCracker = class (TStrings)
+   //   private
+   //      FList: PStringItemList;
+   //end;
 
    TFastCompareStringList = class (TStringList)
       {$IFNDEF FPC}
@@ -932,8 +934,10 @@ end;
 // WriteString
 //
 procedure TWriteOnlyBlockStream.WriteString(const utf16String : String);
+{$IFNDEF FPC}
 var
    stringCracker : NativeInt;
+{$ENDIF}
 begin
    if utf16String<>'' then begin
       {$IFDEF FPC}

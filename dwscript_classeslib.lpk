@@ -9,7 +9,7 @@
       <SearchPaths>
         <IncludeFiles Value="Source"/>
         <OtherUnitFiles Value="Source\Libraries"/>
-        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>

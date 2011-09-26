@@ -33,24 +33,19 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="5">
+    <RequiredPackages Count="4">
       <Item1>
         <PackageName Value="dwscript_classeslib"/>
       </Item1>
       <Item2>
-        <PackageName Value="dwscript"/>
-        <MaxVersion Major="2" Minor="999" Valid="True"/>
-        <MinVersion Major="2" Minor="1" Valid="True"/>
+        <PackageName Value="FPCUnitTestRunner"/>
       </Item2>
       <Item3>
-        <PackageName Value="FPCUnitTestRunner"/>
+        <PackageName Value="LCL"/>
       </Item3>
       <Item4>
-        <PackageName Value="LCL"/>
-      </Item4>
-      <Item5>
         <PackageName Value="FCL"/>
-      </Item5>
+      </Item4>
     </RequiredPackages>
     <Units Count="12">
       <Unit0>

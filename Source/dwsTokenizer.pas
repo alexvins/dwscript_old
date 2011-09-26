@@ -608,7 +608,7 @@ begin
 end;
 
 var
-  sStart, sSpace, sComment, sCommentF, sSlashComment, sSlashComment0: TState;
+  sStart, {sSpace,} sComment, sCommentF, sSlashComment, sSlashComment0: TState;
   sSwitch, sSwitchNameF, sChar0, sCharF, sCharHex, sCharHexF: TState;
   sNameF: TState;
   sIntF, sIntPoint, sIntPointF, sIntExp, sIntExp0, sIntExpF, sHex, sHexF: TState;

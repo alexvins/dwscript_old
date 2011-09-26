@@ -1,6 +1,6 @@
 unit dwsClassesLibModule;
 
-{$MODE Delphi}
+{$I dws.inc}
 
 interface
 
