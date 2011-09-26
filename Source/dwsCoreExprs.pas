@@ -1522,6 +1522,7 @@ begin
          vd1:=@unified1.FData[0];
          vd2:=@unified2.FData[0];
          rawResult:=Integer(vd1.VType)-Integer(vd2.VType);
+         {$push} {$Q-}
          if rawResult=0 then begin
             case vd1.VType of
                varString : rawResult:=CompareStr(String(vd1.VString), String(vd2.VString));
@@ -1538,6 +1539,7 @@ begin
                end;
             end;
          end;
+         {$pop}
       end else rawResult:=NativeInt(unified1.Typ)-NativeInt(unified2.Typ);
    end else rawResult:=NativeUInt(unified1.ClassType)-NativeUInt(unified2.ClassType);
 

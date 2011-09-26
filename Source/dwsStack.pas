@@ -294,6 +294,8 @@ var
 begin
   Data  := nil;
   FSize := 0;
+  FStackPointer := 0;
+  FBasePointer := 0;
   ClearBpStore;
   SetLength(FBpStore, FMaxLevel + 1);
   for i := 0 to High(FBpStore) do
