@@ -251,6 +251,7 @@ end;
 procedure TStack.DecRecursion;
 begin
   Dec(FRecursionDepth);
+  Assert(FRecursionDepth>=0,'TStack: negative recursion depth');
 end;
 
 
