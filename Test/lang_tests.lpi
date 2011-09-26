@@ -166,25 +166,25 @@
         <Name Value="EFOpenError"/>
       </Item3>
       <Item4>
-        <Name Value="EAssertionFailedError"/>
+        <Name Value="EScriptError"/>
       </Item4>
       <Item5>
-        <Name Value="EScriptError"/>
+        <Name Value="EScriptException"/>
       </Item5>
       <Item6>
-        <Name Value="ECompileError"/>
+        <Name Value="EConvertError"/>
       </Item6>
       <Item7>
-        <Name Value="EScriptException"/>
+        <Name Value="EHTMLFilterException"/>
       </Item7>
       <Item8>
-        <Name Value="EConvertError"/>
+        <Name Value="EScriptOutOfBounds"/>
       </Item8>
       <Item9>
-        <Name Value="EHTMLFilterException"/>
+        <Name Value="ERangeError"/>
       </Item9>
       <Item10>
-        <Name Value="EScriptOutOfBounds"/>
+        <Name Value="EAssertionFailedError"/>
       </Item10>
     </Exceptions>
   </Debugging>

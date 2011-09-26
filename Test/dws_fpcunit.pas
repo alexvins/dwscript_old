@@ -34,6 +34,7 @@ type
     //default result as text
     procedure CheckEqualsResult(Expected: string; msg: string = '');
     procedure CheckCompile(const ASource: string);
+    procedure CheckCompile(const ASource: TStrings);
 
   end;
 
@@ -44,13 +45,9 @@ type
     FOldDS: Char;
   strict protected
     FTestFilename: string;
-
     FSource: TStringList;
-
-
     FResultFileName: string;
     FExpectedResult: TStringList;
-
   protected
     property TestFilename: string read FTestFilename;
     procedure SetUp; override;
@@ -59,11 +56,9 @@ type
     procedure Compilation; virtual;
     procedure Execution; virtual;
 
-
     procedure PostExec; virtual;
 
     class function GetTestFileMask: string; virtual;
-
 
   public
     constructor CreateWith(const ATestName: string; const ATestSuiteName: string;
@@ -187,6 +182,11 @@ begin
   CheckEmptyInfo('Compilation error');
 end;
 
+procedure TDWSTestCaseBase.CheckCompile(const ASource: TStrings);
+begin
+  CheckCompile(ASource.Text);
+end;
+
 { TDWSCustomTest }
 
 procedure TDWSCustomTest.CompilationNormal;
@@ -296,8 +296,7 @@ end;
 
 procedure TDWSCompilerTestCase.Compilation;
 begin
-  Compile(FSource);
-  CheckEmptyInfo('Info after compile');
+  CheckCompile(FSource);
 end;
 
 procedure TDWSCompilerTestCase.Execution;

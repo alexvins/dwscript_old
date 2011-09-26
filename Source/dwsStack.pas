@@ -130,7 +130,7 @@ implementation
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-uses dwsErrors, dwsSymbols;
+uses dwsErrors{, dwsSymbols};
 
 // CopyData
 //
@@ -228,7 +228,7 @@ procedure TStack.IncRecursion;
 begin
    Inc(FRecursionDepth);
    if FRecursionDepth>FMaxRecursionDepth then
-      raise EScriptException.CreateFmt(RTE_MaximalRecursionExceeded, [FMaxRecursionDepth]);
+      raise EScriptError.CreateFmt(RTE_MaximalRecursionExceeded, [FMaxRecursionDepth]);
 end;
 
 // DecRecursion
@@ -244,7 +244,7 @@ end;
 procedure TStack.GrowTo(desiredSize : Integer);
 begin
    if desiredSize > FMaxSize then
-      raise EScriptException.CreateFmt(RTE_MaximalDatasizeExceeded, [FMaxSize]);
+      raise EScriptError.CreateFmt(RTE_MaximalDatasizeExceeded, [FMaxSize]);
    FSize := ((desiredSize) div FChunkSize + 1) * FChunkSize;
    if FSize > FMaxSize then
       FSize := FMaxSize;

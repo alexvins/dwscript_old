@@ -28,11 +28,11 @@
         <Debugging>
           <GenerateDebugInfo Value="True"/>
           <DebugInfoType Value="dsAuto"/>
+          <UseHeaptrc Value="True"/>
         </Debugging>
       </Linking>
       <Other>
         <Verbosity>
-          <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
         <ConfigFile>
