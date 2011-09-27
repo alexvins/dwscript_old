@@ -14,6 +14,7 @@
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
           <IncludeAssertionCode Value="True"/>
         </SyntaxOptions>
       </Parsing>
@@ -44,8 +45,9 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <License Value="MPL"/>
-    <Version Major="2" Minor="1"/>
+    <Description Value="DWScript is an object-oriented scripting engine based on the Delphi language, with extensions borrowed from other Pascal languages (FreePascal, Prism, etc.). It introduces a few Pascal language extensions of its own as well."/>
+    <License Value="MPL 1.1"/>
+    <Version Major="2" Minor="1" Release="1"/>
     <Files Count="26">
       <Item1>
         <Filename Value="Source\dws.inc"/>
