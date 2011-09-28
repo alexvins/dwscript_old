@@ -1,0 +1,4 @@
+*.pas	diff=pascal
+*.lpr	diff=pascal
+*.pp	diff=pascal
+*.inc   diff=pascal
