@@ -22,7 +22,7 @@ unit dwsVCLGUIFunctions;
 
 interface
 
-uses Windows, Forms, Dialogs, Classes, dwsFunctions, dwsExprs, dwsSymbols;
+uses Forms, Dialogs, Classes, dwsFunctions, dwsExprs, dwsSymbols;
 
 type
 

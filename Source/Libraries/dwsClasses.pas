@@ -3,7 +3,7 @@ unit dwsClasses;
 
 interface
 
-uses Windows, SysUtils, Classes;
+uses SysUtils, Classes;
 
 type
 
@@ -352,11 +352,11 @@ begin
       S := Get(I);
       P := PChar(S);
       while not CharInSet(P^, [#0..' ', QuoteChar, Delimiter]) do
-      {$IFDEF MSWINDOWS}
-        P := CharNext(P);
-      {$ELSE}
+      //{$IFDEF MSWINDOWS}
+        //P := CharNext(P);
+      //{$ELSE}
         Inc(P);
-      {$ENDIF}
+      //{$ENDIF}
       if (P^ <> #0) then S := AnsiQuotedStr(S, QuoteChar);
       Result := Result + S + Delimiter;
     end;
@@ -600,11 +600,11 @@ begin
     Clear;
     P := PChar(Value);
     while CharInSet(P^, [#1..' ']) do
-    {$IFDEF MSWINDOWS}
-      P := CharNext(P);
-    {$ELSE}
+    //{$IFDEF MSWINDOWS}
+      //P := CharNext(P);
+    //{$ELSE}
       Inc(P);
-    {$ENDIF}
+    //{$ENDIF}
     while P^ <> #0 do
     begin
       if P^ = QuoteChar then
@@ -613,36 +613,36 @@ begin
       begin
         P1 := P;
         while (P^ > ' ') and (P^ <> Delimiter) do
-        {$IFDEF MSWINDOWS}
-          P := CharNext(P);
-        {$ELSE}
+        //{$IFDEF MSWINDOWS}
+          //P := CharNext(P);
+        //{$ELSE}
           Inc(P);
-        {$ENDIF}
+        //{$ENDIF}
         SetString(S, P1, P - P1);
       end;
       Add(S);
       while CharInSet(P^, [#1..' ']) do
-      {$IFDEF MSWINDOWS}
-        P := CharNext(P);
-      {$ELSE}
+      //{$IFDEF MSWINDOWS}
+        //P := CharNext(P);
+      //{$ELSE}
         Inc(P);
-      {$ENDIF}
+      //{$ENDIF}
       if P^ = Delimiter then
       begin
         P1 := P;
-        {$IFDEF MSWINDOWS}
-        if CharNext(P1)^ = #0 then
-        {$ELSE}
+        //{$IFDEF MSWINDOWS}
+        //if CharNext(P1)^ = #0 then
+        //{$ELSE}
         Inc(P1);
         if P1^ = #0 then
-        {$ENDIF}
+        //{$ENDIF}
           Add('');
         repeat
-          {$IFDEF MSWINDOWS}
-          P := CharNext(P);
-          {$ELSE}
+          //{$IFDEF MSWINDOWS}
+          //P := CharNext(P);
+          //{$ELSE}
           Inc(P);
-          {$ENDIF}
+          //{$ENDIF}
         until not CharInSet(P^, [#1..' ']);
       end;
     end;

@@ -7,8 +7,7 @@ unit dwscript_classeslib;
 interface
 
 uses
-  dwsAsmLibModule, dwsClasses, dwsClassesLibModule, dwsHashtables, 
-  LazarusPackageIntf;
+  dwsClasses, dwsClassesLibModule, dwsHashtables, LazarusPackageIntf;
 
 implementation
 

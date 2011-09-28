@@ -14,7 +14,8 @@
 {                                                                      }
 {**********************************************************************}
 {$I dws.inc}
-unit dwsAsmLibModule;
+//todo: fix dependence from windows
+unit dwsAsmLibModule platform;
 
 interface
 

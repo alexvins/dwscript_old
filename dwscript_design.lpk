@@ -38,23 +38,18 @@
       </Item2>
     </Files>
     <Type Value="DesignTime"/>
-    <RequiredPkgs Count="4">
+    <RequiredPkgs Count="3">
       <Item1>
-        <PackageName Value="dwscript_classeslib"/>
-        <MaxVersion Major="2" Minor="999" Valid="True"/>
-        <MinVersion Major="2" Minor="1" Valid="True"/>
+        <PackageName Value="IDEIntf"/>
       </Item1>
       <Item2>
-        <PackageName Value="IDEIntf"/>
-      </Item2>
-      <Item3>
         <PackageName Value="dwscript"/>
         <MaxVersion Major="2" Minor="999" Valid="True"/>
         <MinVersion Major="2" Minor="1" Valid="True"/>
-      </Item3>
-      <Item4>
+      </Item2>
+      <Item3>
         <PackageName Value="FCL"/>
-      </Item4>
+      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

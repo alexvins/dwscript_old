@@ -37,7 +37,7 @@
     {$MODE DELPHI}
   {$ENDIF}
   {.$T-}
-  {.$A+}
+  {$A+}
   {$H+}
   // B+ X+ are default
 {$ELSE}

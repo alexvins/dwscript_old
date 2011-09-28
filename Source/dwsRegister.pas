@@ -32,7 +32,7 @@ implementation
 
 uses
   Classes, Controls, dwsComp, {dwsComConnector,} dwsDebugger, dwsGlobalVarsFunctions,
-  dwsVCLGUIFunctions, dwsHtmlFilter, dwsClasses, dwsClassesLibModule, dwsFileSystem;
+  dwsVCLGUIFunctions, dwsHtmlFilter, dwsClasses, dwsFileSystem;
 
 procedure Register;
 begin
