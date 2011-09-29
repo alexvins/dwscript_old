@@ -219,10 +219,13 @@ var
   x, sp: Integer;
   v:     PVariant;
 begin
-{$push}
-{$r-}
   sp := FStackPointer;
+  //dirti hack.
+  //todo: remove it
+  {$push}
+  {$r-}
   v  := @Data[sp];
+  {$pop}
   sp := sp - delta;
   for x := 1 to delta do
   begin
@@ -232,7 +235,7 @@ begin
 
   // Free memory
   FStackPointer := sp;
-{$pop}
+
 end;
 
 // IncRecursion

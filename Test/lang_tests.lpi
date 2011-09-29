@@ -150,7 +150,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="14">
+    <Exceptions Count="15">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -193,6 +193,9 @@
       <Item14>
         <Name Value="EClassCast"/>
       </Item14>
+      <Item15>
+        <Name Value="EIntOverflow"/>
+      </Item15>
     </Exceptions>
   </Debugging>
 </CONFIG>

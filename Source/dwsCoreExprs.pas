@@ -1255,7 +1255,7 @@ end;
 
 // AssignValueAsString
 //
-procedure TVarExpr.AssignValueAsString(const Value: String);
+procedure TVarExpr.AssignValueAsString(const Value: string);
 begin
    FStack.WriteStrValue(Addr, Value);
 end;
@@ -1290,7 +1290,7 @@ end;
 
 // IncValue
 //
-procedure TIntVarExpr.IncValue(const value: Int64);
+procedure TIntVarExpr.IncValue(const Value: Int64);
 begin
    FStack.IncIntValue(FStack.BasePointer + FStackAddr, value);
 end;
@@ -2729,7 +2729,7 @@ function TObjCmpExpr.Eval: Variant;
 
   function SameInterface(const Left, Right: Variant) : Boolean;
   begin
-    result := TVarData(Left).VUnknown = TVarData(Right).VUnknown;
+    Result := TVarData(Left).VUnknown = TVarData(Right).VUnknown;
     // if not result then compare external objects ?
   end;
 
@@ -4340,9 +4340,10 @@ begin
          end;
       end;
       try
-         {$OVERFLOWCHECKS ON}
+      {$push}
+      {$Q+}
          i^:=i^+step;
-         {$OVERFLOWCHECKS OFF}
+      {$POP}
       except
          Break;
       end;
@@ -4375,9 +4376,10 @@ begin
          end;
       end;
       try
-         {$OVERFLOWCHECKS ON}
+      {$PUSH}
+      {$Q+}
          i^:=i^-step;
-         {$OVERFLOWCHECKS OFF}
+      {$pop}
       except
          Break;
       end;
