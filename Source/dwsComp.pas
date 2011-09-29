@@ -126,9 +126,9 @@ type
     function GetUnitName: string; virtual;
     function GetUnitTable(SystemTable, UnitSyms: TSymbolTable): TUnitSymbolTable; virtual; abstract;
     property Dependencies: TStrings read FDependencies write SetDependencies;
-    {$WARNINGS OFF}
+    {$PUSH}{$WARNINGS OFF}
     property UnitName: string read GetUnitName write SetUnitName;
-    {$WARNINGS ON}
+    {$POP}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -277,9 +277,9 @@ type
     FOnInitExpr: TInitExprEvent;
     FDeprecated : String;
   protected
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
+    function _AddRef: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFDEF WINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
   protected
     function GetDisplayName: string; override;
     procedure Call(Caller: TdwsProgram; Func: TFuncSymbol); virtual;
@@ -2012,17 +2012,17 @@ begin
    Result:=(FParameters.Count>0);
 end;
 
-function TdwsFunction._AddRef: Integer;
+function TdwsFunction._AddRef: longint;
 begin
   Result := -1;
 end;
 
-function TdwsFunction._Release: Integer;
+function TdwsFunction._Release: longint;
 begin
   Result := -1;
 end;
 
-function TdwsFunction.QueryInterface(constref IID: TGUID; out Obj): HResult;
+function TdwsFunction.QueryInterface ({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;
 begin
   Result := 0;
 end;
