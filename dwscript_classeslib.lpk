@@ -13,6 +13,7 @@
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
           <IncludeAssertionCode Value="True"/>
         </SyntaxOptions>
       </Parsing>
