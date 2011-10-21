@@ -8,7 +8,7 @@
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="Source"/>
-        <OtherUnitFiles Value="Source\Libraries"/>
+        <OtherUnitFiles Value="Libraries\ClassesLib"/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -43,29 +43,23 @@
     <Description Value="Delphi Web Script for Free Pascal. Classes library"/>
     <License Value="MPL 1.1"/>
     <Version Major="2" Minor="1"/>
-    <Files Count="5">
+    <Files Count="4">
       <Item1>
-        <Filename Value="Source\Libraries\dwsAsmLibModule.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="dwsAsmLibModule"/>
+        <Filename Value="Libraries\ClassesLib\dwsClasses.pas"/>
+        <UnitName Value="dwsClasses"/>
       </Item1>
       <Item2>
-        <Filename Value="Source\Libraries\dwsClasses.pas"/>
-        <UnitName Value="dwsClasses"/>
+        <Filename Value="Libraries\ClassesLib\dwsClassesLibModule.lfm"/>
+        <Type Value="LFM"/>
       </Item2>
       <Item3>
-        <Filename Value="Source\Libraries\dwsClassesLibModule.lfm"/>
-        <Type Value="LFM"/>
+        <Filename Value="Libraries\ClassesLib\dwsClassesLibModule.pas"/>
+        <UnitName Value="dwsClassesLibModule"/>
       </Item3>
       <Item4>
-        <Filename Value="Source\Libraries\dwsClassesLibModule.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="dwsClassesLibModule"/>
-      </Item4>
-      <Item5>
-        <Filename Value="Source\Libraries\dwsHashtables.pas"/>
+        <Filename Value="Libraries\ClassesLib\dwsHashtables.pas"/>
         <UnitName Value="dwsHashtables"/>
-      </Item5>
+      </Item4>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">

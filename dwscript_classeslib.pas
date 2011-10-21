@@ -13,7 +13,6 @@ implementation
 
 procedure Register; 
 begin
-  RegisterUnit('dwsClassesLibModule', @dwsClassesLibModule.Register); 
 end; 
 
 initialization
