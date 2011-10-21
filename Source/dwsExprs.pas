@@ -17,8 +17,9 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
-{$I dws.inc}
 unit dwsExprs;
+
+{$I dws.inc}
 
 interface
 
@@ -2278,6 +2279,7 @@ var
    v : Variant;
 begin
    v:=Eval;
+   {$IFDEF FPC}
    try
       Result:=v;
    except
@@ -2288,6 +2290,9 @@ begin
                                                [VarTypeAsText(VarType(v)), 'Integer'])
       end else raise;
    end;
+   {$ELSE}
+   Result := v;
+   {$ENDIF}
 end;
 
 // EvalAsBoolean
@@ -6442,4 +6447,3 @@ begin
 end;
 
 end.
-

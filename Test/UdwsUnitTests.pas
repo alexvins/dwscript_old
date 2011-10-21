@@ -5,7 +5,6 @@ interface
 
 uses Classes, SysUtils,
   fpcunit, testregistry,
-  //TestFrameWork,
   dwsComp, dwsCompiler, dwsExprs,
   dwsTokenizer, dwsSymbols;
 
@@ -555,4 +554,3 @@ initialization
   RegisterTest('dwsUnitTests', TdwsUnitTests.Suite);
 
 end.
-

@@ -91,8 +91,6 @@ end;
 initialization
 
   RegisterTest('', TScriptTests.Suite('SimpleScripts', 'SimpleScripts'));
-  //RegisterTest('', TScriptTests.Suite('Algorithms','Algorithms'));
   RegisterTest('', TScriptFailureTests.Suite('FailureScripts', 'FailureScripts'));
 
 end.
-

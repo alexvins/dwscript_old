@@ -3,7 +3,8 @@ unit UAlgorithmsTests;
 
 interface
 
-uses testregistry,
+uses
+  testregistry,
   dws_fpcunit;
 
 type

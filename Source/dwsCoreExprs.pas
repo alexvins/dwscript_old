@@ -17,8 +17,9 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
-{$I dws.inc}
 unit dwsCoreExprs;
+
+{$I dws.inc}
 
 interface
 
@@ -1683,6 +1684,24 @@ begin
                          Pointer(NativeUInt(Self)+vmtDestroy),
                          @p, SizeOf(Pointer), n);
    end;
+   {$IFDEF FPC}
+   p := @TUnifiedConstExpr.DoNothing;
+   if PPointer(NativeUInt(Self) + vmtDestroy)^ <> p then
+   begin
+      PVmt(Self).vDestroy := p;
+      //WriteProcessMemory(GetCurrentProcess,
+      //  Pointer(NativeUInt(Self) + vmtDestroy),
+      //  @p, SizeOf(Pointer), n);
+   end;
+   {$ELSE}
+   p := @TUnifiedConstExpr.DoNothing;
+   if PPointer(NativeUInt(Self) + vmtDestroy)^ <> p then
+   begin
+      WriteProcessMemory(GetCurrentProcess,
+                         Pointer(NativeUInt(Self) + vmtDestroy),
+                         @p, SizeOf(Pointer), n);
+   end;
+   {$ENDIF}
 end;
 
 // DoNothing

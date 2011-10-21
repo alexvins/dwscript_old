@@ -17,11 +17,12 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
+unit dwsXPlatform;
+
 {$I dws.inc}
 {$IFDEF FPC}
   {$define VER200}
 {$ENDIF}
-unit dwsXPlatform;
 
 //
 // This unit should concentrate all cross-platform aspects, croos-Delphi versions,
@@ -47,7 +48,7 @@ procedure CollectFiles(const directory, fileMask : String; list : TStrings);
 
 {$IFDEF FPC}
 type
-  TBytes = array of byte;
+  TBytes = array of Byte;
 
   RawByteString = string;
 {$ENDIF}

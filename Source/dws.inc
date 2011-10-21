@@ -36,11 +36,11 @@
   {$ELSE}
     {$MODE DELPHI}
   {$ENDIF}
-  {.$T-}
+  {$T-}
   {$A+}
   {$H+}
   // B+ X+ are default
-{$ELSE}
+{$ELSE !FPC}
 
 {$A+} // align on
 {$B-} // BoolEval off
@@ -49,7 +49,6 @@
 
 {$T-} // typed addr off - otherwise you'll get problems with ComSupport
       // <<.CreateResFmt(@SNoMethod, [Names]);>>
+{$ENDIF !FPC}
 
 {$DEFINE PUREPASCAL}
-
-{$ENDIF}

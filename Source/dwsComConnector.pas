@@ -17,8 +17,9 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
+unit dwsComConnector platform;
+
 {$I dws.inc}
-unit dwsComConnector;
 
 interface
 

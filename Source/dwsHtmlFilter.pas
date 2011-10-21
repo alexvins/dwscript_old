@@ -23,10 +23,9 @@
 {    Contributor(s): Daniele Teti <d.teti@bittime.it>                  }
 {                                                                      }
 {**********************************************************************}
+unit dwsHtmlFilter;
 
 {$I dws.inc}
-
-unit dwsHtmlFilter;
 
 interface
 

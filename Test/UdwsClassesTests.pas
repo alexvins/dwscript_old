@@ -3,7 +3,8 @@ unit UdwsClassesTests;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testregistry,
+uses
+  Classes, SysUtils, fpcunit, testregistry,
   dws_fpcunit,
   dwsComp, dwsCompiler, dwsExprs,
   dwsClassesLibModule, dwsXPlatform, dwsSymbols;

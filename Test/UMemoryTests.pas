@@ -42,4 +42,3 @@ initialization
   RegisterTest('', TMemoryTests.Suite('MemoryTests', 'Memory'));
 
 end.
-

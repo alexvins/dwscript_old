@@ -17,9 +17,10 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
+unit dwsTokenizer;
+
 {.$DEFINE DWS_FPC}
 {$I dws.inc}
-unit dwsTokenizer;
 
 interface
 

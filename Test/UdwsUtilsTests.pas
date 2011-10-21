@@ -3,7 +3,8 @@ unit UdwsUtilsTests;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testregistry, dwsUtils;
+uses
+  Classes, SysUtils, fpcunit, testregistry, dwsUtils;
 
 type
   TSimpleStackInt = TSimpleStack<Integer>;
@@ -132,13 +133,7 @@ begin
   FTightList.Clear;
 end;
 
- // ------------------------------------------------------------------
- // ------------------------------------------------------------------
- // ------------------------------------------------------------------
 initialization
-  // ------------------------------------------------------------------
-  // ------------------------------------------------------------------
-  // ------------------------------------------------------------------
 
   RegisterTest('dwsUtilsTests', TdwsUtilsTests.Suite);
 

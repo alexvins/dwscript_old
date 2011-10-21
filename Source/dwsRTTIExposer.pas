@@ -2,6 +2,8 @@ unit dwsRTTIExposer;
 
 interface
 
+{$IFNDEF FPC}
+
 uses SysUtils, RTTI, TypInfo, dwsComp, dwsSymbols, dwsExprs;
 
 type
@@ -649,4 +651,9 @@ begin
    AssignResultFromValue(info, resultValue, FTyp);
 end;
 
+{$ELSE}
+
+implementation
+
+{$ENDIF}
 end.

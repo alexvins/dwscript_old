@@ -17,14 +17,16 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
-{$I dws.inc}
 unit dwsRegister;
+
+{$I dws.inc}
 
 interface
 
 procedure Register;
 
 implementation
+
 {$IFDEF FPC}
 {$ELSE}
 {$R 'dws.dcr'}
@@ -53,4 +55,3 @@ begin
 end;
 
 end.
-

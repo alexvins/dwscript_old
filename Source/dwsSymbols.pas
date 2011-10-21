@@ -17,13 +17,16 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
-{$I dws.inc}
 unit dwsSymbols;
+
+{$I dws.inc}
 
 interface
 
-uses Windows, SysUtils, Variants, Classes, dwsStrings, dwsStack, dwsErrors,
-   dwsUtils, dwsTokenizer, dwsXPlatform;
+uses
+{$IFNDEF FPC}   Windows,  {$ENDIF}
+  SysUtils, Variants, Classes, dwsStrings, dwsStack, dwsErrors,
+  dwsUtils, dwsTokenizer, dwsXPlatform;
 
 type
    TBaseTypeID = (
@@ -3110,6 +3113,5 @@ begin
 end;
 
 end.
-
 
 

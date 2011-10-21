@@ -17,9 +17,10 @@
 {    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {**********************************************************************}
-{$I dws.inc}
 // Design-Time only, do NOT include this unit in runtime packages.
 unit dwsExperts;
+
+{$I dws.inc}
 
 interface
 
@@ -50,7 +51,7 @@ type
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
-  { TdwsDataTypeProperty }
+{ TdwsDataTypeProperty }
 
 function TdwsDataTypeProperty.GetAttributes: TPropertyAttributes;
 begin
@@ -59,7 +60,7 @@ end;
 
 procedure TdwsDataTypeProperty.GetValues(Proc: TGetStrProc);
 var
-  i: Integer;
+  i:  Integer;
   dwsUnit: TdwsUnit;
   sl: TStringList;
 begin
@@ -71,7 +72,7 @@ begin
   sl := TStringList.Create;
   try
     dwsUnit.GetDataTypes(sl);
-    sl.Sorted := True;
+    sl.Sorted     := True;
     sl.Duplicates := dupIgnore;
 
     // feed the dropdown list
@@ -92,7 +93,7 @@ end;
 
 procedure TdwsAncestorProperty.GetValues(Proc: TGetStrProc);
 var
-  i: Integer;
+  i:  Integer;
   sl: TStringList;
   dwsUnit: TdwsUnit;
 begin
@@ -103,7 +104,7 @@ begin
     sl := TStringList.Create;
     try
       dwsUnit.GetClassTypes(sl);
-      sl.Sorted := True;
+      sl.Sorted     := True;
       sl.Duplicates := dupIgnore;
 
       // feed the dropdown list
@@ -141,4 +142,3 @@ begin
 end;
 
 end.
-

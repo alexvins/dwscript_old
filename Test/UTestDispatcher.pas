@@ -3,10 +3,12 @@ unit UTestDispatcher;
 
 interface
 
-Uses
+{$IFDEF WINDOWS} //win32 only
+
+uses
  Windows, SysUtils, ActiveX, Variants, ComObj, dwsExprs, dwsFunctions;
 
-Type
+type
 
  //
  TDispItem = Class(TInterfacedObject, IDispatch)
@@ -179,5 +181,11 @@ End;
 initialization
 
    RegisterInternalFunction(TDispCallProxyFunc, 'DispCallProxy', [], 'Variant');
+
+{$ELSE} //win32 only
+
+implementation
+
+{$ENDIF}
 
 end.
