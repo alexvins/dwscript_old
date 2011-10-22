@@ -28,19 +28,7 @@
 
 {global compiler options}
 
-{$ifdef FPC}
 
-  {$IFDEF DWS_FPC}
-     {$MODE OBJFPC}
-     {.$MODESWITCH ADVANCEDRECORDS}
-  {$ELSE}
-    {$MODE DELPHI}
-  {$ENDIF}
-  {$T-}
-  {$A+}
-  {$H+}
-  // B+ X+ are default
-{$ELSE !FPC}
 
 {$A+} // align on
 {$B-} // BoolEval off
@@ -49,6 +37,28 @@
 
 {$T-} // typed addr off - otherwise you'll get problems with ComSupport
       // <<.CreateResFmt(@SNoMethod, [Names]);>>
-{$ENDIF !FPC}
 
-{$DEFINE PUREPASCAL}
+{$IFNDEF FPC}
+   {$IFNDEF VER200}  // D2009
+      {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
+   {$ENDIF}
+
+{$ELSE}
+  {$IFDEF DWS_FPC}
+     {$MODE OBJFPC}
+     {.$MODESWITCH ADVANCEDRECORDS}
+  {$ELSE}
+    {$MODE DELPHI}
+  {$ENDIF}
+{$ENDIF}
+
+{.$DEFINE PUREPASCAL}
+{.$DEFINE UNICODE_IDENTIFIERS}
+
+{$IFNDEF PUREPASCAL}
+   {$IF Defined(WIN32)}
+      {$DEFINE WIN32_ASM}
+   {$ELSEIF Defined(WIN64)}
+      {$DEFINE WIN64_ASM}
+   {$IFEND}
+{$ENDIF}
