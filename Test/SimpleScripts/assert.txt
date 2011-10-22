@@ -1,0 +1,4 @@
+Assertion failed [line: 7, column: 4]
+Assertion failed [line: 15, column: 4] : boom
+Assertion failed [line: 23, column: 4]
+Assertion failed [line: 31, column: 4] : reboom

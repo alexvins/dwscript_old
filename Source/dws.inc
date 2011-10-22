@@ -28,9 +28,7 @@
 
 {global compiler options}
 
-
-
-{$A+} // align on
+{.$A+} // align on
 {$B-} // BoolEval off
 {$X+} // extended syntax
 {$H+} // long strings

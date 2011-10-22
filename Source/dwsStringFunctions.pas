@@ -24,9 +24,11 @@ unit dwsStringFunctions;
 interface
 
 uses Classes, SysUtils, Variants, StrUtils, dwsFunctions, dwsSymbols, dwsStrings,
-   dwsUtils, dwsExprs, dwsCoreExprs;
+   dwsUtils, dwsExprs, dwsCoreExprs, dwsErrors, dwsXPlatform, Math;
 
 type
+
+  EChrConvertError = class (Exception);
 
   TChrFunc = class(TInternalMagicStringFunction)
     procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
@@ -52,6 +54,14 @@ type
     function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
   end;
 
+  TIntToBinFunc = class(TInternalMagicStringFunction)
+    procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
+  end;
+
+  TBoolToStrFunc = class(TInternalMagicStringFunction)
+    procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
+  end;
+
   TFloatToStrFunc = class(TInternalMagicStringFunction)
     procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
   end;
@@ -70,10 +80,6 @@ type
 
   TCharAtFunc = class(TInternalMagicStringFunction)
     procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
-  end;
-
-  TSetCharAtFunc = class(TInternalFunction)
-    procedure Execute; override;
   end;
 
   TCopyFunc = class(TInternalMagicStringFunction)
@@ -96,12 +102,12 @@ type
     procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
   end;
 
-  TDeleteFunc = class(TInternalFunction)
-    procedure Execute; override;
+  TDeleteFunc = class(TInternalMagicProcedure)
+    procedure DoEvalProc(args : TExprBaseList); override;
   end;
 
-  TInsertFunc = class(TInternalFunction)
-    procedure Execute; override;
+  TInsertFunc = class(TInternalMagicProcedure)
+    procedure DoEvalProc(args : TExprBaseList); override;
   end;
 
   TLowerCaseFunc = class(TInternalMagicStringFunction)
@@ -132,8 +138,8 @@ type
     function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
   end;
 
-  TSetLengthFunc = class(TInternalFunction)
-    procedure Execute; override;
+  TSetLengthFunc = class(TInternalMagicProcedure)
+    procedure DoEvalProc(args : TExprBaseList); override;
   end;
 
   TTrimLeftFunc = class(TInternalMagicStringFunction)
@@ -204,6 +210,10 @@ type
     procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
   end;
 
+  TReverseStringFunc = class(TInternalMagicStringFunction)
+    procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
+  end;
+
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -224,8 +234,20 @@ const // type constants
 // DoEvalAsString
 //
 procedure TChrFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+var
+   c : Integer;
 begin
-   Result:=Char(args.AsInteger[0]);
+   c:=args.AsInteger[0];
+   case c of
+      0..$FFFF :
+         Result:=Char(c);
+      $10000..$10FFFF : begin
+         c:=c-$10000;
+         Result:=Char($D800+(c shr 10))+Char($DC00+(c and $3FF));
+      end;
+   else
+      raise EChrConvertError.CreateFmt('Invalid codepoint: %d', [c]);
+   end;
 end;
 
 { TIntToStrFunc }
@@ -267,13 +289,54 @@ begin
    Result:=StrToInt64('$'+args.AsString[0]);
 end;
 
-{ TFloatToStrFunc }
+{ TIntToBinFunc }
 
 // DoEvalAsString
 //
-procedure TFloatToStrFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+procedure TIntToBinFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+var
+   v : Int64;
+   n : Integer;
 begin
-   Result:=FloatToStr(args.AsFloat[0]);
+   v:=args.AsInteger[0];
+   n:=args.AsInteger[1];
+   Result:='';
+   while (v<>0) or (n>0) do begin
+      if (v and 1)=1 then
+         Result:='1'+Result
+      else Result:='0'+Result;
+      v:=v shr 1;
+      Dec(n);
+   end;
+end;
+
+{ TBoolToStrFunc }
+
+procedure TBoolToStrFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+const
+   cBoolToStr : array [False..True] of String = ( 'False', 'True' );
+begin
+   Result:=cBoolToStr[args.AsBoolean[0]];
+end;
+
+{ TFloatToStrFunc }
+
+procedure TFloatToStrFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+var
+   p : Integer;
+   v, p10 : Double;
+begin
+   p:=args.AsInteger[1];
+   if p=99 then
+      Result:=FloatToStr(args.AsFloat[0])
+   else begin
+      v:=args.AsFloat[0];
+      if p<0 then begin
+         p10:=Power(10, p);
+         v:=Round(v*p10)/p10;
+         Result:=Format('%.0f', [v]);
+      end else Result:=Format('%.*f', [p, v]);
+   end;
 end;
 
 { TStrToFloatFunc }
@@ -347,24 +410,28 @@ end;
 
 { TDeleteFunc }
 
-procedure TDeleteFunc.Execute;
+// DoEvalProc
+//
+procedure TDeleteFunc.DoEvalProc(args : TExprBaseList);
 var
-  s: string;
+   s : String;
 begin
-  s := Info.ValueAsString['S'];
-  Delete(s, Info.ValueAsInteger['Index'], Info.ValueAsInteger['Len']);
-  Info.ValueAsString['S'] := s;
+   s:=args.AsString[0];
+   Delete(s, args.AsInteger[1], args.AsInteger[2]);
+   args.AsString[0]:=s;
 end;
 
 { TInsertFunc }
 
-procedure TInsertFunc.Execute;
+// DoEvalProc
+//
+procedure TInsertFunc.DoEvalProc(args : TExprBaseList);
 var
-  s: string;
+   s : String;
 begin
-  s := Info.ValueAsString['S'];
-  Insert(Info.ValueAsString['src'], s, Info.ValueAsInteger['Index']);
-  Info.ValueAsString['S'] := s;
+   s:=args.AsString[1];
+   Insert(args.AsString[0], s, args.AsInteger[2]);
+   args.AsString[1]:=s;
 end;
 
 { TLowerCaseFunc }
@@ -491,7 +558,7 @@ end;
 
 function TAnsiCompareTextFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
-   Result:=AnsiCompareText(args.AsString[0], args.AsString[1]);
+   Result:=UnicodeCompareText(args.AsString[0], args.AsString[1]);
 end;
 
 { TCompareStrFunc }
@@ -505,7 +572,7 @@ end;
 
 function TAnsiCompareStrFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
-   Result:=AnsiCompareStr(args.AsString[0], args.AsString[1]);
+   Result:=dwsXPlatform.AnsiCompareStr(args.AsString[0], args.AsString[1]);
 end;
 
 { TIsDelimiterFunc }
@@ -527,8 +594,13 @@ end;
 // DoEvalAsString
 //
 procedure TQuotedStrFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+var
+   quoteChar : String;
 begin
-   Result:=QuotedStr(args.AsString[0]);
+   quoteChar:=args.AsString[1];
+   if quoteChar='' then
+      Result:=AnsiQuotedStr(args.AsString[0], '''')
+   else Result:=AnsiQuotedStr(args.AsString[0], quoteChar[1]);
 end;
 
 { TCharAtFunc }
@@ -547,44 +619,26 @@ begin
    else Result:='';
 end;
 
-{ TSetCharAtFunc }
-
-procedure TSetCharAtFunc.Execute;
-var
-   buf : String;
-   n : Integer;
-begin
-   buf:=Info.ValueAsString['s'];
-   n:=Info.ValueAsInteger['x'];
-   if n<=0 then
-      raise Exception.CreateFmt(RTE_ArrayLowerBoundExceeded, [n])
-   else if n>Length(buf) then
-      raise Exception.CreateFmt(RTE_ArrayUpperBoundExceeded, [n])
-   else begin
-      buf[n]:=Info.ValueAsChar['c'];
-      Info.ValueAsString['s']:=buf;
-   end;
-end;
-
 { TSetLengthFunc }
 
-procedure TSetLengthFunc.Execute;
+// DoEvalProc
+//
+procedure TSetLengthFunc.DoEvalProc(args : TExprBaseList);
 var
    i, n : Integer;
    s : String;
 begin
-   //procedure SetLength(var S : String; NewLength : Integer);
-   s := Info.ValueAsString['S'];
+   s:=args.AsString[0];
 
    i:=Length(s)+1;
-   n:=Info.ValueAsInteger['NewLength'];
+   n:=args.AsInteger[1];
    SetLength(s, n);
    while i<=n do begin
       s[i]:=' ';
       Inc(i);
    end;
 
-   Info.ValueAsString['S'] := s;              // re-assign 'var' value
+   args.AsString[0]:=s;
 end;
 
 { TStringOfCharFunc }
@@ -691,6 +745,15 @@ begin
    else Result:=str;
 end;
 
+{ TReverseStringFunc }
+
+// DoEvalAsString
+//
+procedure TReverseStringFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+begin
+   Result:=ReverseString(args.AsString[0]);
+end;
+
 { TFormatFunc }
 
 // DoEvalAsString
@@ -703,14 +766,13 @@ begin
    varRecs:=nil;
    expr:=args.ExprBase[1];
    if expr is TArrayConstantExpr then
-      varRecs:=TArrayConstantExpr(expr).EvalAsVarRecArray
+      varRecs:=TArrayConstantExpr(expr).EvalAsVarRecArray(args.Exec)
    else if expr is TVarParamExpr then begin
       if TVarParamExpr(expr).Typ is TOpenArraySymbol then
-         varRecs:=TVarRecArrayContainer.Create(TVarParamExpr(expr).Data)
+         varRecs:=TVarRecArrayContainer.Create(TVarParamExpr(expr).Data[args.Exec])
    end;
    // current implementation, limitations may be relaxed later
-   if varRecs=nil then
-      raise EScriptException.Create('Constant expression or open array expected');
+   if varRecs=nil then raise EScriptError.Create('Constant expression or open array expected');
    try
       Result:=Format(args.AsString[0], varRecs.VarRecArray);
    finally
@@ -735,8 +797,11 @@ initialization
 
    RegisterInternalStringFunction(TIntToHexFunc, 'IntToHex', ['v', cInteger, 'digits', cInteger], True);
    RegisterInternalIntFunction(THexToIntFunc, 'HexToInt', ['hexa', cString], True);
+   RegisterInternalStringFunction(TIntToBinFunc, 'IntToBin', ['v', cInteger, 'digits', cInteger], True);
 
-   RegisterInternalStringFunction(TFloatToStrFunc, 'FloatToStr', ['f', cFloat], True);
+   RegisterInternalStringFunction(TBoolToStrFunc, 'BoolToStr', ['b', cBoolean], True);
+
+   RegisterInternalStringFunction(TFloatToStrFunc, 'FloatToStr', ['f', cFloat, 'p=99', cInteger], True);
    RegisterInternalFloatFunction(TStrToFloatFunc, 'StrToFloat', ['str', cString], True);
    RegisterInternalFloatFunction(TStrToFloatDefFunc, 'StrToFloatDef', ['str', cString, 'def', cFloat], True);
    RegisterInternalFloatFunction(TStrToFloatDefFunc, 'VarToFloatDef', ['val', cVariant, 'def', cFloat], True);
@@ -744,7 +809,6 @@ initialization
    RegisterInternalStringFunction(TFormatFunc, 'Format', ['fmt', cString, 'args', 'array of const'], True);
 
    RegisterInternalStringFunction(TCharAtFunc, 'CharAt', ['s', cString, 'x', cInteger], True);
-   RegisterInternalFunction(TSetCharAtFunc, 'SetCharAt', ['@s', cString, 'x', cInteger, 'c', cString], '');
 
    RegisterInternalFunction(TDeleteFunc, 'Delete', ['@S', cString, 'index', cInteger, 'Len', cInteger], '');
    RegisterInternalFunction(TInsertFunc, 'Insert', ['src', cString, '@S', cString, 'index', cInteger], '');
@@ -773,7 +837,7 @@ initialization
    RegisterInternalBoolFunction(TIsDelimiterFunc, 'IsDelimiter', ['delims', cString, 'str', cString, 'index', cInteger], True);
    RegisterInternalIntFunction(TLastDelimiterFunc, 'LastDelimiter', ['delims', cString, 'str', cString], True);
 
-   RegisterInternalStringFunction(TQuotedStrFunc, 'QuotedStr', ['str', cString], True);
+   RegisterInternalStringFunction(TQuotedStrFunc, 'QuotedStr', ['str', cString, 'quoteChar=', cString], True);
 
    RegisterInternalStringFunction(TCopyFunc, 'Copy', ['str', cString, 'index', cInteger, 'Len', cInteger], True);
 
@@ -785,11 +849,14 @@ initialization
 
    RegisterInternalStringFunction(TStringOfCharFunc, 'StringOfChar', ['ch', cString, 'count', cInteger], False);
    RegisterInternalStringFunction(TStringOfStringFunc, 'StringOfString', ['str', cString, 'count', cInteger], False);
+   RegisterInternalStringFunction(TStringOfStringFunc, 'DupeString', ['str', cString, 'count', cInteger], False);
 
    RegisterInternalBoolFunction(TStrBeginsWithFunc, 'StrBeginsWith', ['str', cString, 'beginStr', cString], True);
    RegisterInternalBoolFunction(TStrEndsWithFunc, 'StrEndsWith', ['str', cString, 'endStr', cString], True);
 
    RegisterInternalStringFunction(TStrAfterFunc, 'StrAfter', ['str', cString, 'delimiter', cString], True);
    RegisterInternalStringFunction(TStrBeforeFunc, 'StrBefore', ['str', cString, 'delimiter', cString], True);
+
+   RegisterInternalStringFunction(TReverseStringFunc, 'ReverseString', ['str', cString], True);
 
 end.

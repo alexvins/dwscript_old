@@ -27,31 +27,36 @@ procedure Register;
 
 implementation
 
-{$IFDEF FPC}
-{$ELSE}
 {$R 'dws.dcr'}
-{$ENDIF}
 
 uses
-  Classes, Controls, dwsComp, {dwsComConnector,} dwsDebugger, dwsGlobalVarsFunctions,
-  dwsVCLGUIFunctions, dwsHtmlFilter, dwsClasses, dwsFileSystem;
+  Classes, Controls, dwsComp, dwsComConnector, dwsDebugger, dwsGlobalVarsFunctions,
+  dwsVCLGUIFunctions, dwsHtmlFilter, dwsClasses, dwsClassesLibModule,
+  dwsFileSystem, dwsSymbolsLibModule, dwsJSFilter, dwsJSLibModule, dwsRTTIConnector;
 
 procedure Register;
 begin
-  //RegisterClass(TdwsComConnector);
+  RegisterClass(TdwsComConnector);
 
-  RegisterComponents('dws',
+  RegisterComponents('DWScript',
                      [
                      TDelphiWebScript,
-                     //TdwsComConnector,
+                     TdwsComConnector,
+                     TdwsRttiConnector,
                      TdwsSimpleDebugger,
+                     TdwsDebugger,
                      TdwsUnit,
                      TdwsHtmlFilter,
+                     TdwsJSFilter,
+                     TdwsJSLibModule,
+                     TdwsSymbolsLib,
                      TdwsGlobalVarsFunctions,
                      TdwsGUIFunctions,
                      TdwsRestrictedFileSystem,
-                     TdwsNoFileSystem
+                     TdwsNoFileSystem,
+                     TdwsClassesLib
                      ]);
 end;
 
 end.
+

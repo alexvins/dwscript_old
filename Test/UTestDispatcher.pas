@@ -1,14 +1,11 @@
-{$I dws_tests_conf.inc}
 unit UTestDispatcher;
 
 interface
 
-{$IFDEF WINDOWS} //win32 only
-
-uses
+Uses
  Windows, SysUtils, ActiveX, Variants, ComObj, dwsExprs, dwsFunctions;
 
-type
+Type
 
  //
  TDispItem = Class(TInterfacedObject, IDispatch)
@@ -26,7 +23,7 @@ type
 
   TDispCallProxyFunc = Class(TInternalFunction)
 
-   Procedure Execute; Override;
+   Procedure Execute(info : TProgramInfo); Override;
 
   End;
 
@@ -152,15 +149,37 @@ Const
 
  LineBreak : Array [Boolean] Of String = ('', sLineBreak);
 
+ //
+ Function _GetArrayInfo(Const AArray : Variant) : String;
+ Var
+
+ Index : Integer;
+
+ Begin
+
+ Result := '';
+
+ For Index := VarArrayLowBound(AArray, 1) To VarArrayHighBound(AArray, 1) Do
+  Result := Result + Format('%s    [%d] %s', [sLineBreak, Index, VarTypeAsText(TVarData(VarArrayGet(AArray, [Index])).VType)]);
+
+ End;
+ //
+
 Var
 
  Index : Integer;
- S     : String = '';
+ S     : String;
 
 Begin
 
  For Index := Low(AParams) To High(AParams) Do
- S := S + LineBreak[S <> ''] + Format('param index: %d, type: %s (%d)', [Index, VarTypeAsText(TVarData(FindVarData(AParams[Index])^).VType), TVarData(FindVarData(AParams[Index])^).VType]);
+ Begin
+
+  S := S + LineBreak[S <> ''] + Format('param index: %d, type: %s (%d)', [Index, VarTypeAsText(TVarData(FindVarData(AParams[Index])^).VType), TVarData(FindVarData(AParams[Index])^).VType]);
+  If TVarData(FindVarData(AParams[Index])^).VType And varArray <> 0 Then
+   S := S + _GetArrayInfo(AParams[Index]);
+
+ End;
 
  Result := S;
 
@@ -170,22 +189,14 @@ End;
 { TDispCallProxyFunc }
 
 //
-Procedure TDispCallProxyFunc.Execute;
+Procedure TDispCallProxyFunc.Execute(info : TProgramInfo);
 Begin
-
  Info.ResultAsVariant := TDispItem.Create As IDispatch;
-
 End;
 //
 
 initialization
 
    RegisterInternalFunction(TDispCallProxyFunc, 'DispCallProxy', [], 'Variant');
-
-{$ELSE} //win32 only
-
-implementation
-
-{$ENDIF}
 
 end.

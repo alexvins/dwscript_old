@@ -28,6 +28,7 @@ Recent Contributors (in alphabetical order):
 
 - Kazantsev, Alexey (Russia)
 - Krystian Bigaj
+- Steffen Binas
 - Teti, Daniele (Italy)
 
 This is the list of initial contributors (in alphabetical order):
@@ -50,4 +51,3 @@ This is the list of initial contributors (in alphabetical order):
 - Waldenburg, Martin (Germany)
 
 Thank you very much!
-

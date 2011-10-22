@@ -23,11 +23,11 @@ unit dwsVariantFunctions;
 
 interface
 
-uses Classes, Variants, SysUtils, dwsFunctions, dwsExprs, dwsSymbols;
+uses Classes, Variants, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsUtils;
 
 type
   TVarClearFunc = class(TInternalFunction)
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TVarIsNullFunc = class(TInternalMagicBoolFunction)
@@ -43,7 +43,7 @@ type
   end;
 
   TVarAsTypeFunc = class(TInternalFunction)
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TVarToStrFunc = class(TInternalMagicStringFunction)
@@ -61,7 +61,7 @@ const // type constants
 
 { TVarClearFunc }
 
-procedure TVarClearFunc.Execute;
+procedure TVarClearFunc.Execute(info : TProgramInfo);
 begin
   Info.ValueAsVariant['v'] := Unassigned;
 end;
@@ -72,7 +72,7 @@ function TVarIsNullFunc.DoEvalAsBoolean(args : TExprBaseList) : Boolean;
 var
    v : Variant;
 begin
-   args.ExprBase[0].EvalAsVariant(v);
+   args.ExprBase[0].EvalAsVariant(args.Exec, v);
    Result:=VarIsNull(v);
 end;
 
@@ -82,7 +82,7 @@ function TVarIsEmptyFunc.DoEvalAsBoolean(args : TExprBaseList) : Boolean;
 var
    v : Variant;
 begin
-   args.ExprBase[0].EvalAsVariant(v);
+   args.ExprBase[0].EvalAsVariant(args.Exec, v);
    Result:=VarIsEmpty(v);
 end;
 
@@ -92,13 +92,13 @@ function TVarTypeFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 var
    v : Variant;
 begin
-   args.ExprBase[0].EvalAsVariant(v);
+   args.ExprBase[0].EvalAsVariant(args.Exec, v);
    Result:=VarType(v);
 end;
 
 { TVarAsTypeFunc }
 
-procedure TVarAsTypeFunc.Execute;
+procedure TVarAsTypeFunc.Execute(info : TProgramInfo);
 begin
   Info.ResultAsVariant := VarAsType(Info.ValueAsVariant['v'], Info.ValueAsInteger['VarType']);
 end;
@@ -111,7 +111,7 @@ procedure TVarToStrFunc.DoEvalAsString(args : TExprBaseList; var Result : String
 var
    v : Variant;
 begin
-   args.ExprBase[0].EvalAsVariant(v);
+   args.ExprBase[0].EvalAsVariant(args.Exec, v);
    Result:=VarToStr(v);
 end;
 
@@ -132,14 +132,14 @@ const
       (n:'ShortInt'; v:varShortInt),   (n:'Byte'; v:varByte),
       (n:'Word'; v:varWord),           (n:'LongWord'; v:varLongWord),
       (n:'Int64'; v:varInt64),         (n:'StrArg'; v:varStrArg),
-      (n:'String'; v:varstring),      (n:'Any'; v:varAny),
+      (n:'String'; v:varUString),      (n:'Any'; v:varAny),
       (n:'TypeMask'; v:varTypeMask),   (n:'Array'; v:varArray),
       (n:'ByRef'; v:varByRef) );
 var
    i : Integer;
    T, E : TTypeSymbol;
 begin
-   T := SystemTable.FindSymbol('Integer') as TTypeSymbol;
+   T := SystemTable.FindSymbol('Integer', cvMagic) as TTypeSymbol;
    E := TEnumerationSymbol.Create('TVarType', T);
    UnitTable.AddSymbol(E);
    for i:=Low(cVarTypes) to High(cVarTypes) do
@@ -148,13 +148,13 @@ end;
 
 initialization
 
-   RegisterInternalInitProc(@InitVariants);
+   RegisterInternalPreInitProc(@InitVariants);
 
    RegisterInternalFunction(TVarClearFunc, 'VarClear', ['@v', cVariant], '');
    RegisterInternalBoolFunction(TVarIsNullFunc, 'VarIsNull', ['v', cVariant]);
    RegisterInternalBoolFunction(TVarIsEmptyFunc, 'VarIsEmpty', ['v', cVariant]);
    RegisterInternalFunction(TVarTypeFunc, 'VarType', ['v', cVariant], 'TVarType');
-   RegisterInternalFunction(TVarAsTypeFunc, 'VarAsType', ['v', cVariant, 'VarType', cInteger], cVariant);
+   RegisterInternalFunction(TVarAsTypeFunc, 'VarAsType', ['v', cVariant, 'VarType', 'TVarType'], cVariant);
    RegisterInternalStringFunction(TVarToStrFunc, 'VarToStr', ['v', cVariant]);
 
 end.

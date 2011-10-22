@@ -16,9 +16,10 @@
 {    January 1, 2001                                                   }
 {                                                                      }
 {    The Initial Developer of the Original Code is Matthias            }
-{    Ackermann. Portions created by Matthias Ackermann are             }
-{    Copyright (C) 2000 Matthias Ackermann, Switzerland. All           }
-{    Rights Reserved.                                                  }
+{    Ackermann. For other initial contributors, see contributors.txt   }
+{    Subsequent portions Copyright Creative IT.                        }
+{                                                                      }
+{    Current maintainer: Eric Grange                                   }
 {                                                                      }
 {    Contributor(s): Daniele Teti <d.teti@bittime.it>                  }
 {                                                                      }
@@ -31,7 +32,7 @@ interface
 
 uses
   Variants, Classes, SysUtils, dwsComp, dwsExprs, dwsFunctions, dwsSymbols,
-  dwsErrors, dwsCompiler, dwsStrings, dwsStringResult, dwsUtils;
+  dwsErrors, dwsCompiler, dwsStrings, dwsStringResult, dwsUtils, StrUtils;
 
 type
 
@@ -65,12 +66,12 @@ type
 
   TSendFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TSendLnFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   EHTMLFilterException = class (Exception) end;
@@ -88,10 +89,10 @@ implementation
 constructor TdwsHtmlFilter.Create(AOwner: TComponent);
 begin
   inherited;
-  PrivateDependencies.Add('HTML');
+//  PrivateDependencies.Add('HTML');
   
-  FPatternOpen := '<%';
-  FPatternClose := '%>';
+  FPatternOpen := '<?pas';
+  FPatternClose := '?>';
   FPatternEval := '=';
 end;
 
@@ -105,34 +106,36 @@ function TdwsHtmlFilter.Process(const Text: String; Msgs: TdwsMessageList): Stri
       isQuoted: Boolean;
       i, lineCount: Integer;
    begin
-      dest.WriteString('''');
-      isQuoted := True;
-      lineCount := 0;
-      for i := start to stop do begin
+      if start>=stop then Exit;
+
+      dest.WriteString('Print(');
+      isQuoted:=False;
+      lineCount:=0;
+      for i:=start to stop do begin
          if isQuoted then begin
             case str[i] of
                '''': dest.WriteString('''''');
                #10: begin
                   dest.WriteString('''#10');
-                  isQuoted := False;
+                  isQuoted:=False;
                   Inc(lineCount);
                end;
                #13: begin
                   dest.WriteString('''#13');
-                  isQuoted := False;
+                  isQuoted:=False;
                end;
                #9: begin
                   dest.WriteString('''#9');
-                  isQuoted := False;
+                  isQuoted:=False;
                end;
             else
-               dest.WriteString(str[i]);
+               dest.WriteChar(str[i]);
             end
          end else begin
             case str[i] of
                '''': begin
                   dest.WriteString('''''''');
-                  isQuoted := True;
+                  isQuoted:=True;
                end;
                #10: begin
                   dest.WriteString('#10');
@@ -141,81 +144,63 @@ function TdwsHtmlFilter.Process(const Text: String; Msgs: TdwsMessageList): Stri
                #13: dest.WriteString('#13');
                #9: dest.WriteString('#9');
             else
-               dest.WriteString('''');
-               dest.WriteString(Str[i]);
-               isQuoted := True;
+               dest.WriteChar('''');
+               dest.WriteChar(str[i]);
+               isQuoted:=True;
             end;
          end;
       end;
 
       if isQuoted then
          dest.WriteString('''');
+      dest.WriteString(');');
 
       for i := 1 to lineCount do
          dest.WriteString(#13#10);
    end;
 
 var
-   state: (sNone, sSend);
-   index, patOpen, patClose, patEval: Integer;
-   htmlText, chunk, pattern: String;
-   builder : TWriteOnlyBlockStream;
+   p, start, stop : Integer;
+   isEval : Boolean;
+   input : String;
+   output : TWriteOnlyBlockStream;
 begin
    CheckPatterns;
 
-   // Initializations
-   htmlText := inherited Process(Text, Msgs);
-   patOpen := Length(FPatternOpen) - 1;
-   patClose := Length(FPatternClose) - 1;
-   patEval := Length(FPatternEval) + 1;
+   input:=inherited Process(Text, Msgs);
 
-   builder:=TWriteOnlyBlockStream.Create;
+   output:=TWriteOnlyBlockStream.Create;
    try
 
-      state := sNone;
-      pattern := FPatternOpen;
-
-      // Start conversion
+      stop:=1;
+      p:=1;
       repeat
-         index := AnsiPos(pattern, htmlText);
-         if index = 0 then
-            index := Length(htmlText) + 1;
-
-         case state of
-            sNone: begin
-               // Normal HTML code.
-               // Looking for <%
-               if index > 1 then begin
-                  builder.WriteString('Send(');
-                  StuffString(htmlText, 1, index-1, builder);
-                  builder.WriteString(');');
-               end;
-               Delete(htmlText, 1, index + patOpen);
-               pattern := FPatternClose;
-               state := sSend;
-            end;
-            sSend: begin
-               // Inside a <% %> tag
-               // Looking for %>
-               chunk := Copy(htmlText, 1, index - 1);
-               if Pos(FPatternEval, chunk) = 1 then begin
-                  builder.WriteString('Send(');
-                  builder.WriteString(Copy(chunk, patEval, Length(chunk)));
-                  builder.WriteString(');');
-               end else begin
-                  builder.WriteString( chunk );
-               end;
-               Delete(htmlText, 1, index + patClose);
-               pattern := FPatternOpen;
-               state := sNone;
-            end;
+         start:=PosEx(PatternOpen, input, p);
+         if start<=0 then begin
+            StuffString(input, p, Length(input), output);
+            Break;
+         end else StuffString(input, p, start-1, output);
+         start:=start+Length(FPatternOpen);
+         isEval:=CompareMem(@input[start], @FPatternEval[1], Length(FPatternEval));
+         if isEval then begin
+            output.WriteString('Print(');
+            start:=start+Length(FPatternEval);
          end;
-      until Length(htmlText) = 0;
+         stop:=PosEx(PatternClose, input, start);
+         if stop<=0 then
+            output.WriteSubString(input, start)
+         else begin
+            output.WriteSubString(input, start, stop-start);
+            p:=stop+Length(FPatternClose);
+         end;
+         if isEval then
+            output.WriteString(');');
+      until (stop<=0);
 
-      Result:=builder.ToString;
+      Result:=output.ToString;
 
    finally
-      builder.Free;
+      output.Free;
    end;
 end;
 
@@ -231,18 +216,18 @@ end;
 
 { TSendFunction }
 
-procedure TSendFunction.Execute;
+procedure TSendFunction.Execute(info : TProgramInfo);
 begin
-  Info.Caller.Result.AddString(Info.ValueAsString['s']);
+  Info.Execution.Result.AddString(Info.ValueAsString['s']);
 end;
 
 { TSendLnFunction }
 
-procedure TSendLnFunction.Execute;
+procedure TSendLnFunction.Execute(info : TProgramInfo);
 var
    result : TdwsResult;
 begin
-   result:=Info.Caller.Result;
+   result:=Info.Execution.Result;
    result.AddString(Info.ValueAsString['s']);
    result.AddString(#13#10);
 end;
@@ -252,7 +237,9 @@ end;
 procedure TdwsHtmlUnit.AddUnitSymbols(SymbolTable: TSymbolTable);
 begin
   TSendFunction.Create(SymbolTable, 'Send', ['s', SYS_VARIANT], '', False);
+  TSendFunction.Create(SymbolTable, 'Print', ['s', SYS_VARIANT], '', False);
   TSendLnFunction.Create(SymbolTable, 'SendLn', ['s', SYS_VARIANT], '', False);
+  TSendLnFunction.Create(SymbolTable, 'PrintLn', ['s', SYS_VARIANT], '', False);
 end;
 
 constructor TdwsHtmlUnit.Create(AOwner: TComponent);

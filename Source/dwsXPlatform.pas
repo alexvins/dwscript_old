@@ -20,19 +20,24 @@
 unit dwsXPlatform;
 
 {$I dws.inc}
-{$IFDEF FPC}
-  {$define VER200}
-{$ENDIF}
 
 //
-// This unit should concentrate all cross-platform aspects, croos-Delphi versions,
-// ifdefs and other conditionals
+// This unit should concentrate all non-UI cross-platform aspects,
+// cross-Delphi versions, ifdefs and other conditionals
 //
 // no ifdefs in the main code.
 
+{$WARN SYMBOL_PLATFORM OFF}
+
+{$IFDEF FPC}
+   {$DEFINE VER200}
+{$ENDIF}
+
 interface
 
-uses Classes, SysUtils;
+uses Windows, Classes, SysUtils
+   {$IFNDEF VER200}, IOUtils{$ENDIF}
+   ;
 
 const
 {$IFDEF UNIX}
@@ -44,31 +49,48 @@ const
 procedure SetDecimalSeparator(c : Char);
 function GetDecimalSeparator : Char;
 
-procedure CollectFiles(const directory, fileMask : String; list : TStrings);
-
-{$IFDEF FPC}
-type
-  TBytes = array of Byte;
-
-  RawByteString = string;
-{$ENDIF}
+procedure CollectFiles(const directory, fileMask : UnicodeString; list : TStrings);
 
 type
+   {$IFNDEF FPC}
+   {$IF CompilerVersion<22.0}
+   // NativeUInt broken in D2009, and PNativeInt is missing in D2010
+   // http://qc.embarcadero.com/wc/qcmain.aspx?d=71292
+   NativeInt = Integer;
+   PNativeInt = ^NativeInt;
+   NativeUInt = Cardinal;
+   PNativeUInt = ^NativeUInt;
+   {$IFEND}
+   {$ENDIF}
 
-   { TPath }
+   {$IFDEF FPC}
+   TBytes = array of Byte;
+
+   RawByteString = String;
+   {$ENDIF}
 
    TPath = class
       class function GetTempFileName : String; static;
-      class function GetTemporaryFilesPath: string; static;
    end;
 
    TFile = class
       class function ReadAllBytes(const filename : String) : TBytes; static;
    end;
 
-{$IFDEF FPC}
-   procedure VarCopy(var ADest: Variant; const ASource: Variant);
-{$ENDIF}
+   TdwsThread = class (TThread)
+      {$IFNDEF FPC}
+      {$IFDEF VER200}
+      procedure Start;
+      {$ENDIF}
+      {$ENDIF}
+   end;
+
+function GetSystemMilliseconds : Cardinal;
+function UTCDateTime : TDateTime;
+
+function AnsiCompareText(const S1, S2 : String) : Integer;
+function AnsiCompareStr(const S1, S2 : String) : Integer;
+function UnicodeComparePChars(p1 : PChar; n1 : Integer; p2 : PChar; n2 : Integer) : Integer;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -78,18 +100,60 @@ implementation
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
+// GetSystemMilliseconds
+//
+function GetSystemMilliseconds : Cardinal;
+begin
+   Result:=GetTickCount;
+end;
+
+// UTCDateTime
+//
+function UTCDateTime : TDateTime;
+var
+   systemTime : TSystemTime;
+begin
+   GetSystemTime(systemTime);
+   with systemTime do
+      Result:= EncodeDate(wYear, wMonth, wDay)
+              +EncodeTime(wHour, wMinute, wSecond, wMilliseconds);
+end;
+
+// AnsiCompareText
+//
+function AnsiCompareText(const S1, S2: string) : Integer;
+begin
+   Result:=SysUtils.AnsiCompareText(S1, S2);
+end;
+
+// AnsiCompareStr
+//
+function AnsiCompareStr(const S1, S2: string) : Integer;
+begin
+   Result:=SysUtils.AnsiCompareStr(S1, S2);
+end;
+
+// UnicodeComparePChars
+//
+function UnicodeComparePChars(p1 : PChar; n1 : Integer; p2 : PChar; n2 : Integer) : Integer;
+const
+   CSTR_EQUAL = 2;
+begin
+   Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, p1, n1, p2, n2)-CSTR_EQUAL;
+end;
+
 // SetDecimalSeparator
 //
 procedure SetDecimalSeparator(c : Char);
 begin
    {$IFDEF FPC}
-   FormatSettings.DecimalSeparator := c;
+      FormatSettings.DecimalSeparator:=c;
    {$ELSE}
-   {$IF CompilerVersion >= 22.0}
-   FormatSettings.DecimalSeparator:=c;
-   {$ELSE}
-   DecimalSeparator:=c;
-   {$IFEND}
+      {$IF CompilerVersion >= 22.0}
+      FormatSettings.DecimalSeparator:=c;
+      {$ELSE}
+      DecimalSeparator:=c;
+      {$IFEND}
    {$ENDIF}
 end;
 
@@ -98,19 +162,19 @@ end;
 function GetDecimalSeparator : Char;
 begin
    {$IFDEF FPC}
-   Result:=FormatSettings.DecimalSeparator;
+      Result:=FormatSettings.DecimalSeparator;
    {$ELSE}
-   {$IF CompilerVersion >= 22.0}
-   Result:=FormatSettings.DecimalSeparator;
-   {$ELSE}
-   Result:=DecimalSeparator;
-   {$IFEND}
+      {$IF CompilerVersion >= 22.0}
+      Result:=FormatSettings.DecimalSeparator;
+      {$ELSE}
+      Result:=DecimalSeparator;
+      {$IFEND}
    {$ENDIF}
 end;
 
 // CollectFiles
 //
-procedure CollectFiles(const directory, fileMask : String; list : TStrings);
+procedure CollectFiles(const directory, fileMask : UnicodeString; list : TStrings);
 var
    searchRec : TSearchRec;
    found : Integer;
@@ -125,32 +189,26 @@ begin
    FindClose(searchRec);
 end;
 
-{$IFDEF FPC}
-procedure VarCopy(var ADest: Variant; const ASource: Variant);
-var
-   vm: Tvariantmanager;
-begin
-  GetVariantManager(vm);
-  vm.varcopy(ADest,ASource);
-end;
-{$ENDIF}
-
-
 // ------------------
 // ------------------ TPath ------------------
 // ------------------
 
 // GetTempFileName
 //
-
 class function TPath.GetTempFileName : String;
+{$IFDEF VER200} // Delphi 2009
+var
+   tempPath, tempFileName : array [0..MAX_PATH] of Char; // Buf sizes are MAX_PATH+1
 begin
-  Result := SysUtils.GetTempFileName(GetTempDir,'DWS');
-end;
-
-class function TPath.GetTemporaryFilesPath: string;
+   if Windows.GetTempPath(MAX_PATH, @tempPath[0])=0 then
+      tempPath:='.'; // Current directory
+   if Windows.GetTempFileName(@tempPath[0], 'DWS', 0, tempFileName)=0 then
+      RaiseLastOSError; // should never happen
+   Result:=tempFileName;
+{$ELSE}
 begin
-  Result := SysUtils.GetTempDir;
+   Result:=IOUTils.TPath.GetTempFileName;
+{$ENDIF}
 end;
 
 // ------------------
@@ -179,5 +237,22 @@ begin
    Result:=IOUTils.TFile.ReadAllBytes(filename);
 {$ENDIF}
 end;
+
+// ------------------
+// ------------------ TdwsThread ------------------
+// ------------------
+
+{$IFNDEF FPC}
+{$IFDEF VER200}
+
+// Start
+//
+procedure TdwsThread.Start;
+begin
+   Resume;
+end;
+
+{$ENDIF}
+{$ENDIF}
 
 end.

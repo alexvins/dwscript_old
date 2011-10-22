@@ -41,9 +41,11 @@ type
     constructor Create(resultType : TdwsResultType); override;
     destructor Destroy; override;
     procedure AddString(const Str: string); override;
+    procedure Clear; override;
     procedure SetStr(const Str: string);
     function ReadLn: string;
     function ReadChar: string;
+    function ToString : String; override;
     property Str: string read GetStr;
   end;
 
@@ -80,32 +82,32 @@ uses
 type
   TWriteFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TWriteLnFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TWriteAllFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TReadCharFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TReadLnFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TReadAllFunction = class(TInternalFunction)
   public
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
 { TdwsStringResult }
@@ -133,6 +135,13 @@ begin
     TdwsStringResultType(ResultType).OnAddString(Self, Str)
 end;
 
+// Clear
+//
+procedure TdwsStringResult.Clear;
+begin
+   FStrBuilder.Clear;
+end;
+
 procedure TdwsStringResult.SetStr(const Str: string);
 begin
   FStrBuilder.Clear;
@@ -157,6 +166,13 @@ begin
     Result := '';
 end;
 
+// ToString
+//
+function TdwsStringResult.ToString : String;
+begin
+   Result:=GetStr;
+end;
+
 // GetStr
 //
 function TdwsStringResult.GetStr : String;
@@ -178,7 +194,9 @@ var
   emptyArg: array of string;
 begin
   TWriteFunction.Create(SymbolTable, 'WriteStr', ['Str', SYS_VARIANT], '', False);
+  TWriteFunction.Create(SymbolTable, 'Print', ['Str', SYS_VARIANT], '', False);
   TWriteLnFunction.Create(SymbolTable, 'WriteLn', ['Str', SYS_VARIANT], '', False);
+  TWriteLnFunction.Create(SymbolTable, 'PrintLn', ['Str', SYS_VARIANT], '', False);
   TWriteAllFunction.Create(SymbolTable, 'WriteAll', ['Str', SYS_VARIANT], '', False);
 
   SetLength(emptyArg, 0);
@@ -195,44 +213,44 @@ end;
 
 { TWriteFunction }
 
-procedure TWriteFunction.Execute;
+procedure TWriteFunction.Execute(info : TProgramInfo);
 begin
-  Info.Caller.Result.AddString(Info.ValueAsString['Str']);
+  Info.Execution.Result.AddString(Info.ValueAsString['Str']);
 end;
 
 { TWriteLnFunction }
 
-procedure TWriteLnFunction.Execute;
+procedure TWriteLnFunction.Execute(info : TProgramInfo);
 begin
-  Info.Caller.Result.AddString(Info.ValueAsString['Str'] + #13#10);
+  Info.Execution.Result.AddString(Info.ValueAsString['Str'] + #13#10);
 end;
 
 { TWriteAllFunction }
 
-procedure TWriteAllFunction.Execute;
+procedure TWriteAllFunction.Execute(info : TProgramInfo);
 begin
-  (Info.Caller.Result as TdwsStringResult).SetStr(VarToStr(Info.ValueAsVariant['Str']));
+  (Info.Execution.Result as TdwsStringResult).SetStr(VarToStr(Info.ValueAsVariant['Str']));
 end;
 
 { TReadCharFunction }
 
-procedure TReadCharFunction.Execute;
+procedure TReadCharFunction.Execute(info : TProgramInfo);
 begin
-  Info.ResultAsString := TdwsStringResult(Info.Caller.Result).ReadChar;
+   Info.ResultAsString := TdwsStringResult(Info.Execution.Result).ReadChar;
 end;
 
 { TReadLnFunction }
 
-procedure TReadLnFunction.Execute;
+procedure TReadLnFunction.Execute(info : TProgramInfo);
 begin
-  Info.ResultAsString := TdwsStringResult(Info.Caller.Result).ReadLn;
+   Info.ResultAsString := TdwsStringResult(Info.Execution.Result).ReadLn;
 end;
 
 { TReadAllFunction }
 
-procedure TReadAllFunction.Execute;
+procedure TReadAllFunction.Execute(info : TProgramInfo);
 begin
-  Info.ResultAsString := TdwsStringResult(Info.Caller.Result).Str;
+   Info.ResultAsString := TdwsStringResult(Info.Execution.Result).Str;
 end;
 
 end.

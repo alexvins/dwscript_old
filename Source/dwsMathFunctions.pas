@@ -27,22 +27,6 @@ uses Classes, Math, dwsFunctions, dwsExprs, dwsSymbols;
 
 type
 
-   TIncFunc = class(TInternalMagicIntFunction)
-      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
-   end;
-
-   TDecFunc = class(TInternalMagicIntFunction)
-      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
-   end;
-
-   TSuccFunc = class(TInternalMagicIntFunction)
-      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
-   end;
-
-   TPredFunc = class(TInternalMagicIntFunction)
-      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
-   end;
-
    TOddFunc = class(TInternalMagicBoolFunction)
       function DoEvalAsBoolean(args : TExprBaseList) : Boolean; override;
    end;
@@ -91,6 +75,10 @@ type
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
 
+   TArcTan2Func = class(TInternalMagicFloatFunction)
+      procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
+   end;
+
    TArcTanhFunc = class(TInternalMagicFloatFunction)
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
@@ -103,7 +91,7 @@ type
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
 
-   TAbsFunc = class(TInternalMagicFloatFunction)
+   TFactorialFunc = class(TInternalMagicFloatFunction)
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
 
@@ -131,6 +119,10 @@ type
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
 
+   TIntPowerFunc = class(TInternalMagicFloatFunction)
+      procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
+   end;
+
    TSqrtFunc = class(TInternalMagicFloatFunction)
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
@@ -139,12 +131,12 @@ type
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
 
-   TFloorFunc = class(TInternalMagicFloatFunction)
-      procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
+   TFloorFunc = class(TInternalMagicIntFunction)
+      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
    end;
 
-   TCeilFunc = class(TInternalMagicFloatFunction)
-      procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
+   TCeilFunc = class(TInternalMagicIntFunction)
+      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
    end;
 
    TFracFunc = class(TInternalMagicFloatFunction)
@@ -183,6 +175,10 @@ type
       function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
    end;
 
+   TClampIntFunc = class(TInternalMagicIntFunction)
+      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
+   end;
+
    TPiFunc = class(TInternalMagicFloatFunction)
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
@@ -195,8 +191,8 @@ type
       function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
    end;
 
-   TRandomizeFunc = class(TInternalFunction)
-      procedure Execute; override;
+   TRandomizeFunc = class(TInternalMagicProcedure)
+      procedure DoEvalProc(args : TExprBaseList); override;
    end;
 
    TRandGFunc = class(TInternalMagicFloatFunction)
@@ -226,36 +222,6 @@ const // type constants
   cInteger = 'Integer';
   cString = 'String';
   cBoolean = 'Boolean';
-
-{ TIncFunc }
-
-function TIncFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
-begin
-   Result:=args.AsInteger[0]+args.AsInteger[1];
-   args.AsInteger[0]:=Result;
-end;
-
-{ TDecFunc }
-
-function TDecFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
-begin
-   Result:=args.AsInteger[0]-args.AsInteger[1];
-   args.AsInteger[0]:=Result;
-end;
-
-{ TSuccFunc }
-
-function TSuccFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
-begin
-   Result:=args.AsInteger[0]+args.AsInteger[1];
-end;
-
-{ TPredFunc }
-
-function TPredFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
-begin
-   Result:=args.AsInteger[0]-args.AsInteger[1];
-end;
 
 { TOddFunc }
 
@@ -341,6 +307,15 @@ begin
    Result:=ArcTan(args.AsFloat[0]);
 end;
 
+{ TArcTan2Func }
+
+// DoEvalAsFloat
+//
+procedure TArcTan2Func.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+begin
+   Result:=ArcTan2(args.AsFloat[0], args.AsFloat[1]);
+end;
+
 { TArcTanhFunc }
 
 procedure TArcTanhFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
@@ -362,11 +337,18 @@ begin
    Result:=Hypot(args.AsFloat[0], args.AsFloat[1]);
 end;
 
-{ TAbsFunc }
+{ TFactorialFunc }
 
-procedure TAbsFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+procedure TFactorialFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+var
+   i : Int64;
 begin
-   Result:=Abs(args.AsFloat[0]);
+   i:=args.AsInteger[0];
+   Result:=1;
+   while i>1 do begin
+      Result:=Result*i;
+      Dec(i);
+   end;
 end;
 
 { TExpFunc }
@@ -420,14 +402,14 @@ end;
 
 { TFloorFunc }
 
-procedure TFloorFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+function TFloorFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
    Result:=Floor(args.AsFloat[0]);
 end;
 
 { TCeilFunc }
 
-procedure TCeilFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+function TCeilFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
    Result:=Ceil(args.AsFloat[0]);
 end;
@@ -458,6 +440,13 @@ end;
 procedure TPowerFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
 begin
    Result:=Power(args.AsFloat[0], args.AsFloat[1]);
+end;
+
+{ TIntPowerFunc }
+
+procedure TIntPowerFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+begin
+   Result:=IntPower(args.AsFloat[0], args.AsInteger[1]);
 end;
 
 { TDegToRadFunc }
@@ -502,6 +491,23 @@ begin
    Result:=Min(args.AsInteger[0], args.AsInteger[1]);
 end;
 
+{ TClampIntFunc }
+
+function TClampIntFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
+var
+   r : Int64;
+begin
+   Result:=args.AsInteger[0];
+   r:=args.AsInteger[1];
+   if Result<r then
+      Result:=r
+   else begin
+      r:=args.AsInteger[2];
+      if Result>r then
+         Result:=r;
+   end;
+end;
+
 { TPiFunc }
 
 procedure TPiFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
@@ -519,15 +525,22 @@ end;
 { TRandomIntFunc }
 
 function TRandomIntFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
+var
+   i : Int64;
 begin
-   Result:=Random(args.AsInteger[0]);
+   i:=args.AsInteger[0];
+   if i<High(Integer) then
+      Result:=Random(i)
+   else Result:=Round(i*Random);
 end;
 
 { TRandomizeFunc }
 
-procedure TRandomizeFunc.Execute;
+// DoEvalProc
+//
+procedure TRandomizeFunc.DoEvalProc(args : TExprBaseList);
 begin
-  Randomize;
+   Randomize;
 end;
 
 { TRandGFunc }
@@ -559,10 +572,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   RegisterInternalIntFunction(TIncFunc, 'Inc', ['@a', cInteger, 'b=1', cInteger], True);
-   RegisterInternalIntFunction(TDecFunc, 'Dec', ['@a', cInteger, 'b=1', cInteger], True);
-   RegisterInternalIntFunction(TSuccFunc, 'Succ', ['a', cInteger, 'b=1', cInteger], True);
-   RegisterInternalIntFunction(TPredFunc, 'Pred', ['a', cInteger, 'b=1', cInteger], True);
    RegisterInternalBoolFunction(TOddFunc, 'Odd', ['i', cInteger], True);
 
    RegisterInternalFloatFunction(TSinFunc, 'Sin', ['a', cFloat], True);
@@ -576,21 +585,23 @@ initialization
    RegisterInternalFloatFunction(TArcCosFunc, 'ArcCos', ['v', cFloat], True);
    RegisterInternalFloatFunction(TArcCoshFunc, 'ArcCosh', ['v', cFloat], True);
    RegisterInternalFloatFunction(TArcTanFunc, 'ArcTan', ['v', cFloat], True);
+   RegisterInternalFloatFunction(TArcTan2Func, 'ArcTan2', ['y', cFloat, 'x', cFloat], True);
    RegisterInternalFloatFunction(TArcTanhFunc, 'ArcTanh', ['v', cFloat], True);
    RegisterInternalFloatFunction(TCotanFunc, 'Cotan', ['a', cFloat], True);
    RegisterInternalFloatFunction(THypotFunc, 'Hypot', ['x', cFloat, 'y', cFloat], True);
-   RegisterInternalFloatFunction(TAbsFunc, 'Abs', ['v', cFloat], True);
+   RegisterInternalFloatFunction(TFactorialFunc, 'Factorial', ['v', cInteger], True);
    RegisterInternalFloatFunction(TExpFunc, 'Exp', ['v', cFloat], True);
    RegisterInternalFloatFunction(TLnFunc, 'Ln', ['v', cFloat], True);
    RegisterInternalFloatFunction(TLog2Func, 'Log2', ['v', cFloat], True);
    RegisterInternalFloatFunction(TLog10Func, 'Log10', ['v', cFloat], True);
    RegisterInternalFloatFunction(TLogNFunc, 'LogN', ['n', cFloat, 'x', cFloat], True);
    RegisterInternalFloatFunction(TPowerFunc, 'Power', ['base', cFloat, 'exponent', cFloat], True);
+   RegisterInternalFloatFunction(TIntPowerFunc, 'IntPower', ['base', cFloat, 'exponent', cInteger], True);
    RegisterInternalFloatFunction(TSqrtFunc, 'Sqrt', ['v', cFloat], True);
    RegisterInternalFloatFunction(TIntFunc, 'Int', ['v', cFloat], True);
    RegisterInternalFloatFunction(TFracFunc, 'Frac', ['v', cFloat], True);
-   RegisterInternalFloatFunction(TFloorFunc, 'Floor', ['v', cFloat], True);
-   RegisterInternalFloatFunction(TCeilFunc, 'Ceil', ['v', cFloat], True);
+   RegisterInternalIntFunction(TFloorFunc, 'Floor', ['v', cFloat], True);
+   RegisterInternalIntFunction(TCeilFunc, 'Ceil', ['v', cFloat], True);
 
    RegisterInternalFunction(TTruncFunc, 'Trunc', ['v', cFloat], cInteger, True);
    RegisterInternalFunction(TRoundFunc, 'Round', ['v', cFloat], cInteger, True);
@@ -603,6 +614,7 @@ initialization
 
    RegisterInternalIntFunction(TMaxIntFunc, 'MaxInt', ['v1', cInteger, 'v2', cInteger], True);
    RegisterInternalIntFunction(TMinIntFunc, 'MinInt', ['v1', cInteger, 'v2', cInteger], True);
+   RegisterInternalIntFunction(TClampIntFunc, 'ClampInt', ['v', cInteger, 'min', cInteger, 'max', cInteger], True);
 
    RegisterInternalFloatFunction(TPiFunc, 'Pi', [], True);
    RegisterInternalFloatFunction(TRandomFunc, 'Random', []);

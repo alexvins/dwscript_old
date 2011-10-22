@@ -1,9 +1,8 @@
-{$I dws.inc}
 unit dwsClasses;
 
 interface
 
-uses SysUtils, Classes;
+uses Windows, SysUtils, Classes;
 
 type
 
@@ -30,27 +29,33 @@ type
     procedure SetDelimiter(const Value: Char);
     function GetQuoteChar: Char;
     procedure SetQuoteChar(const Value: Char);
+
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer); overload;
     procedure Error(Msg: PResStringRec; Data: Integer); overload;
     function ExtractName(const S: string): string;
-    function Get(Index: Integer): string; virtual; abstract;
     function GetCapacity: Integer; virtual;
     function GetCount: Integer; virtual; abstract;
-    function GetObject(Index: Integer): IUnknown; virtual;
-    function GetTextStr: string; virtual;
+
+    function Get(Index: Integer): string; virtual; abstract;
     procedure Put(Index: Integer; const S: string); virtual;
-    procedure PutObject(Index: Integer; AObject: IUnknown); virtual;
+
+    function GetObject(Index: Integer): IUnknown; virtual;
+    procedure PutObject(Index: Integer; const AObject: IUnknown); virtual;
+
     procedure SetCapacity(NewCapacity: Integer); virtual;
+
+    function  GetTextStr: string; virtual;
     procedure SetTextStr(const Value: string); virtual;
     procedure SetUpdateState(Updating: Boolean); virtual;
     property UpdateCount: Integer read FUpdateCount;
     function CompareStrings(const S1, S2: string): Integer; virtual;
+
   public
     destructor Destroy; override;
     function Add(const S: string): Integer; virtual;
-    function AddObject(const S: string; AObject: IUnknown): Integer; virtual;
+    function AddObject(const S: string; const AObject: IUnknown): Integer; virtual;
     procedure Append(const S: string);
     procedure AddStrings(Strings: TdwsStrings); virtual;
     procedure Assign(Source: TPersistent); override;
@@ -59,19 +64,17 @@ type
     procedure Delete(Index: Integer); virtual; abstract;
     procedure Remove(const str : String);
     procedure EndUpdate;
-    function Equals(Strings: TdwsStrings): Boolean; reintroduce;
+    function  Equals(Strings: TdwsStrings): Boolean; reintroduce;
     procedure Exchange(Index1, Index2: Integer); virtual;
-    function GetText: PChar; virtual;
-    function IndexOf(const S: string): Integer; virtual;
-    function IndexOfName(const Name: string): Integer; virtual;
-    function IndexOfObject(AObject: IUnknown): Integer; virtual;
+    function  IndexOf(const S: string): Integer; virtual;
+    function  IndexOfName(const Name: string): Integer; virtual;
+    function  IndexOfObject(const AObject: IUnknown): Integer; virtual;
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
-    procedure InsertObject(Index: Integer; const S: string;
-      AObject: IUnknown); virtual;
+    procedure InsertObject(Index: Integer; const S: string; const AObject: IUnknown); virtual;
     procedure LoadFromStream(Stream: TStream); virtual;
     procedure Move(CurIndex, NewIndex: Integer); virtual;
     procedure SaveToStream(Stream: TStream); virtual;
-    procedure SetText(Text: PChar); virtual;
+
     property Capacity: Integer read GetCapacity write SetCapacity;
     property CommaText: string read GetCommaText write SetCommaText;
     property Count: Integer read GetCount;
@@ -91,12 +94,12 @@ type
 
   PStringItem = ^TStringItem;
   TStringItem = record
-    FString: string;
-    FObject: IUnknown;
+    FString : String;
+    FObject : IUnknown;
   end;
 
   PStringItemList = ^TStringItemList;
-  TStringItemList = array[0..MaxListSize] of TStringItem;
+  TStringItemList = array[0..MaxInt shr 5] of TStringItem;
   TStringListSortCompare = function(List: TdwsStringList; Index1, Index2: Integer): Integer;
 
   TdwsStringList = class(TdwsStrings)
@@ -112,30 +115,34 @@ type
     procedure QuickSort(L, R: Integer; SCompare: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(const Value: Boolean);
+
   protected
     function Get(Index: Integer): string; override;
     function GetCapacity: Integer; override;
     function GetCount: Integer; override;
     function GetObject(Index: Integer): IUnknown; override;
     procedure Put(Index: Integer; const S: string); override;
-    procedure PutObject(Index: Integer; AObject: IUnknown); override;
+    procedure PutObject(Index: Integer; const AObject: IUnknown); override;
     procedure SetCapacity(NewCapacity: Integer); override;
     function CompareStrings(const S1, S2: string): Integer; override;
-    procedure InsertItem(Index: Integer; const S: string; AObject: IUnknown); virtual;
+    procedure InsertItem(Index: Integer; const S: string; const AObject: IUnknown); virtual;
+
   public
     destructor Destroy; override;
-    function Add(const S: string): Integer; override;
-    function AddObject(const S: string; AObject: IUnknown): Integer; override;
+
+    function  Add(const S: string): Integer; override;
+    function  AddObject(const S: string; const AObject: IUnknown): Integer; override;
     procedure Clear; override;
     procedure Delete(Index: Integer); override;
     procedure Exchange(Index1, Index2: Integer); override;
-    function Find(const S: string; var Index: Integer): Boolean; virtual;
-    function IndexOf(const S: string): Integer; override;
+    function  Find(const S: string; var Index: Integer): Boolean; virtual;
+    function  IndexOf(const S: string): Integer; override;
+    function  IndexOfObject(const AObject: IUnknown): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
-    procedure InsertObject(Index: Integer; const S: string;
-      AObject: IUnknown); override;
+    procedure InsertObject(Index: Integer; const S: string; const AObject: IUnknown); override;
     procedure Sort; virtual;
     procedure CustomSort(Compare: TStringListSortCompare); virtual;
+
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     property Sorted: Boolean read FSorted write SetSorted;
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;
@@ -150,17 +157,6 @@ uses RTLConsts, SysConst, Types;
 uses RTLConsts, SysConst;
 {$ENDIF}
 
-
-{$IFDEF FPC}
-   //todo: move to common lib unit
-   type
-     __TCharSet = set of char;
-
-   function CharInSet(c: char; s: __TCharSet): boolean;
-   begin
-     Result := c in s;
-   end;
-{$ENDIF}
 { TdwsStrings }
 
 destructor TdwsStrings.Destroy;
@@ -170,32 +166,32 @@ end;
 
 function TdwsStrings.Add(const S: string): Integer;
 begin
-  Result := GetCount;
-  Insert(Result, S);
+   Result := GetCount;
+   Insert(Result, S);
 end;
 
-function TdwsStrings.AddObject(const S: string; AObject: IUnknown): Integer;
+function TdwsStrings.AddObject(const S: string; const AObject: IUnknown): Integer;
 begin
-  Result := Add(S);
-  PutObject(Result, AObject);
+   Result := Add(S);
+   PutObject(Result, AObject);
 end;
 
 procedure TdwsStrings.Append(const S: string);
 begin
-  Add(S);
+   Add(S);
 end;
 
 procedure TdwsStrings.AddStrings(Strings: TdwsStrings);
 var
   I: Integer;
 begin
-  BeginUpdate;
-  try
-    for I := 0 to Strings.Count - 1 do
-      AddObject(Strings[I], Strings.Objects[I]);
-  finally
-    EndUpdate;
-  end;
+   BeginUpdate;
+   try
+      for I := 0 to Strings.Count - 1 do
+         AddObject(Strings[I], Strings.Objects[I]);
+   finally
+      EndUpdate;
+   end;
 end;
 
 procedure TdwsStrings.Assign(Source: TPersistent);
@@ -235,17 +231,9 @@ procedure TdwsStrings.DefineProperties(Filer: TFiler);
     end
     else Result := Count > 0;
   end;
-{$IFDEF FPC}
-var
-  has_data: boolean;
-{$ENDIF}
+
 begin
-{$IFDEF FPC}
-   has_data := DoWrite;
-   Filer.DefineProperty('Strings', ReadData, WriteData, has_data);
-{$ELSE}
-   Filer.DefineProperty('Strings', ReadData, WriteData, DoWrite);
-{$ENDIF}
+  Filer.DefineProperty('Strings', ReadData, WriteData, DoWrite);
 end;
 
 procedure TdwsStrings.EndUpdate;
@@ -266,14 +254,14 @@ begin
 end;
 
 procedure TdwsStrings.Error(const Msg: string; Data: Integer);
-//
-//  function ReturnAddr: Pointer;
-//  asm
-//          MOV     EAX,[EBP+4]
-//  end;
-//
+
+  function ReturnAddr: Pointer;
+  asm
+          MOV     EAX,[EBP+4]
+  end;
+
 begin
-  raise EStringListError.CreateFmt(Msg, [Data]) {at ReturnAddr};
+  raise EStringListError.CreateFmt(Msg, [Data]) at ReturnAddr;
 end;
 
 procedure TdwsStrings.Error(Msg: PResStringRec; Data: Integer);
@@ -331,7 +319,7 @@ begin
   finally
     FDelimiter := FOldDelimiter;
     FQuoteChar := FOldQuoteChar;
-    FDefined := FOldDefined;
+    FDefined := FDefined;
   end;
 end;
 
@@ -352,11 +340,11 @@ begin
       S := Get(I);
       P := PChar(S);
       while not CharInSet(P^, [#0..' ', QuoteChar, Delimiter]) do
-      //{$IFDEF MSWINDOWS}
-        //P := CharNext(P);
-      //{$ELSE}
+      {$IFDEF MSWINDOWS}
+        P := CharNext(P);
+      {$ELSE}
         Inc(P);
-      //{$ENDIF}
+      {$ENDIF}
       if (P^ <> #0) then S := AnsiQuotedStr(S, QuoteChar);
       Result := Result + S + Delimiter;
     end;
@@ -374,11 +362,6 @@ begin
   Result := nil;
 end;
 
-function TdwsStrings.GetText: PChar;
-begin
-  Result := StrNew(PChar(GetTextStr));
-end;
-
 function TdwsStrings.GetTextStr: string;
 var
    I, L, Size, Count: Integer;
@@ -389,7 +372,7 @@ begin
    Size := 0;
    LB := sLineBreak;
    for I := 0 to Count - 1 do
-   Inc(Size, Length(Get(I)) + Length(LB));
+      Inc(Size, Length(Get(I)) + Length(LB));
    SetString(Result, nil, Size);
    P := Pointer(Result);
    for I := 0 to Count - 1 do begin
@@ -438,15 +421,14 @@ begin
   Result := -1;
 end;
 
-function TdwsStrings.IndexOfObject(AObject: IUnknown): Integer;
+function TdwsStrings.IndexOfObject(const AObject: IUnknown): Integer;
 begin
   for Result := 0 to GetCount - 1 do
     if GetObject(Result) = AObject then Exit;
   Result := -1;
 end;
 
-procedure TdwsStrings.InsertObject(Index: Integer; const S: string;
-  AObject: IUnknown);
+procedure TdwsStrings.InsertObject(Index: Integer; const S: string; const AObject: IUnknown);
 begin
   Insert(Index, S);
   PutObject(Index, AObject);
@@ -496,7 +478,7 @@ begin
   InsertObject(Index, S, TempObject);
 end;
 
-procedure TdwsStrings.PutObject(Index: Integer; AObject: IUnknown);
+procedure TdwsStrings.PutObject(Index: Integer; const AObject: IUnknown);
 begin
 end;
 
@@ -531,11 +513,6 @@ begin
   Delimiter := ',';
   QuoteChar := '"';
   SetDelimitedText(Value);
-end;
-
-procedure TdwsStrings.SetText(Text: PChar);
-begin
-  SetTextStr(Text);
 end;
 
 procedure TdwsStrings.SetTextStr(const Value: string);
@@ -600,11 +577,11 @@ begin
     Clear;
     P := PChar(Value);
     while CharInSet(P^, [#1..' ']) do
-    //{$IFDEF MSWINDOWS}
-      //P := CharNext(P);
-    //{$ELSE}
+    {$IFDEF MSWINDOWS}
+      P := CharNext(P);
+    {$ELSE}
       Inc(P);
-    //{$ENDIF}
+    {$ENDIF}
     while P^ <> #0 do
     begin
       if P^ = QuoteChar then
@@ -613,36 +590,36 @@ begin
       begin
         P1 := P;
         while (P^ > ' ') and (P^ <> Delimiter) do
-        //{$IFDEF MSWINDOWS}
-          //P := CharNext(P);
-        //{$ELSE}
+        {$IFDEF MSWINDOWS}
+          P := CharNext(P);
+        {$ELSE}
           Inc(P);
-        //{$ENDIF}
+        {$ENDIF}
         SetString(S, P1, P - P1);
       end;
       Add(S);
       while CharInSet(P^, [#1..' ']) do
-      //{$IFDEF MSWINDOWS}
-        //P := CharNext(P);
-      //{$ELSE}
+      {$IFDEF MSWINDOWS}
+        P := CharNext(P);
+      {$ELSE}
         Inc(P);
-      //{$ENDIF}
+      {$ENDIF}
       if P^ = Delimiter then
       begin
         P1 := P;
-        //{$IFDEF MSWINDOWS}
-        //if CharNext(P1)^ = #0 then
-        //{$ELSE}
+        {$IFDEF MSWINDOWS}
+        if CharNext(P1)^ = #0 then
+        {$ELSE}
         Inc(P1);
         if P1^ = #0 then
-        //{$ENDIF}
+        {$ENDIF}
           Add('');
         repeat
-          //{$IFDEF MSWINDOWS}
-          //P := CharNext(P);
-          //{$ELSE}
+          {$IFDEF MSWINDOWS}
+          P := CharNext(P);
+          {$ELSE}
           Inc(P);
-          //{$ENDIF}
+          {$ENDIF}
         until not CharInSet(P^, [#1..' ']);
       end;
     end;
@@ -714,17 +691,19 @@ begin
   Result := AddObject(S, nil);
 end;
 
-function TdwsStringList.AddObject(const S: string; AObject: IUnknown): Integer;
+function TdwsStringList.AddObject(const S: string; const AObject: IUnknown): Integer;
 begin
-  if not Sorted then
-    Result := FCount
-  else
-    if Find(S, Result) then
-      case Duplicates of
-        dupIgnore: Exit;
-        dupError: Error(@SDuplicateString, 0);
+   if not Sorted then
+      Result := FCount
+   else begin
+      if Find(S, Result) then begin
+         case Duplicates of
+            dupIgnore: Exit;
+            dupError: Error(@SDuplicateString, 0);
+         end;
       end;
-  InsertItem(Result, S, AObject);
+   end;
+   InsertItem(Result, S, AObject);
 end;
 
 procedure TdwsStringList.Clear;
@@ -739,7 +718,7 @@ end;
 
 procedure TdwsStringList.Delete(Index: Integer);
 begin
-  if (Index < 0) or (Index >= FCount) then Error(@SListIndexError, Index);
+  if Cardinal(Index)>=Cardinal(FCount) then Error(@SListIndexError, Index);
   Finalize(FList^[Index]);
   Dec(FCount);
   if Index < FCount then
@@ -756,17 +735,17 @@ end;
 
 procedure TdwsStringList.ExchangeItems(Index1, Index2: Integer);
 var
-  Temp: Integer;
+  Temp: Pointer;
   Item1, Item2: PStringItem;
 begin
   Item1 := @FList^[Index1];
   Item2 := @FList^[Index2];
-  Temp := Integer(Item1^.FString);
-  Integer(Item1^.FString) := Integer(Item2^.FString);
-  Integer(Item2^.FString) := Temp;
-  Temp := Integer(Item1^.FObject);
-  Integer(Item1^.FObject) := Integer(Item2^.FObject);
-  Integer(Item2^.FObject) := Temp;
+  Temp := Pointer(Item1^.FString);
+  Pointer(Item1^.FString) := Pointer(Item2^.FString);
+  Pointer(Item2^.FString) := Temp;
+  Temp := Pointer(Item1^.FObject);
+  Pointer(Item1^.FObject) := Pointer(Item2^.FObject);
+  Pointer(Item2^.FObject) := Temp;
 end;
 
 function TdwsStringList.Find(const S: string; var Index: Integer): Boolean;
@@ -827,8 +806,21 @@ end;
 
 function TdwsStringList.IndexOf(const S: string): Integer;
 begin
-  if not Sorted then Result := inherited IndexOf(S) else
-    if not Find(S, Result) then Result := -1;
+   if not Sorted then begin
+      for Result := 0 to GetCount - 1 do
+         if CompareStrings(FList[Result].FString, S) = 0 then Exit;
+      Result := -1;
+   end else if not Find(S, Result) then
+      Result := -1;
+end;
+
+// IndexOfObject
+//
+function TdwsStringList.IndexOfObject(const AObject: IUnknown): Integer;
+begin
+   for Result:=0 to FCount - 1 do
+      if FList[Result].FObject=AObject then Exit;
+   Result := -1;
 end;
 
 procedure TdwsStringList.Insert(Index: Integer; const S: string);
@@ -836,40 +828,37 @@ begin
   InsertObject(Index, S, nil);
 end;
 
-procedure TdwsStringList.InsertObject(Index: Integer; const S: string;
-  AObject: IUnknown);
+procedure TdwsStringList.InsertObject(Index: Integer; const S: string; const AObject: IUnknown);
 begin
   if Sorted then Error(@SSortedListError, 0);
   if (Index < 0) or (Index > FCount) then Error(@SListIndexError, Index);
   InsertItem(Index, S, AObject);
 end;
 
-procedure TdwsStringList.InsertItem(Index: Integer; const S: string; AObject: IUnknown);
+procedure TdwsStringList.InsertItem(Index: Integer; const S: string; const AObject: IUnknown);
 begin
-  if FCount = FCapacity then Grow;
-  if Index < FCount then
-    System.Move(FList^[Index], FList^[Index + 1],
-      (FCount - Index) * SizeOf(TStringItem));
-  with FList^[Index] do
-  begin
-    Pointer(FString) := nil;
-    FObject := AObject;
-    FString := S;
-  end;
-  Inc(FCount);
+   if FCount = FCapacity then Grow;
+   if Index < FCount then
+      System.Move(FList^[Index], FList^[Index + 1], (FCount - Index) * SizeOf(TStringItem));
+   with FList^[Index] do begin
+      Pointer(FString) := nil;
+      FObject := AObject;
+      FString := S;
+   end;
+   Inc(FCount);
 end;
 
 procedure TdwsStringList.Put(Index: Integer; const S: string);
 begin
   if Sorted then Error(@SSortedListError, 0);
-  if (Index < 0) or (Index >= FCount) then Error(@SListIndexError, Index);
+  if Cardinal(Index)>=Cardinal(FCount) then Error(@SListIndexError, Index);
   FList^[Index].FString := S;
 end;
 
-procedure TdwsStringList.PutObject(Index: Integer; AObject: IUnknown);
+procedure TdwsStringList.PutObject(Index: Integer; const AObject: IUnknown);
 begin
-  if (Index < 0) or (Index >= FCount) then Error(@SListIndexError, Index);
-  FList^[Index].FObject := AObject;
+   if Cardinal(Index)>=Cardinal(FCount) then Error(@SListIndexError, Index);
+   FList^[Index].FObject := AObject;
 end;
 
 procedure TdwsStringList.QuickSort(L, R: Integer; SCompare: TStringListSortCompare);
@@ -941,7 +930,7 @@ end;
 function TdwsStringList.CompareStrings(const S1, S2: string): Integer;
 begin
   if CaseSensitive then
-    Result := AnsiCompareStr(S1, S2)
+    Result := CompareStr(S1, S2)
   else
     Result := AnsiCompareText(S1, S2);
 end;

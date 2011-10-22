@@ -23,7 +23,7 @@ unit dwsTimeFunctions;
 
 interface
 
-uses Classes, SysUtils, dwsFunctions, dwsExprs, dwsSymbols;
+uses Classes, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsXPlatform;
 
 type
 
@@ -36,6 +36,10 @@ type
   end;
 
   TTimeFunc = class(TInternalMagicFloatFunction)
+    procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
+  end;
+
+  TUTCDateTimeFunc = class(TInternalMagicFloatFunction)
     procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
   end;
 
@@ -75,6 +79,14 @@ type
     procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
   end;
 
+  TDateToISO8601Func = class(TInternalMagicStringFunction)
+    procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
+  end;
+
+  TDateTimeToISO8601Func = class(TInternalMagicStringFunction)
+    procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
+  end;
+
   TDayOfWeekFunc = class(TInternalMagicIntFunction)
     function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
   end;
@@ -92,11 +104,11 @@ type
   end;
 
   TIncMonthFunc = class(TInternalFunction)
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TDecodeDateFunc = class(TInternalFunction)
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TEncodeDateFunc = class(TInternalMagicFloatFunction)
@@ -104,7 +116,7 @@ type
   end;
 
   TDecodeTimeFunc = class(TInternalFunction)
-    procedure Execute; override;
+    procedure Execute(info : TProgramInfo); override;
   end;
 
   TEncodeTimeFunc = class(TInternalMagicFloatFunction)
@@ -166,7 +178,7 @@ const // type constants
   cDateTime = 'Float';
   cBoolean = 'Boolean';
 
-  { TNowFunc }
+{ TNowFunc }
 
 procedure TNowFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
 begin
@@ -185,6 +197,13 @@ end;
 procedure TTimeFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
 begin
    Result:=Time;
+end;
+
+{ TUTCDateTimeFunc }
+
+procedure TUTCDateTimeFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+begin
+   Result:=UTCDateTime;
 end;
 
 { TDateTimeToStrFunc }
@@ -256,6 +275,23 @@ begin
    Result:=StrToTimeDef(args.AsString[0], args.AsFloat[1]);
 end;
 
+{ TDateToISO8601Func }
+
+procedure TDateToISO8601Func.DoEvalAsString(args : TExprBaseList; var Result : String);
+begin
+   Result:=FormatDateTime('yyyy-mm-dd', args.AsFloat[0]);
+end;
+
+{ TDateTimeToISO8601Func }
+
+procedure TDateTimeToISO8601Func.DoEvalAsString(args : TExprBaseList; var Result : String);
+var
+   dt : TDateTime;
+begin
+   dt:=args.AsFloat[0];
+   Result:=FormatDateTime('yyyy-mm-dd', dt)+'T'+FormatDateTime('hh:nn', dt)+'Z';
+end;
+
 { TDayOfWeekFunc }
 
 function TDayOfWeekFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
@@ -288,14 +324,14 @@ end;
 
 { TIncMonthFunc }
 
-procedure TIncMonthFunc.Execute;
+procedure TIncMonthFunc.Execute(info : TProgramInfo);
 begin
   Info.ResultAsFloat := IncMonth(Info.ValueAsFloat['dt'], Info.ValueAsInteger['nb']);
 end;
 
 { TDecodeDateFunc }
 
-procedure TDecodeDateFunc.Execute;
+procedure TDecodeDateFunc.Execute(info : TProgramInfo);
 var
   y, m, d: word;
 begin
@@ -314,7 +350,7 @@ end;
 
 { TDecodeTimeFunc }
 
-procedure TDecodeTimeFunc.Execute;
+procedure TDecodeTimeFunc.Execute(info : TProgramInfo);
 var
   h, m, s, ms: word;
 begin
@@ -532,6 +568,8 @@ initialization
    RegisterInternalFloatFunction(TDateFunc, 'Date', []);
    RegisterInternalFloatFunction(TTimeFunc, 'Time', []);
 
+   RegisterInternalFloatFunction(TUTCDateTimeFunc, 'UTCDateTime', []);
+
    RegisterInternalStringFunction(TDateTimeToStrFunc, 'DateTimeToStr', ['dt', cDateTime]);
    RegisterInternalFloatFunction(TStrToDateTimeFunc, 'StrToDateTime', ['str', cString]);
    RegisterInternalFloatFunction(TStrToDateTimeDefFunc, 'StrToDateTimeDef', ['str', cString, 'def', cDateTime]);
@@ -539,6 +577,9 @@ initialization
    RegisterInternalStringFunction(TDateToStrFunc, 'DateToStr', ['dt', cDateTime]);
    RegisterInternalFloatFunction(TStrToDateFunc, 'StrToDate', ['str', cString]);
    RegisterInternalFloatFunction(TStrToDateDefFunc, 'StrToDateDef', ['str', cString, 'def', cDateTime]);
+
+   RegisterInternalStringFunction(TDateToISO8601Func, 'DateToISO8601', ['dt', cDateTime]);
+   RegisterInternalStringFunction(TDateTimeToISO8601Func, 'DateTimeToISO8601', ['dt', cDateTime]);
 
    RegisterInternalStringFunction(TTimeToStrFunc, 'TimeToStr', ['dt', cDateTime]);
    RegisterInternalFloatFunction(TStrToTimeFunc, 'StrToTime', ['str', cString]);

@@ -19,18 +19,15 @@
 {**********************************************************************}
 unit dwsRelExprs;
 
-{$I dws.inc}
-
 interface
 
-uses dwsExprs, dwsErrors, dwsStrings;
+uses dwsExprs, dwsErrors, dwsStrings, dwsSymbols;
 
 type
 
    TRelOpExpr = class(TBinaryOpExpr)
-      constructor Create(Prog: TdwsProgram; aLeft, aRight : TNoPosExpr); override;
-      function Eval: Variant; override;
-      procedure TypeCheckNoPos(const aPos : TScriptPos); override;
+      constructor Create(Prog: TdwsProgram; aLeft, aRight : TTypedExpr); override;
+      function Eval(exec : TdwsExecution) : Variant; override;
    end;
    TRelOpExprClass = class of TRelOpExpr;
 
@@ -44,94 +41,94 @@ type
    // boolean rel ops
 
    TRelEqualBoolExpr = class(TRelEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelNotEqualBoolExpr = class(TRelNotEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
 
    // integer rel ops
 
    TRelEqualIntExpr = class(TRelEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelNotEqualIntExpr = class(TRelNotEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessIntExpr = class(TRelLessExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessEqualIntExpr = class(TRelLessEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterIntExpr = class(TRelGreaterExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterEqualIntExpr = class(TRelGreaterEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
 
    // float rel ops
 
    TRelEqualFloatExpr = class(TRelEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelNotEqualFloatExpr = class(TRelNotEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessFloatExpr = class(TRelLessExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessEqualFloatExpr = class(TRelLessEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterFloatExpr = class(TRelGreaterExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterEqualFloatExpr = class(TRelGreaterEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
 
    // string rel ops
 
    TRelEqualStringExpr = class(TRelEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelNotEqualStringExpr = class(TRelNotEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessStringExpr = class(TRelLessExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessEqualStringExpr = class(TRelLessEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterStringExpr = class(TRelGreaterExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterEqualStringExpr = class(TRelGreaterEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
 
    // variant rel ops
 
    TRelEqualVariantExpr = class(TRelEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelNotEqualVariantExpr = class(TRelNotEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessVariantExpr = class(TRelLessExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelLessEqualVariantExpr = class(TRelLessEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterVariantExpr = class(TRelGreaterExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
    TRelGreaterEqualVariantExpr = class(TRelGreaterEqualExpr)
-     function EvalAsBoolean: Boolean; override;
+     function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
 
 // ------------------------------------------------------------------
@@ -148,7 +145,7 @@ implementation
 
 // Create
 //
-constructor TRelOpExpr.Create(Prog: TdwsProgram; aLeft, aRight : TNoPosExpr);
+constructor TRelOpExpr.Create(Prog: TdwsProgram; aLeft, aRight : TTypedExpr);
 begin
    inherited;
    FTyp:=Prog.TypBoolean;
@@ -156,18 +153,9 @@ end;
 
 // Eval
 //
-function TRelOpExpr.Eval: Variant;
+function TRelOpExpr.Eval(exec : TdwsExecution) : Variant;
 begin
-   Result:=EvalAsBoolean;
-end;
-
-// TypeCheckNoPos
-//
-procedure TRelOpExpr.TypeCheckNoPos(const aPos : TScriptPos);
-begin
-   inherited;
-   if not (FLeft.Typ.IsCompatible(FRight.Typ)) then
-      Prog.Msgs.AddCompilerStop(aPOs, CPE_InvalidOperands);
+   Result:=EvalAsBoolean(exec);
 end;
 
 // ------------------
@@ -176,9 +164,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelEqualBoolExpr.EvalAsBoolean: Boolean;
+function TRelEqualBoolExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsBoolean=FRight.EvalAsBoolean);
+   Result:=(FLeft.EvalAsBoolean(exec)=FRight.EvalAsBoolean(exec));
 end;
 
 // ------------------
@@ -187,9 +175,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelNotEqualBoolExpr.EvalAsBoolean: Boolean;
+function TRelNotEqualBoolExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsBoolean<>FRight.EvalAsBoolean);
+   Result:=(FLeft.EvalAsBoolean(exec)<>FRight.EvalAsBoolean(exec));
 end;
 
 // ------------------
@@ -198,9 +186,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelEqualIntExpr.EvalAsBoolean: Boolean;
+function TRelEqualIntExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsInteger=FRight.EvalAsInteger);
+   Result:=(FLeft.EvalAsInteger(exec)=FRight.EvalAsInteger(exec));
 end;
 
 // ------------------
@@ -209,9 +197,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelNotEqualIntExpr.EvalAsBoolean: Boolean;
+function TRelNotEqualIntExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsInteger<>FRight.EvalAsInteger);
+   Result:=(FLeft.EvalAsInteger(exec)<>FRight.EvalAsInteger(exec));
 end;
 
 // ------------------
@@ -220,9 +208,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessIntExpr.EvalAsBoolean: Boolean;
+function TRelLessIntExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsInteger<FRight.EvalAsInteger);
+   Result:=(FLeft.EvalAsInteger(exec)<FRight.EvalAsInteger(exec));
 end;
 
 // ------------------
@@ -231,9 +219,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessEqualIntExpr.EvalAsBoolean: Boolean;
+function TRelLessEqualIntExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsInteger<=FRight.EvalAsInteger);
+   Result:=(FLeft.EvalAsInteger(exec)<=FRight.EvalAsInteger(exec));
 end;
 
 // ------------------
@@ -242,9 +230,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterIntExpr.EvalAsBoolean: Boolean;
+function TRelGreaterIntExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsInteger>FRight.EvalAsInteger);
+   Result:=(FLeft.EvalAsInteger(exec)>FRight.EvalAsInteger(exec));
 end;
 
 // ------------------
@@ -253,9 +241,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterEqualIntExpr.EvalAsBoolean: Boolean;
+function TRelGreaterEqualIntExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   Result:=(FLeft.EvalAsInteger>=FRight.EvalAsInteger);
+   Result:=(FLeft.EvalAsInteger(exec)>=FRight.EvalAsInteger(exec));
 end;
 
 // ------------------
@@ -264,13 +252,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelEqualFloatExpr.EvalAsBoolean: Boolean;
-var
-   a, b : Double;
+function TRelEqualFloatExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   FLeft.EvalAsFloat(a);
-   FRight.EvalAsFloat(b);
-   Result:=(a=b);
+   Result:=(FLeft.EvalAsFloat(exec)=FRight.EvalAsFloat(exec));
 end;
 
 // ------------------
@@ -279,13 +263,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelNotEqualFloatExpr.EvalAsBoolean: Boolean;
-var
-   a, b : Double;
+function TRelNotEqualFloatExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   FLeft.EvalAsFloat(a);
-   FRight.EvalAsFloat(b);
-   Result:=(a<>b);
+   Result:=(FLeft.EvalAsFloat(exec)<>FRight.EvalAsFloat(exec));
 end;
 
 // ------------------
@@ -294,13 +274,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessFloatExpr.EvalAsBoolean: Boolean;
-var
-   a, b : Double;
+function TRelLessFloatExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   FLeft.EvalAsFloat(a);
-   FRight.EvalAsFloat(b);
-   Result:=(a<b);
+   Result:=(FLeft.EvalAsFloat(exec)<FRight.EvalAsFloat(exec));
 end;
 
 // ------------------
@@ -309,13 +285,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessEqualFloatExpr.EvalAsBoolean: Boolean;
-var
-   a, b : Double;
+function TRelLessEqualFloatExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   FLeft.EvalAsFloat(a);
-   FRight.EvalAsFloat(b);
-   Result:=(a<=b);
+   Result:=(FLeft.EvalAsFloat(exec)<=FRight.EvalAsFloat(exec));
 end;
 
 // ------------------
@@ -324,13 +296,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterFloatExpr.EvalAsBoolean: Boolean;
-var
-   a, b : Double;
+function TRelGreaterFloatExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   FLeft.EvalAsFloat(a);
-   FRight.EvalAsFloat(b);
-   Result:=(a>b);
+   Result:=(FLeft.EvalAsFloat(exec)>FRight.EvalAsFloat(exec));
 end;
 
 // ------------------
@@ -339,13 +307,9 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterEqualFloatExpr.EvalAsBoolean: Boolean;
-var
-   a, b : Double;
+function TRelGreaterEqualFloatExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
-   FLeft.EvalAsFloat(a);
-   FRight.EvalAsFloat(b);
-   Result:=(a>=b);
+   Result:=(FLeft.EvalAsFloat(exec)>=FRight.EvalAsFloat(exec));
 end;
 
 // ------------------
@@ -354,12 +318,12 @@ end;
 
 // EvalAsBoolean
 //
-function TRelEqualStringExpr.EvalAsBoolean: Boolean;
+function TRelEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : String;
 begin
-   FLeft.EvalAsString(a);
-   FRight.EvalAsString(b);
+   FLeft.EvalAsString(exec, a);
+   FRight.EvalAsString(exec, b);
    Result:=(a=b);
 end;
 
@@ -369,12 +333,12 @@ end;
 
 // EvalAsBoolean
 //
-function TRelNotEqualStringExpr.EvalAsBoolean: Boolean;
+function TRelNotEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : String;
 begin
-   FLeft.EvalAsString(a);
-   FRight.EvalAsString(b);
+   FLeft.EvalAsString(exec, a);
+   FRight.EvalAsString(exec, b);
    Result:=(a<>b);
 end;
 
@@ -384,12 +348,12 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessStringExpr.EvalAsBoolean: Boolean;
+function TRelLessStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : String;
 begin
-   FLeft.EvalAsString(a);
-   FRight.EvalAsString(b);
+   FLeft.EvalAsString(exec, a);
+   FRight.EvalAsString(exec, b);
    Result:=(a<b);
 end;
 
@@ -399,12 +363,12 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessEqualStringExpr.EvalAsBoolean: Boolean;
+function TRelLessEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : String;
 begin
-   FLeft.EvalAsString(a);
-   FRight.EvalAsString(b);
+   FLeft.EvalAsString(exec, a);
+   FRight.EvalAsString(exec, b);
    Result:=(a<=b);
 end;
 
@@ -414,12 +378,12 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterStringExpr.EvalAsBoolean: Boolean;
+function TRelGreaterStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : String;
 begin
-   FLeft.EvalAsString(a);
-   FRight.EvalAsString(b);
+   FLeft.EvalAsString(exec, a);
+   FRight.EvalAsString(exec, b);
    Result:=(a>b);
 end;
 
@@ -429,12 +393,12 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterEqualStringExpr.EvalAsBoolean: Boolean;
+function TRelGreaterEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : String;
 begin
-   FLeft.EvalAsString(a);
-   FRight.EvalAsString(b);
+   FLeft.EvalAsString(exec, a);
+   FRight.EvalAsString(exec, b);
    Result:=(a>=b);
 end;
 
@@ -444,9 +408,13 @@ end;
 
 // EvalAsBoolean
 //
-function TRelEqualVariantExpr.EvalAsBoolean: Boolean;
+function TRelEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
+var
+   lv, rv : Variant;
 begin
-   Result:=(FLeft.Eval=FRight.Eval);
+   FLeft.EvalAsVariant(exec, lv);
+   FRight.EvalAsVariant(exec, rv);
+   Result:=(lv=rv);
 end;
 
 // ------------------
@@ -455,9 +423,13 @@ end;
 
 // EvalAsBoolean
 //
-function TRelNotEqualVariantExpr.EvalAsBoolean: Boolean;
+function TRelNotEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
+var
+   lv, rv : Variant;
 begin
-   Result:=(FLeft.Eval<>FRight.Eval);
+   FLeft.EvalAsVariant(exec, lv);
+   FRight.EvalAsVariant(exec, rv);
+   Result:=(lv<>rv);
 end;
 
 // ------------------
@@ -466,9 +438,13 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessVariantExpr.EvalAsBoolean: Boolean;
+function TRelLessVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
+var
+   lv, rv : Variant;
 begin
-   Result:=(FLeft.Eval<FRight.Eval);
+   FLeft.EvalAsVariant(exec, lv);
+   FRight.EvalAsVariant(exec, rv);
+   Result:=(lv<rv);
 end;
 
 // ------------------
@@ -477,9 +453,13 @@ end;
 
 // EvalAsBoolean
 //
-function TRelLessEqualVariantExpr.EvalAsBoolean: Boolean;
+function TRelLessEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
+var
+   lv, rv : Variant;
 begin
-   Result:=(FLeft.Eval<=FRight.Eval);
+   FLeft.EvalAsVariant(exec, lv);
+   FRight.EvalAsVariant(exec, rv);
+   Result:=(lv<=rv);
 end;
 
 // ------------------
@@ -488,9 +468,13 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterVariantExpr.EvalAsBoolean: Boolean;
+function TRelGreaterVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
+var
+   lv, rv : Variant;
 begin
-   Result:=(FLeft.Eval>FRight.Eval);
+   FLeft.EvalAsVariant(exec, lv);
+   FRight.EvalAsVariant(exec, rv);
+   Result:=(lv>rv);
 end;
 
 // ------------------
@@ -499,9 +483,13 @@ end;
 
 // EvalAsBoolean
 //
-function TRelGreaterEqualVariantExpr.EvalAsBoolean: Boolean;
+function TRelGreaterEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
+var
+   lv, rv : Variant;
 begin
-   Result:=(FLeft.Eval>=FRight.Eval);
+   FLeft.EvalAsVariant(exec, lv);
+   FRight.EvalAsVariant(exec, rv);
+   Result:=(lv>=rv);
 end;
 
 end.

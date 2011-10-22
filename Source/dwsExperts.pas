@@ -28,30 +28,25 @@ procedure Register;
 
 implementation
 
-uses Classes, Forms, SysUtils,
-{$IFDEF FPC}
-  PropEdits,
-{$ELSE}
-  DesignIntf, DesignEditors,
-{$ENDIF}
+uses Classes, Forms, SysUtils, DesignIntf, DesignEditors,
   dwsStrings, dwsComp, dwsSymbols;
 
 type
   TdwsDataTypeProperty = class(TStringProperty)
-  public
+  protected
     { Protected Declarations }
     function GetAttributes: TPropertyAttributes; override;
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
   TdwsAncestorProperty = class(TStringProperty)
-  public
+  protected
     { Protected Declarations }
     function GetAttributes: TPropertyAttributes; override;
     procedure GetValues(Proc: TGetStrProc); override;
   end;
 
-{ TdwsDataTypeProperty }
+  { TdwsDataTypeProperty }
 
 function TdwsDataTypeProperty.GetAttributes: TPropertyAttributes;
 begin
@@ -60,7 +55,7 @@ end;
 
 procedure TdwsDataTypeProperty.GetValues(Proc: TGetStrProc);
 var
-  i:  Integer;
+  i: Integer;
   dwsUnit: TdwsUnit;
   sl: TStringList;
 begin
@@ -72,7 +67,7 @@ begin
   sl := TStringList.Create;
   try
     dwsUnit.GetDataTypes(sl);
-    sl.Sorted     := True;
+    sl.Sorted := True;
     sl.Duplicates := dupIgnore;
 
     // feed the dropdown list
@@ -93,7 +88,7 @@ end;
 
 procedure TdwsAncestorProperty.GetValues(Proc: TGetStrProc);
 var
-  i:  Integer;
+  i: Integer;
   sl: TStringList;
   dwsUnit: TdwsUnit;
 begin
@@ -104,7 +99,7 @@ begin
     sl := TStringList.Create;
     try
       dwsUnit.GetClassTypes(sl);
-      sl.Sorted     := True;
+      sl.Sorted := True;
       sl.Duplicates := dupIgnore;
 
       // feed the dropdown list
@@ -142,3 +137,4 @@ begin
 end;
 
 end.
+
