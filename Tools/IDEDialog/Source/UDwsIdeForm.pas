@@ -49,9 +49,14 @@ uses
   ComCtrls,
   XMLIntf,
   XMLDoc,
+  UDwsIdeCodeProposalForm,
   RzTabs, Menus, ToolWin, ActnCtrls,
   ImgList, UDwsIdeLocalVariablesFrame, UDwsIdeWatchesFrame, UDwsIdeCallStackFrame,
   StdActns;
+
+
+const
+  WM_CodeSuggest = 1024;
 
 type
   EDwsIde      = class( Exception );
@@ -78,6 +83,7 @@ type
                       FirstLine, LastLine: integer);
     procedure SetCurrentLine(ALine: integer);
     procedure SynEditorClick(Sender: TObject);
+    procedure SynEditorKeyDown( Sender: TObject; var Key: Word;  Shift: TShiftState );
     procedure SynEditorSpecialLineColors(Sender: TObject;
                  Line: Integer; var Special: Boolean; var FG, BG: TColor);
     procedure SynEditorGutterClick(Sender: TObject; Button: TMouseButton; X, Y,
@@ -242,6 +248,8 @@ type
     RunProcedureAtCursor1: TMenuItem;
     RunProcedureAtCursor2: TMenuItem;
     N9: TMenuItem;
+    Suggest1: TMenuItem;
+    actCodeProposalInvoke: TAction;
     procedure EditorChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure actOpenFileExecute(Sender: TObject);
@@ -306,6 +314,9 @@ type
     procedure actEditorDeleteUpdate(Sender: TObject);
     procedure actRunProcedureAtCursorExecute(Sender: TObject);
     procedure actRunProcedureAtCursorUpdate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure WMCodeSuggest( var AMessage : TMessage ); message WM_CodeSuggest;
+    procedure actCodeProposalInvokeExecute(Sender: TObject);
   private
     { Private declarations }
     FScript : TDelphiWebScript;
@@ -323,6 +334,10 @@ type
 
     FIDEFormRect : TRect;
 
+    FCodeProposalForm : TDwsIdeCodeProposalForm;
+
+    procedure CodeSuggest( ACodeSuggestionMode : TCodeSuggestionMode);
+    procedure DoOnCodeSuggestionFormSelectItem( const AItemText : string );
     procedure EditorPageAddNew( const AFileName : string; ALoadfile : boolean  );
     function  ProjectSourceScript : string;
     function  EditorPageCount : integer;
@@ -417,6 +432,7 @@ implementation
 
 uses
   Registry,
+  dwsSuggestions,
   SynHighlighterPas,
   ShlObj;
 
@@ -721,6 +737,11 @@ begin
 end;
 
 
+
+procedure TDwsIdeForm.actCodeProposalInvokeExecute(Sender: TObject);
+begin
+  CodeSuggest( csCodeProposal );
+end;
 
 procedure TDwsIdeForm.actEditorCopyToClipboardExecute(Sender: TObject);
 begin
@@ -1290,6 +1311,16 @@ begin
     EditorCurrentPageIndex := Tag;
 end;
 
+procedure TDwsIdeForm.DoOnCodeSuggestionFormSelectItem(const AItemText: string);
+var
+  S : string;
+begin
+  S := CurrentEditor.LineText;
+  Insert( AItemText, S, CurrentEditor.CaretX );
+  CurrentEditor.Linetext := S;
+  CurrentEditor.Modified := true;
+end;
+
 procedure TDwsIdeForm.dwsDebugger1Debug(exec: TdwsExecution;
   expr: TExprBase);
 begin
@@ -1446,8 +1477,15 @@ begin
 end;
 
 
+procedure TDwsIdeForm.FormCreate(Sender: TObject);
+begin
+  FCodeProposalForm := TDwsIdeCodeProposalForm.Create( Self );
+  FCodeProposalForm.OnSelectItem := DoOnCodeSuggestionFormSelectItem;
+end;
+
 procedure TDwsIdeForm.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil( FCodeProposalForm );
   dwsDebugger1.Breakpoints.Clean;
   dwsDebugger1.Watches.Clean;
   FProgram := nil;
@@ -1648,6 +1686,11 @@ begin
   UpdateFormCaption;
 end;
 
+procedure TDwsIdeForm.WMCodeSuggest(var AMessage: TMessage);
+begin
+  CodeSuggest( csAutoComplete );
+end;
+
 procedure TDwsIdeForm.SetProjectSourceFileName(const Value: string);
 var
   I : integer;
@@ -1658,6 +1701,8 @@ begin
     EditorPage( I ).FileName := Value;
     pcEditor.Pages[I].Caption := ChangeFileExt( ExtractFileName( Value ), '' ) + ' *' ;
     end;
+
+
 end;
 
 
@@ -1669,6 +1714,43 @@ begin
   for I := 0 to EditorPageCount-1 do
     EditorPage(I).ShowExecutableLines;
 end;
+
+procedure TDwsIdeForm.CodeSuggest( ACodeSuggestionMode : TCodeSuggestionMode );
+var
+  Suggestions   : IDwsSuggestions;
+  ScriptPos     : TScriptPos;
+  Script        : TDelphiWebScript;
+  ScriptProgram : IdwsProgram;
+begin
+  if not HasEditorPage then
+    Exit;
+
+  Script := TDelphiWebScript.Create( nil );
+  try
+
+    Script.OnNeedUnit := FScript.OnNeedUnit;
+    Script.OnInclude  := FScript.OnInclude;
+    Script.Config.CompilerOptions := [ coContextMap, coSymbolDictionary];
+    Script.Config.ScriptPaths.Assign( FScript.Config.ScriptPaths );
+
+    try
+      ScriptProgram := Script.Compile( ProjectSourceScript );
+    except
+    end;
+
+    if ScriptProgram = nil then
+      Exit;
+
+    ScriptPos := TScriptPos.Create( ScriptProgram.SourceList[0].SourceFile, CurrentEditor.CaretY, CurrentEditor.CaretX );
+    Suggestions := TdwsSuggestions.Create( ScriptProgram, ScriptPos );
+
+    FCodeProposalForm.Open( ACodeSuggestionMode, Suggestions );
+
+  finally
+    Script.Free;
+  end;
+end;
+
 
 procedure TDwsIdeForm.ClearExecutableLines;
 var
@@ -2026,11 +2108,20 @@ constructor TEditorPage.Create(
       FEditor.Font.Size := 10;
       end;
 
-    FEditor.Options := [eoAutoIndent, eoKeepCaretX, eoScrollByOneLess, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces];
+    FEditor.Options := [
+      eoAutoIndent,
+      eoKeepCaretX,
+      eoScrollByOneLess,
+      eoSmartTabs,
+      eoTabsToSpaces,
+      eoTrimTrailingSpaces,
+      eoRightMouseMovesCursor];
+
     FEditor.OnSpecialLineColors := SynEditorSpecialLineColors;
     FEditor.OnGutterClick := SynEditorGutterClick;
     FEditor.OnCommandProcessed := SynEditorCommandProcessed;
     FEditor.OnClick := SynEditorClick;
+    FEditor.OnKeyDown := SynEditorKeyDown;
 
     TEditorPageSynEditPlugin.Create(Self);
 
@@ -2379,6 +2470,15 @@ end;
 procedure TEditorPage.SynEditorClick(Sender: TObject);
 begin
   TSynEdit( Sender).InvalidateGutter;
+end;
+
+procedure TEditorPage.SynEditorKeyDown( Sender: TObject; var Key: Word;  Shift: TShiftState );
+begin
+  inherited;
+//  Exit;
+
+  if Key = VK_OEM_PERIOD then
+    PostMessage( FForm.Handle, WM_CodeSuggest,  0, 0 );
 end;
 
 procedure TEditorPage.SynEditorCommandProcessed(Sender: TObject;
