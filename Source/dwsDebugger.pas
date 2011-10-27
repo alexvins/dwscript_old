@@ -400,8 +400,24 @@ type
 
    TSynchronizedThreadedDebugger = class (TThreadedDebugger, IDebugger)
    {$IFDEF FPC}
-   strict private
-     //procedure Do
+   private
+     type
+
+        { TCallHelper }
+
+        TCallHelper = object
+        private
+          FExec:TdwsExecution;
+          FExpr:TExprBase;
+          FMain : TdwsDebugger;
+        public
+          constructor Create(AMain : TdwsDebugger;AExec : TdwsExecution; AExpr : TExprBase);
+          procedure DoStartDebug;
+          procedure DoStopDebug;
+          procedure DoDebug;
+          procedure DoEnterFunc;
+          procedure DoLeaveFunc;
+        end;
    {$ENDIF}
    public
       function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
@@ -414,6 +430,56 @@ type
       procedure EnterFunc(exec : TdwsExecution; funcExpr : TExprBase);
       procedure LeaveFunc(exec : TdwsExecution; funcExpr : TExprBase);
    end;
+
+{$IFDEF FPC}
+{ TSynchronizedThreadedDebugger.TCallHelper }
+
+constructor TSynchronizedThreadedDebugger.TCallHelper.Create(
+  AMain: TdwsDebugger; AExec: TdwsExecution; AExpr: TExprBase);
+begin
+  FMain := AMain;
+  FExec := Aexec;
+  FExpr := Aexpr;
+end;
+
+procedure TSynchronizedThreadedDebugger.TCallHelper.DoDebug;
+begin
+  Assert(Assigned(FMain));
+  Assert(Assigned(FExec));
+  Assert(Assigned(FExpr));
+  FMain.DoDebug(FExec, FExpr);
+end;
+
+procedure TSynchronizedThreadedDebugger.TCallHelper.DoEnterFunc;
+begin
+   Assert(Assigned(FMain));
+   Assert(Assigned(FExec));
+   Assert(Assigned(FExpr));
+  FMain.EnterFunc(FExec, FExpr);
+end;
+
+procedure TSynchronizedThreadedDebugger.TCallHelper.DoLeaveFunc;
+begin
+  Assert(Assigned(FMain));
+  Assert(Assigned(FExec));
+  Assert(Assigned(FExpr));
+  FMain.LeaveFunc(FExec, FExpr)
+end;
+
+procedure TSynchronizedThreadedDebugger.TCallHelper.DoStartDebug;
+begin
+  Assert(Assigned(FMain));
+  Assert(Assigned(FExec));
+  FMain.StartDebug(fexec);
+end;
+
+procedure TSynchronizedThreadedDebugger.TCallHelper.DoStopDebug;
+begin
+   Assert(Assigned(FMain));
+   Assert(Assigned(FExec));
+   FMain.StopDebug(fexec);
+end;
+{$ENDIF}
 
 // ------------------
 // ------------------ TThreadedDebugger ------------------
@@ -481,9 +547,14 @@ end;
 // StartDebug
 //
 procedure TSynchronizedThreadedDebugger.StartDebug(exec : TdwsExecution);
+{$IFDEF FPC}
+var
+   FHelper: TCallHelper;
+{$ENDIF}
 begin
    {$IFDEF FPC}
-   //Synchronize(procedure begin FMain.StartDebug(exec) end);
+   FHelper.Create(Fmain, exec,nil);
+   Synchronize(FHelper.DoStartDebug);
    {$ELSE}
    Synchronize(procedure begin FMain.StartDebug(exec) end);
    {$ENDIF}
@@ -492,9 +563,14 @@ end;
 // DoDebug
 //
 procedure TSynchronizedThreadedDebugger.DoDebug(exec : TdwsExecution; expr : TExprBase);
+{$IFDEF FPC}
+var
+   FHelper: TCallHelper;
+{$ENDIF}
 begin
    {$IFDEF FPC}
-   //Synchronize(procedure begin FMain.DoDebug(exec, expr) end);
+   FHelper.Create(Fmain, exec,expr);
+   Synchronize(FHelper.DoDebug);
    {$ELSE}
    Synchronize(procedure begin FMain.DoDebug(exec, expr) end);
    {$ENDIF}
@@ -503,9 +579,14 @@ end;
 // StopDebug
 //
 procedure TSynchronizedThreadedDebugger.StopDebug(exec : TdwsExecution);
+{$IFDEF FPC}
+var
+   FHelper: TCallHelper;
+{$ENDIF}
 begin
    {$IFDEF FPC}
-   //Synchronize(procedure begin FMain.StopDebug(exec) end);
+   FHelper.Create(Fmain, exec,nil);
+   Synchronize(FHelper.DoStopDebug);
    {$ELSE}
    Synchronize(procedure begin FMain.StopDebug(exec) end);
    {$ENDIF}
@@ -514,9 +595,14 @@ end;
 // EnterFunc
 //
 procedure TSynchronizedThreadedDebugger.EnterFunc(exec : TdwsExecution; funcExpr : TExprBase);
+{$IFDEF FPC}
+var
+   FHelper: TCallHelper;
+{$ENDIF}
 begin
    {$IFDEF FPC}
-   //Synchronize(procedure begin FMain.EnterFunc(exec, funcExpr) end);
+   FHelper.Create(Fmain, exec,funcExpr);
+   Synchronize(FHelper.DoEnterFunc);
    {$ELSE}
    Synchronize(procedure begin FMain.EnterFunc(exec, funcExpr) end);
    {$ENDIF}
@@ -525,9 +611,14 @@ end;
 // LeaveFunc
 //
 procedure TSynchronizedThreadedDebugger.LeaveFunc(exec : TdwsExecution; funcExpr : TExprBase);
+{$IFDEF FPC}
+var
+   FHelper: TCallHelper;
+{$ENDIF}
 begin
    {$IFDEF FPC}
-   //Synchronize(procedure begin FMain.LeaveFunc(exec, funcExpr) end);
+   FHelper.Create(Fmain, exec,funcExpr);
+   Synchronize(FHelper.DoLeaveFunc);
    {$ELSE}
    Synchronize(procedure begin FMain.LeaveFunc(exec, funcExpr) end);
    {$ENDIF}
