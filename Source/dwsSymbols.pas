@@ -24,7 +24,7 @@ unit dwsSymbols;
 interface
 
 uses Windows, SysUtils, Variants, Classes, dwsStrings, dwsErrors,
-   dwsUtils, dwsTokenizer, dwsStack;
+   dwsUtils, dwsTokenizer, dwsStack, dwsXPlatform;
 
 type
 

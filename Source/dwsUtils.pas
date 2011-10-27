@@ -232,9 +232,14 @@ type
    {: Minimalistic open-addressing hash, subclasses must override SameItem and GetItemHashCode.
       HashCodes *MUST* be non zero }
    TSimpleHash<T> = class
+      {$IFDEF FPC}
+      private
+        type
+          THashBucket = TSimpleHashBucket<T>;
+      {$ENDIF}
       private
          {$IFDEF FPC}
-         FBuckets : array of TSimpleHashBucket<T>;
+         FBuckets : array of THashBucket;
          {$ELSE}
          FBuckets : TSimpleHashBucketArray<T>;
          {$ENDIF}
@@ -922,6 +927,7 @@ begin
    if Count=Length(FItems) then
       SetLength(FItems, Count+8+(Count shr 4));
    FItems[FCount]:=anItem;
+   Result := FCount;
    Inc(FCount);
 end;
 
@@ -1029,8 +1035,6 @@ end;
 // Extract
 //
 function TSortedList<T>.Extract(const anItem : T) : Integer;
-var
-   i : Integer;
 begin
    if Find(anItem, Result) then begin
       Move(FItems[Result+1], FItems[Result], (FCount-Result-1)*SizeOf(T));
@@ -1431,7 +1435,6 @@ end;
 procedure TSimpleHash<T>.Grow;
 var
    i, j, n : Integer;
-   hashCode : Integer;
    oldBuckets : TSimpleHashBucketArray<T>;
 begin
    if FCapacity=0 then
