@@ -2,7 +2,7 @@ unit UdwsFunctionsTests;
 
 interface
 
-uses Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsSymbols, dwsXPlatform, dwsUtils,
    dwsMathFunctions, dwsTimeFunctions, dwsGlobalVarsFunctions, dwsVariantFunctions,
    dwsMathComplexFunctions;
@@ -266,11 +266,11 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('FunctionsMath', TdwsFuncFunctionsTestsMath.Suite);
-   TestFramework.RegisterTest('FunctionsMathComplex', TdwsFuncFunctionsTestsMathComplex.Suite);
-   TestFramework.RegisterTest('FunctionsTime', TdwsFuncFunctionsTestsTime.Suite);
-   TestFramework.RegisterTest('FunctionsString', TdwsFuncFunctionsTestsString.Suite);
-   TestFramework.RegisterTest('FunctionsVariant', TdwsFuncFunctionsTestsVariant.Suite);
-   TestFramework.RegisterTest('FunctionsGlobalVars', TdwsFuncFunctionsTestsGlobalVars.Suite);
+   RegisterTest('FunctionsMath', TdwsFuncFunctionsTestsMath);
+   RegisterTest('FunctionsMathComplex', TdwsFuncFunctionsTestsMathComplex);
+   RegisterTest('FunctionsTime', TdwsFuncFunctionsTestsTime);
+   RegisterTest('FunctionsString', TdwsFuncFunctionsTestsString);
+   RegisterTest('FunctionsVariant', TdwsFuncFunctionsTestsVariant);
+   RegisterTest('FunctionsGlobalVars', TdwsFuncFunctionsTestsGlobalVars);
 
 end.

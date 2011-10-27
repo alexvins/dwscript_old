@@ -471,6 +471,7 @@ end;
 function TInternalMagicProcedure.DoEval(args : TExprBaseList) : Variant;
 begin
    DoEvalProc(args);
+   Result := Unassigned;
 end;
 
 // ------------------

@@ -2312,8 +2312,10 @@ end;
 //
 class function TUnifiedConstExpr.CreateUnified(Prog: TdwsProgram; Typ: TTypeSymbol;
                                                const Value: Variant) : TUnifiedConstExpr;
+{$IFNDEF FPC}
 const
    vmtDestroy = -4;
+{$ENDIF}
 var
    i : Integer;
    p : Cardinal;
@@ -2334,6 +2336,13 @@ begin
    end;
 
    p:=Cardinal(@TUnifiedConstExpr.DoNothing);
+   {$IFDEF FPC}
+   if PCardinal(NativeUint(Self)+vmtDestroy)^<>p then begin
+      WriteProcessMemory(GetCurrentProcess,
+                         Pointer(NativeUint(Self)+vmtDestroy),
+                         @p, SizeOf(Pointer), n);
+   end;
+   {$ELSE}
    {$IFDEF WIN32}
    if PCardinal(NativeInt(Self)+vmtDestroy)^<>p then begin
       WriteProcessMemory(GetCurrentProcess,
@@ -2347,6 +2356,7 @@ begin
                          @p, SizeOf(Cardinal), n);
    end;
   {$ENDIF}
+   {$ENDIF}
 end;
 
 // DoNothing
@@ -3030,6 +3040,7 @@ function TArrayConstantExpr.Eval(exec : TdwsExecution) : Variant;
 //  x: Integer;
 //  elemSize: Integer;
 begin
+   Result := Unassigned;
    // at the moment, Eval shouldn't ever be invoked
 //
 //   if FElementExprs.Count>0 then

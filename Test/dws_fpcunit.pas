@@ -15,7 +15,8 @@ type
   TDWSTestCaseBase = class(TTestCase)
   strict protected
     FCompiler: TDelphiWebScript;
-    FProg:     TdwsProgram;
+    FProg:     IdwsProgram;
+    FExec:     IdwsProgramExecution;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -151,7 +152,7 @@ end;
 
 procedure TDWSTestCaseBase.Execute;
 begin
-  FProg.Execute;
+  Fexec := FProg.Execute;
 end;
 
 procedure TDWSTestCaseBase.ExecuteWTimeout(TimeOut: Integer);
@@ -172,7 +173,7 @@ end;
 
 procedure TDWSTestCaseBase.CheckEqualsResult(Expected: string; msg: string);
 begin
-  CheckEquals(Expected, (FProg.Result as TdwsDefaultResult).Text,
+  CheckEquals(Expected, (FExec.Result as TdwsDefaultResult).Text,
     'Prog default result ' + msg);
 end;
 

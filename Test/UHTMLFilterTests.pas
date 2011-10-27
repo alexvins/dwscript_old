@@ -3,7 +3,7 @@ unit UHTMLFilterTests;
 interface
 
 uses
-  Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+  Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
   dwsHtmlFilter, dwsXPlatform, dwsUtils;
 
 type
@@ -185,6 +185,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-TestFrameWork.RegisterTest('HTMLFilterTests', THTMLFilterTests.Suite);
+RegisterTest('HTMLFilterTests', THTMLFilterTests);
 
 end.

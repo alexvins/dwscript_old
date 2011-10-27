@@ -1531,7 +1531,8 @@ end;
 {$warnings off}
 function TSimpleHash<T>.GetItemHashCode(const item1: T): Integer;
 begin
-
+  Assert(False);
+  Result := 0;
 end;
 {$pop}
 {$ENDIF}
@@ -1565,7 +1566,8 @@ end;
 {$warnings off}
 function TSimpleHash<T>.SameItem(const item1, item2: T): Boolean;
 begin
-
+  Assert(False);
+  Result := False;
 end;
 {$pop}
 {$ENDIF}

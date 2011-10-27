@@ -15,6 +15,8 @@
 {**********************************************************************}
 unit dwsJSON;
 
+{$i dws.inc}
+
 interface
 
 uses Classes, SysUtils, Variants, dwsUtils;
@@ -416,7 +418,7 @@ end;
 //
 procedure WriteJavaScriptString(destStream : TWriteOnlyBlockStream; const str : UnicodeString);
 var
-   c : Char;
+   c : WideChar;
 begin
    destStream.WriteString('"');
    for c in str do begin

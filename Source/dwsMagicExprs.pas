@@ -450,6 +450,7 @@ end;
 function TMagicProcedureExpr.Eval(exec : TdwsExecution) : Variant;
 begin
    EvalNoResult(exec);
+   Result := Unassigned;
 end;
 
 // ------------------

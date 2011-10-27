@@ -12,7 +12,7 @@ uses
   dwsLanguageExtension, dwsMagicExprs, dwsMathFunctions, dwsRelExprs, 
   dwsStack, dwsStringFunctions, dwsStringResult, dwsStrings, dwsSymbols, 
   dwsTimeFunctions, dwsTokenizer, dwsUtils, dwsVariantFunctions, 
-  dwsVCLGUIFunctions, dwsXPlatform;
+  dwsVCLGUIFunctions, dwsXPlatform, dwsJSON;
 
 implementation
 

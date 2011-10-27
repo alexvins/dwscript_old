@@ -2,7 +2,7 @@ unit UMemoryTests;
 
 interface
 
-uses Windows, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+uses Windows, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
    dwsComConnector, Variants, ActiveX, ComObj, dwsXPlatform, dwsUtils,
    dwsSymbols;
 
@@ -309,6 +309,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('MemoryTests', TMemoryTests.Suite);
+   RegisterTest('MemoryTests', TMemoryTests);
 
 end.

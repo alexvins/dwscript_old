@@ -2,7 +2,7 @@ unit UCornerCasesTests;
 
 interface
 
-uses Windows, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+uses Windows, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsXPlatform, dwsFileSystem, dwsErrors, dwsUtils, Variants,
    dwsSymbols, dwsPascalTokenizer, dwsStrings, dwsStack;
 
@@ -15,7 +15,7 @@ type
       public
          procedure SetUp; override;
          procedure TearDown; override;
-         procedure DoOnInclude(const scriptName : String; var scriptSource : String);
+         procedure DoOnInclude(const scriptName : UnicodeString; var scriptSource : UnicodeString);
 
       published
          procedure EmptyTokenBuffer;
@@ -79,7 +79,7 @@ end;
 procedure TCornerCasesTests.EmptyTokenBuffer;
 var
    w : TTokenBufferWrapper;
-   s : String;
+   s : UnicodeString;
 begin
    w:=TTokenBufferWrapper.Create;
    try
@@ -183,7 +183,7 @@ end;
 
 // DoOnInclude
 //
-procedure TCornerCasesTests.DoOnInclude(const scriptName : String; var scriptSource : String);
+procedure TCornerCasesTests.DoOnInclude(const scriptName : UnicodeString; var scriptSource : UnicodeString);
 begin
    CheckEquals('test.dummy', scriptName, 'DoOnInclude');
    scriptSource:='Print(''hello'');';
@@ -221,7 +221,7 @@ end;
 //
 procedure TCornerCasesTests.IncludeViaFile;
 
-   function GetTemporaryFilesPath : String;
+   function GetTemporaryFilesPath : UnicodeString;
    var
       n: Integer;
    begin
@@ -234,8 +234,8 @@ var
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
    sl : TStringList;
-   tempDir : String;
-   tempFile : String;
+   tempDir : UnicodeString;
+   tempFile : UnicodeString;
 begin
    FCompiler.OnInclude:=nil;
 
@@ -269,7 +269,7 @@ end;
 //
 procedure TCornerCasesTests.IncludeViaFileRestricted;
 
-   function GetTemporaryFilesPath : String;
+   function GetTemporaryFilesPath : UnicodeString;
    var
       n: Integer;
    begin
@@ -282,8 +282,8 @@ var
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
    sl : TStringList;
-   tempDir : String;
-   tempFile : String;
+   tempDir : UnicodeString;
+   tempFile : UnicodeString;
    restricted : TdwsRestrictedFileSystem;
 begin
    restricted:=TdwsRestrictedFileSystem.Create(nil);
@@ -370,7 +370,7 @@ end;
 //
 procedure TCornerCasesTests.Assertions;
 
-   procedure CheckCase(options : TCompilerOptions; const expected, testName : String);
+   procedure CheckCase(options : TCompilerOptions; const expected, testName : UnicodeString);
    var
       prog : IdwsProgram;
       exec : IdwsProgramExecution;
@@ -396,7 +396,7 @@ end;
 //
 procedure TCornerCasesTests.ScriptVersion;
 var
-   v : String;
+   v : UnicodeString;
 begin
    v:=FCompiler.Version;
    FCompiler.Version:='???';
@@ -505,7 +505,7 @@ procedure TCornerCasesTests.SubExprTest;
             SubExprTree(output, expr.SubExpr[i], indent+1);
    end;
 
-   function MakeSubExprTree(const expr : TExprBase) : String;
+   function MakeSubExprTree(const expr : TExprBase) : UnicodeString;
    var
       sb : TStringBuilder;
    begin
@@ -591,7 +591,7 @@ var
 begin
    p:=TScriptPos.Create(nil, 1, 2);
 
-   CheckFalse(p.IsSourceFile('test'));
+   CheckFalse(p.IsSourceFile('test'),'');
    CheckEquals('', p.AsInfo);
 
    CheckEquals(1, p.Line);
@@ -613,7 +613,7 @@ end;
 procedure TCornerCasesTests.MonkeyTest;
 var
    i, n : Integer;
-   s : String;
+   s : UnicodeString;
    prog : IdwsProgram;
    tt : TTokenType;
 begin
@@ -663,6 +663,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('CornerCasesTests', TCornerCasesTests.Suite);
+   RegisterTest('CornerCasesTests', TCornerCasesTests);
 
 end.

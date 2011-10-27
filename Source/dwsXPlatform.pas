@@ -105,6 +105,21 @@ type
       {$ENDIF}
    end;
 
+   {$IFDEF FPC}
+   //TODO: write effective implementation
+
+   { TStringBuilder }
+
+   TStringBuilder = class
+   private
+      FString:UnicodeString;
+   public
+      function ToString: UnicodeString; reintroduce;
+      procedure Append(s: UnicodeString);
+      procedure AppendLine;
+   end;
+   {$ENDIF}
+
 function GetSystemMilliseconds : Cardinal;
 function UTCDateTime : TDateTime;
 
@@ -263,6 +278,25 @@ begin
    end;
    FindClose(searchRec);
 end;
+
+{$IFDEF FPC}
+{ TStringBuilder }
+
+procedure TStringBuilder.Append(s: UnicodeString);
+begin
+  FString += s;
+end;
+
+procedure TStringBuilder.AppendLine;
+begin
+  FString += cLineTerminator;
+end;
+
+function TStringBuilder.ToString: UnicodeString;
+begin
+  Result := FString;
+end;
+{$ENDIF}
 
 // ------------------
 // ------------------ TPath ------------------

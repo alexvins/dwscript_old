@@ -232,9 +232,9 @@ type
       private
          FResultType: TdwsResultType;
 
-      protected
+      public
          constructor Create(ResultType: TdwsResultType); virtual;
-
+      protected
          property ResultType: TdwsResultType read FResultType;
 
       public
@@ -3654,6 +3654,7 @@ function TNoResultExpr.Eval(exec : TdwsExecution) : Variant;
 begin
    EvalNoResult(exec);
    Assert(exec.Status=esrNone);
+   Result := Unassigned;
 end;
 
 // EvalNoResult
@@ -4820,6 +4821,7 @@ end;
 function TBinaryOpExpr.Eval(exec : TdwsExecution): Variant;
 begin
    Assert(False);
+   Result := Unassigned;
 end;
 
 // IsConstant
@@ -6290,36 +6292,43 @@ end;
 function TInfo.Call(const Params: array of Variant): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Call', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.Call: IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Call', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.Element(const Indices: array of Integer): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Element', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetConstructor(const MethName: UnicodeString; ExtObject: TObject): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['GetConstructor', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetData : TData;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Data', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetExternalObject: TObject;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['ExternalObject', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetMember(const s: UnicodeString): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Member', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 // GetFieldMemberNames
@@ -6332,16 +6341,19 @@ end;
 function TInfo.GetMethod(const s: UnicodeString): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Method', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetScriptObj: IScriptObj;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Obj', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetParameter(const s: UnicodeString): IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Parameter', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 function TInfo.GetTypeSym: TSymbol;
@@ -6352,6 +6364,7 @@ end;
 function TInfo.GetValue: Variant;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['Value', FTypeSym.Caption]);
+  Result := Unassigned;
 end;
 
 function TInfo.GetValueAsString : UnicodeString;
@@ -6440,6 +6453,7 @@ end;
 function TInfo.GetInherited: IInfo;
 begin
   raise Exception.CreateFmt(RTE_InvalidOp, ['GetInherited', FTypeSym.Caption]);
+  Result := nil;
 end;
 
 { TInfoData }
@@ -8327,6 +8341,7 @@ end;
 function TDestructorStaticExpr.PostCall(exec : TdwsExecution) : Variant;
 begin
    exec.SelfScriptObject^.Destroyed:=True;
+   Result := Unassigned;
 end;
 
 // ------------------
@@ -8338,7 +8353,9 @@ end;
 function TDestructorVirtualExpr.PostCall(exec : TdwsExecution) : Variant;
 begin
    exec.SelfScriptObject^.Destroyed:=True;
+   Result := Unassigned;
 end;
+
 
 // ------------------
 // ------------------ TInfoProperty ------------------
@@ -8800,6 +8817,7 @@ end;
 function TTypeSymbolExpr.Eval(exec : TdwsExecution) : Variant;
 begin
    Assert(False); // not intended for execution
+   Result := Unassigned;
 end;
 
 // ScriptPos

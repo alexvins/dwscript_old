@@ -1,8 +1,10 @@
 unit UdwsUtilsTests;
 
+{$I dws.inc}
+
 interface
 
-uses Windows, Classes, SysUtils, TestFrameWork, dwsUtils, dwsJSON;
+uses Windows, Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils, dwsJSON;
 
 type
 
@@ -351,6 +353,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('dwsUtilsTests', TdwsUtilsTests.Suite);
+   RegisterTest('dwsUtilsTests', TdwsUtilsTests);
 
 end.

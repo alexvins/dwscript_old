@@ -29,7 +29,16 @@ uses
 type
 
    {$ifdef FPC}
-   TTestCase = fpcunit.TTestCase;
+
+   __TTestCase = fpcunit.TTestCase;
+
+   { TTestCase }
+
+   TTestCase = class(__TTestCase)
+   public
+     procedure CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; msg :string = '');
+   end;
+
    {$else}
    TTestCase = TestFrameWork.TTestCase;
    {$endif}
@@ -53,6 +62,14 @@ begin
    {$else}
    TestFrameWork.RegisterTest(testName, aTest.Suite);
    {$endif}
+end;
+
+{ TTestCase }
+
+procedure TTestCase.CheckException(AMethod: TRunMethod;
+  AExceptionClass: ExceptClass; msg: string);
+begin
+  inherited AssertException(msg, AExceptionClass, AMethod);
 end;
 
 end.

@@ -2,7 +2,7 @@ unit dwsClasses;
 
 interface
 
-uses Windows, SysUtils, Classes;
+uses Windows, SysUtils, Classes, dwsXPlatform;
 
 type
 
