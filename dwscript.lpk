@@ -16,6 +16,7 @@
         <SyntaxOptions>
           <SyntaxMode Value="Delphi"/>
           <IncludeAssertionCode Value="True"/>
+          <CPPInline Value="False"/>
         </SyntaxOptions>
       </Parsing>
       <CodeGeneration>
@@ -50,7 +51,7 @@
     <Description Value="DWScript is an object-oriented scripting engine based on the Delphi language, with extensions borrowed from other Pascal languages (FreePascal, Prism, etc.). It introduces a few Pascal language extensions of its own as well."/>
     <License Value="MPL 1.1"/>
     <Version Major="2" Minor="2" Release="1"/>
-    <Files Count="27">
+    <Files Count="28">
       <Item1>
         <Filename Value="Source\dws.inc"/>
         <Type Value="Include"/>
@@ -159,6 +160,10 @@
         <Filename Value="Source\dwsJSON.pas"/>
         <UnitName Value="dwsJSON"/>
       </Item27>
+      <Item28>
+        <Filename Value="Source\dwsCodeGen.pas"/>
+        <UnitName Value="dwsCodeGen"/>
+      </Item28>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

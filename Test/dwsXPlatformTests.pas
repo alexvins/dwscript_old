@@ -15,27 +15,34 @@
 {**********************************************************************}
 unit dwsXPlatformTests;
 
+{.$DEFINE DWS_USE_DUNIT}
+
+{$IFNDEF FPC}
+  {$DEFINE DWS_USE_DUNIT} //in Delphi use DUnit always
+{$ENDIF}
+
 interface
 
 uses
    Classes, SysUtils,
-   {$ifdef FPC}
-   fpcunit, testutils, testregistry
+   {$ifdef DWS_USE_DUNIT}
+   TestFrameWork //DUnit in Delphi or FPtest in FPC. They are compatible
    {$else}
-   TestFrameWork
+   fpcunit, testutils, testregistry
    {$endif}
    ;
 
 type
 
-   {$ifdef FPC}
+   {$ifndef DWS_USE_DUNIT}
 
-   __TTestCase = fpcunit.TTestCase;
+   __TTestCase = fpcunit.TTestCase; //ugly but TTestCase = class(fpcunit.TTestCase) does not compiles
 
    { TTestCase }
 
    TTestCase = class(__TTestCase)
    public
+     //this method is unimplemented in fpcunit
      procedure CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; msg :string = '');
    end;
 

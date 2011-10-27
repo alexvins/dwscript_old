@@ -15,6 +15,8 @@
 {**********************************************************************}
 unit dwsCodeGen;
 
+{$i dws.inc}
+
 interface
 
 uses Classes, SysUtils, dwsUtils, dwsSymbols, dwsExprs, dwsCoreExprs, dwsJSON,
@@ -953,6 +955,35 @@ end;
 // EnterContext
 //
 procedure TdwsCodeGen.EnterContext(proc : TdwsProgram);
+  {$IFDEF FPC}
+  procedure ProcessExpr(parent, expr : TExprBase; var abort : Boolean);
+  var
+     i, k, n : Integer;
+     sym : TSymbol;
+     locName : String;
+  begin
+     if not (expr is TBlockExpr) then Exit;
+     for i:=0 to TBlockExpr(expr).Table.Count-1 do begin
+        sym:=TBlockExpr(expr).Table.Symbols[i];
+        if sym is TDataSymbol then begin
+           if FLocalVarSymbolMap.IndexOf(sym.Name)>=0 then begin
+              n:=1;
+              repeat
+                 locName:=Format('%s_%d', [sym.Name, n]);
+                 k:=FLocalVarSymbolMap.IndexOf(locName);
+                 Inc(n);
+              until k<0;
+              FLocalVarSymbolMap.AddObject(locName, sym);
+              //FSymbolMap.AddObject(locName, sym);
+           end else begin
+              FLocalVarSymbolMap.AddObject(sym.Name, sym);
+           end;
+        end;
+     end;
+
+  end;
+  {$ENDIF}
+
 var
    i : Integer;
    sym : TSymbol;
@@ -969,6 +1000,9 @@ begin
       if sym is TDataSymbol then
          FLocalVarSymbolMap.AddObject(sym.Name, sym);
    end;
+   {$IFDEF FPC}
+   proc.Expr.RecursiveEnumerateSubExprs(ProcessExpr);
+   {$ELSE}
    proc.Expr.RecursiveEnumerateSubExprs(
       procedure (parent, expr : TExprBase; var abort : Boolean)
       var
@@ -995,6 +1029,7 @@ begin
             end;
          end;
       end);
+   {$ENDIF}
 end;
 
 // LeaveContext
