@@ -39,7 +39,8 @@ unit dwsGlobalVarsFunctions;
 interface
 
 uses
-  Variants, Windows, Classes, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsUtils;
+  Variants, Windows, Classes, SysUtils, dwsFunctions, dwsExprs, dwsSymbols,
+  dwsUtils, dwsXPlatform;
 
 type
 
@@ -384,9 +385,17 @@ procedure WriteVariant(writer: TWriter; const value: Variant);
 begin
    case VarType(Value) of
       varInt64 :
+         {$IFDEF FPC}
+         writer.WriteInteger(PVarData(@value).vint64);
+         {$ELSE}
          writer.WriteInteger(PVarData(@value).VUInt64);
+         {$ENDIF}
       varUString :
-         writer.WriteString(UnicodeString(PVarData(@value).VUString));
+         {$IFDEF FPC}
+         writer.WriteUnicodeString(VarDataToUniStr(PVarData(@value)));
+         {$ELSE}
+         writer.WriteString(VarDataToUniStr(PVarData(@value)));
+         {$ENDIF}
       varDouble :
          writer.WriteFloat(PVarData(@value).VDouble);
       varBoolean :
@@ -425,12 +434,25 @@ function ReadVariant(reader: TReader): Variant;
 
 const
 
+   {$IFDEF FPC}
+   cValTtoVarT: array[TValueType] of Integer = (
+   // vaNull,  vaList,   vaInt8,  vaInt16,     vaInt32,    vaExtended,
+      varNull, varError, varByte, varSmallInt, varInteger, varDouble,
+   // vaString,   vaIdent,  vaFalse,    vaTrue,     vaBinary, vaSet,    vaLString,
+      varUString, varError, varBoolean, varBoolean, varError, varError, varUString,
+   // vaNil,    vaCollection, vaSingle,  vaCurrency,  vaDate,  vaWString, vaInt64,
+      varEmpty, varError,     varSingle, varCurrency, varDate, varOleStr, varint64,
+   //vaUTF8String, vaUString,  vaQWord
+      varUString,  varUString, varuint64
+    );
+   {$ELSE}
    cValTtoVarT: array[TValueType] of Integer = (
       varNull, varError, varByte, varSmallInt, varInteger, varDouble,
       varUString, varError, varBoolean, varBoolean, varError, varError, varUString,
       varEmpty, varError, varSingle, varCurrency, varDate, varOleStr,
       varUInt64, varUString, varDouble
     );
+   {$ENDIF}
 
 var
   valType: TValueType;
@@ -448,13 +470,22 @@ begin
       vaInt8: TVarData(Result).VByte := Byte(ReadInteger);
       vaInt16: TVarData(Result).VSmallint := Smallint(ReadInteger);
       vaInt32: TVarData(Result).VInteger := ReadInteger;
+      {$IFDEF FPC}
+      vaInt64: TVarData(Result).VInt64 := ReadInt64;
+      {$ELSE}
       vaInt64: TVarData(Result).VUInt64 := ReadInt64;
+      {$ENDIF}
       vaExtended: TVarData(Result).VDouble := ReadFloat;
       vaSingle: TVarData(Result).VSingle := ReadSingle;
       vaCurrency: TVarData(Result).VCurrency := ReadCurrency;
       vaDate: TVarData(Result).VDate := ReadDate;
+      {$IFDEF FPC}
+      vaString, vaLString, vaUTF8String:
+         Result := UnicodeString(ReadString);  //todo: fix string hadling
+      {$ELSE}
       vaString, vaLString, vaUTF8String:
          Result := UnicodeString(ReadString);
+      {$ENDIF}
       vaWString: Result := ReadWideString;
       vaFalse, vaTrue:
          TVarData(Result).VBoolean := (ReadValue = vaTrue);

@@ -226,6 +226,8 @@ type
 
    TdwsResultType = class;
 
+   { TdwsResult }
+
    TdwsResult = class
       private
          FResultType: TdwsResultType;
@@ -238,6 +240,11 @@ type
       public
          procedure AddString(const str : UnicodeString); virtual; abstract;
          procedure Clear; virtual; abstract;
+
+      {$IFDEF FPC}
+      public
+         function ToString : UnicodeString; virtual; reintroduce;
+      {$ENDIF}
    end;
 
    TdwsDefaultResult = class(TdwsResult)
@@ -1753,7 +1760,7 @@ type
    TInfoDynamicArray = class(TInfoData)
       private
          function SelfDynArray : TScriptDynamicArray;
-
+      public
          function Element(const Indices: array of Integer): IInfo; override;
          function GetMember(const s: UnicodeString): IInfo; override;
          function GetValueAsString : UnicodeString; override;
@@ -3136,6 +3143,11 @@ end;
 constructor TdwsResult.Create(ResultType: TdwsResultType);
 begin
   FResultType := ResultType;
+end;
+
+function TdwsResult.ToString: UnicodeString;
+begin
+  Result := Inherited ToString;
 end;
 
 // ------------------

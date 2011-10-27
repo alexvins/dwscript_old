@@ -390,6 +390,7 @@ implementation
 
 type
    TThreadedDebugger = class (TdwsThread)
+   public
       FMain : TdwsDebugger;
       FExec : IdwsProgramExecution;
       constructor Create(exec : IdwsProgramExecution; main : TdwsDebugger);
@@ -398,9 +399,14 @@ type
    end;
 
    TSynchronizedThreadedDebugger = class (TThreadedDebugger, IDebugger)
-      function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-      function _AddRef: Integer; stdcall;
-      function _Release: Integer; stdcall;
+   {$IFDEF FPC}
+   strict private
+     //procedure Do
+   {$ENDIF}
+   public
+      function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+      function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+      function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
       procedure StateChanged;
       procedure StartDebug(exec : TdwsExecution);
       procedure DoDebug(exec : TdwsExecution; expr : TExprBase);
@@ -444,7 +450,7 @@ end;
 
 // QueryInterface
 //
-function TSynchronizedThreadedDebugger.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TSynchronizedThreadedDebugger.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): Longint;
 begin
    if GetInterface(IID, Obj) then
       Result:=S_OK
@@ -476,35 +482,55 @@ end;
 //
 procedure TSynchronizedThreadedDebugger.StartDebug(exec : TdwsExecution);
 begin
+   {$IFDEF FPC}
+   //Synchronize(procedure begin FMain.StartDebug(exec) end);
+   {$ELSE}
    Synchronize(procedure begin FMain.StartDebug(exec) end);
+   {$ENDIF}
 end;
 
 // DoDebug
 //
 procedure TSynchronizedThreadedDebugger.DoDebug(exec : TdwsExecution; expr : TExprBase);
 begin
+   {$IFDEF FPC}
+   //Synchronize(procedure begin FMain.DoDebug(exec, expr) end);
+   {$ELSE}
    Synchronize(procedure begin FMain.DoDebug(exec, expr) end);
+   {$ENDIF}
 end;
 
 // StopDebug
 //
 procedure TSynchronizedThreadedDebugger.StopDebug(exec : TdwsExecution);
 begin
+   {$IFDEF FPC}
+   //Synchronize(procedure begin FMain.StopDebug(exec) end);
+   {$ELSE}
    Synchronize(procedure begin FMain.StopDebug(exec) end);
+   {$ENDIF}
 end;
 
 // EnterFunc
 //
 procedure TSynchronizedThreadedDebugger.EnterFunc(exec : TdwsExecution; funcExpr : TExprBase);
 begin
+   {$IFDEF FPC}
+   //Synchronize(procedure begin FMain.EnterFunc(exec, funcExpr) end);
+   {$ELSE}
    Synchronize(procedure begin FMain.EnterFunc(exec, funcExpr) end);
+   {$ENDIF}
 end;
 
 // LeaveFunc
 //
 procedure TSynchronizedThreadedDebugger.LeaveFunc(exec : TdwsExecution; funcExpr : TExprBase);
 begin
+   {$IFDEF FPC}
+   //Synchronize(procedure begin FMain.LeaveFunc(exec, funcExpr) end);
+   {$ELSE}
    Synchronize(procedure begin FMain.LeaveFunc(exec, funcExpr) end);
+   {$ENDIF}
 end;
 
 // ------------------
@@ -1430,6 +1456,13 @@ end;
 // ProcessProg
 //
 procedure TdwsBreakpointableLines.ProcessProg(const prog : TdwsProgram);
+  {$IFDEF FPC}
+  procedure ProcessSubExpr(parent, expr : TExprBase; var abort : Boolean);
+  begin
+    if expr is TBlockExprBase then Exit;
+    RegisterScriptPos(expr.ScriptPos);
+  end;
+  {$ENDIF}
 begin
    if FProcessedProgs.IndexOf(prog)>=0 then Exit;
    FProcessedProgs.Add(prog);
@@ -1441,12 +1474,16 @@ begin
 
    RegisterScriptPos(prog.Expr.ScriptPos);
 
+   {$IFDEF FPC}
+   prog.Expr.RecursiveEnumerateSubExprs(ProcessSubExpr);
+   {$ELSE}
    prog.Expr.RecursiveEnumerateSubExprs(
       procedure (parent, expr : TExprBase; var abort : Boolean)
       begin
          if expr is TBlockExprBase then Exit;
          RegisterScriptPos(expr.ScriptPos);
       end);
+   {$ENDIF}
 end;
 
 // ProcessFuncSymbol

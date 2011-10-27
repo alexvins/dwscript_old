@@ -2179,8 +2179,8 @@ begin
                end;
             end;
          end;
-      end else rawResult:=NativeInt(unified1.Typ)-NativeInt(unified2.Typ);
-   end else rawResult:=NativeInt(unified1.ClassType)-NativeInt(unified2.ClassType);
+      end else rawResult:=NativeUint(unified1.Typ)-NativeUint(unified2.Typ);
+   end else rawResult:=NativeUint(unified1.ClassType)-NativeUint(unified2.ClassType);
 
    if rawResult=0 then
       Result:=0

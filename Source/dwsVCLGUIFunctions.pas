@@ -32,7 +32,7 @@ type
   end;
 
   TInputBoxFunc = class(TInternalMagicStringFunction)
-    procedure DoEvalAsString(args : TExprBaseList; var Result : String); override;
+    procedure DoEvalAsString(args : TExprBaseList; var Result : UnicodeString); override;
   end;
 
   TdwsGUIFunctions = class(TComponent)
@@ -59,7 +59,7 @@ end;
 
 // DoEvalAsString
 //
-procedure TInputBoxFunc.DoEvalAsString(args : TExprBaseList; var Result : String);
+procedure TInputBoxFunc.DoEvalAsString(args : TExprBaseList; var Result : UnicodeString);
 begin
    Result:=InputBox(args.AsString[0], args.AsString[1], args.AsString[2]);
 end;

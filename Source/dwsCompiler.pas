@@ -246,6 +246,15 @@ type
    // TdwsCompiler
    //
    TdwsCompiler = class
+      {$IFDEF FPC}
+      private
+         type
+            TLoopExprs = TSimpleStack<TNoResultExpr>;
+            TLoopExitables = TSimpleStack<TLoopExitable>;
+            TFinallyExprs = TSimpleStack<Boolean>;
+            TConditionalDepth = TSimpleStack<TSwitchInstruction>;
+            TUnicodeStringStack =  TSimpleStack<unicodestring>;
+      {$ENDIF}
       private
          FOptions : TCompilerOptions;
          FTokRules : TTokenizerRules;
@@ -255,10 +264,17 @@ type
          FContextMap : TContextMap;
          FSymbolDictionary : TSymbolDictionary;
          FOperators : TOperators;
+         {$IFDEF FPC}
+         FLoopExprs : TLoopExprs;
+         FLoopExitable : TLoopExitables;
+         FFinallyExprs : TFinallyExprs;
+         FConditionalDepth : TConditionalDepth;
+         {$ELSE}
          FLoopExprs : TSimpleStack<TNoResultExpr>;
          FLoopExitable : TSimpleStack<TLoopExitable>;
          FFinallyExprs : TSimpleStack<Boolean>;
          FConditionalDepth : TSimpleStack<TSwitchInstruction>;
+         {$ENDIF}
          FMsgs : TdwsCompileMessageList;
 
          FExec : TdwsCompilerExecution;
@@ -276,7 +292,11 @@ type
          FSourcePostConditionsIndex : Integer;
          FUnitSection : TdwsUnitSection;
          FUnitContextStack : TdwsCompilerUnitContextStack;
+         {$IFDEF FPC}
+         FUnitsFromStack : TUnicodeStringStack;
+         {$ELSE}
          FUnitsFromStack : TSimpleStack<UnicodeString>;
+         {$ENDIF}
          FUnitSymbol : TUnitMainSymbol;
          FAnyFuncSymbol : TAnyFuncSymbol;
 
@@ -600,11 +620,19 @@ begin
 
    FTokRules:=TPascalTokenizerStateRules.Create;
 
+   {$IFDEF FPC}
+   FLoopExprs:= TLoopExprs.Create;
+   FLoopExitable:=TLoopExitables.Create;
+   FConditionalDepth:=TConditionalDepth.Create;
+   FFinallyExprs:=TFinallyExprs.Create;
+   FUnitsFromStack:=TUnicodeStringStack.Create;
+   {$ELSE}
    FLoopExprs:=TSimpleStack<TNoResultExpr>.Create;
    FLoopExitable:=TSimpleStack<TLoopExitable>.Create;
    FConditionalDepth:=TSimpleStack<TSwitchInstruction>.Create;
    FFinallyExprs:=TSimpleStack<Boolean>.Create;
    FUnitsFromStack:=TSimpleStack<UnicodeString>.Create;
+   {$ENDIF}
    FUnitContextStack:=TdwsCompilerUnitContextStack.Create;
    FAnyFuncSymbol:=TAnyFuncSymbol.Create('', fkFunction, 0);
 
@@ -6676,7 +6704,7 @@ begin
          fname:=IncludeTrailingPathDelimiter(FScriptPaths[i])+scriptName
       else fname:=scriptName;
       if FCompileFileSystem.FileExists(fname) then
-         Exit(FCompileFileSystem.OpenFileStream(fname, fomReadOnly);
+         Exit(FCompileFileSystem.OpenFileStream(fname, fomReadOnly));
    end;
    Result:=nil;
 end;

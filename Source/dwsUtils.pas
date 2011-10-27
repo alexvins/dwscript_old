@@ -226,7 +226,7 @@ type
    TSimpleHashBucketArray<T> = array of TSimpleHashBucket<T>;
    {$ENDIF}
    {$IFDEF FPC}
-   TSimpleHashProc<T> = procedure (const item : T) of object;// is nested;
+   //TSimpleHashProc<T> = procedure (const item : T) of object;// is nested;
    {$ELSE}
    TSimpleHashProc<T> = reference to procedure (const item : T);
    {$ENDIF}
@@ -244,7 +244,7 @@ type
           THashBucketArray = array of THashBucket;
       public
          type
-           THashEnumProc = TSimpleHashProc<T>;
+           THashEnumProc = procedure (const item : T) of object;
       {$ENDIF}
       private
          {$IFDEF FPC}
@@ -260,9 +260,9 @@ type
          procedure Grow;
          function HashBucket(const hashCode : Integer) : Integer; inline;
          function LinearFind(const item : T; var index : Integer) : Boolean;
-         function SameItem(const item1, item2 : T) : Boolean; virtual; abstract;
+         function SameItem(const item1, item2 : T) : Boolean; virtual; {$IFNDEF FPC} abstract; {$ENDIF}
          // hashCode must be non-null
-         function GetItemHashCode(const item1 : T) : Integer; virtual; abstract;
+         function GetItemHashCode(const item1 : T) : Integer; virtual; {$IFNDEF FPC} abstract; {$ENDIF}
 
       public
          function Add(const anItem : T) : Boolean; // true if added
@@ -1526,6 +1526,16 @@ begin
    end;
 end;
 
+{$IFDEF FPC}
+{$push}
+{$warnings off}
+function TSimpleHash<T>.GetItemHashCode(const item1: T): Integer;
+begin
+
+end;
+{$pop}
+{$ENDIF}
+
 // Contains
 //
 function TSimpleHash<T>.Contains(const anItem : T) : Boolean;
@@ -1550,13 +1560,23 @@ begin
       anItem:=FBuckets[i].Value;
 end;
 
+{$IFDEF FPC}
+{$push}
+{$warnings off}
+function TSimpleHash<T>.SameItem(const item1, item2: T): Boolean;
+begin
+
+end;
+{$pop}
+{$ENDIF}
+
 // Enumerate
 //
 {$IFDEF FPC}
 procedure TSimpleHash<T>.Enumerate(const callBack: THashEnumProc);
 var
    i : Integer;
-  _cb:TSimpleHashProc<T>; //TODO: remove ugly workaround
+  _cb:THashEnumProc;//TSimpleHashProc<T>; //TODO: remove ugly workaround
 begin
    _cb := callBack;
    for i:=0 to High(FBuckets) do

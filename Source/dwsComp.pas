@@ -31,7 +31,7 @@ uses
 {$IFNDEF DWS_NO_BUILTIN_FUNCTIONS}
   dwsMathFunctions, dwsStringFunctions, dwsTimeFunctions, dwsVariantFunctions,
 {$ENDIF}
-  dwsErrors;
+  dwsErrors,dwsXPlatform;
 
 type
    TDelphiWebScript = class;
@@ -139,9 +139,10 @@ type
     function GetUnitFlags : TIdwsUnitFlags;
 
     property Dependencies: TStrings read FDependencies write SetDependencies;
+    {$IFDEF FPC}{$PUSH}{$ENDIF}
     {$WARNINGS OFF}
     property UnitName: UnicodeString read GetUnitName write SetUnitName;
-    {$WARNINGS ON}
+    {$IFDEF FPC} {$POP} {$ELSE} {$WARNINGS ON} {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -176,6 +177,8 @@ type
   TdwsUnit = class;
   TdwsGlobal = class;
 
+  { TdwsSymbol }
+
   TdwsSymbol = class(TCollectionItem)
   private
     FIsGenerating: Boolean;
@@ -192,7 +195,7 @@ type
     procedure Assign(Source: TPersistent); override;
     function Generate(table: TSymbolTable; parentSym: TSymbol = nil): TSymbol;
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol; virtual; abstract;
-    function GetNamePath: UnicodeString; override;
+    function GetNamePath: AnsiString; override;
     function GetUnit: TdwsUnit;
   published
     property Name: UnicodeString read FName write FName;
@@ -224,11 +227,13 @@ type
     property SortedItems[Index: Integer]: TdwsSymbol read GetSortedItem;
   end;
 
+  { TdwsVariable }
+
   TdwsVariable = class(TdwsSymbol)
   private
     FDataType: TDataType;
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     procedure Assign(Source: TPersistent); override;
   published
@@ -261,7 +266,7 @@ type
          procedure SetIsWritable(const Value: Boolean);
          procedure SetIsLazy(const val : Boolean);
          procedure SetDefaultValue(const Value: Variant);
-         function GetDisplayName: UnicodeString; override;
+         function GetDisplayName: AnsiString; override;
       public
          constructor Create(Collection: TCollection); override;
          procedure Assign(Source: TPersistent); override;
@@ -286,6 +291,8 @@ type
    TInitSymbolEvent = procedure(sender : TObject; symbol : TSymbol) of object;
    TInitExprEvent = procedure(sender : TObject; expr : TExprBase) of object;
 
+   { TdwsFunction }
+
    TdwsFunction = class(TdwsSymbol, IUnknown, ICallable)
       private
          FOnEval: TFuncEvalEvent;
@@ -296,12 +303,12 @@ type
          FDeprecated : UnicodeString;
 
       protected
-         function _AddRef: Integer; stdcall;
-         function _Release: Integer; stdcall;
-         function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+         function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 
       protected
-         function GetDisplayName: UnicodeString; override;
+         function GetDisplayName: AnsiString; override;
          procedure Call(exec: TdwsProgramExecution; func: TFuncSymbol); virtual;
          procedure SetParameters(const Value: TdwsParameters);
          function StoreParameters : Boolean;
@@ -335,6 +342,8 @@ type
 
   TdwsFunctionsClass = class of TdwsFunctions;
 
+  { TdwsArray }
+
   TdwsArray = class(TdwsSymbol)
   private
     FDataType: TDataType;
@@ -343,7 +352,7 @@ type
   protected
     procedure SetIsDynamic(const Value: Boolean);
     function GetIsDynamic: Boolean;
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
     function GetBoundStored: Boolean;
   public
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol;
@@ -363,10 +372,12 @@ type
 
   TdwsArraysClass = class of TdwsArrays;
 
+  { TdwsConstant }
+
   TdwsConstant = class(TdwsVariable)
   protected
     FValue: Variant;
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     procedure Assign(Source: TPersistent); override;
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol;
@@ -385,9 +396,11 @@ type
 
   TdwsConstantsClass = class of TdwsConstants;
 
+  { TdwsForward }
+
   TdwsForward = class(TdwsSymbol)
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol;
       override;
@@ -400,12 +413,14 @@ type
 
   TdwsForwardsClass = class of TdwsForwards;
 
+   { TdwsField }
+
    TdwsField = class(TdwsVariable)
       private
          FVisibility : TdwsVisibility;
 
       protected
-         function GetDisplayName: UnicodeString; override;
+         function GetDisplayName: AnsiString; override;
 
       public
          constructor Create(Collection: TCollection); override;
@@ -431,7 +446,7 @@ type
     FIndexValue: Variant;
     FVisibility : TdwsVisibility;
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
     function GetIsDefault: Boolean;
     procedure SetIsDefault(Value: Boolean);
     procedure SetParameters(const Value: TdwsParameters);
@@ -459,13 +474,15 @@ type
          function Add : TdwsProperty;
    end;
 
+  { TdwsClassOperator }
+
   TdwsClassOperator = class(TdwsSymbol)
   private
     FOperator: TTokenType;
     FDataType: TDataType;
     FUsesAccess: UnicodeString;
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     procedure Assign(Source: TPersistent); override;
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol; override;
@@ -480,11 +497,13 @@ type
     class function GetSymbolClass : TdwsSymbolClass; override;
   end;
 
+  { TdwsTypeSymbol }
+
   TdwsTypeSymbol = class(TCollectionItem)
   private
     FName: UnicodeString;
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     procedure Assign(Source: TPersistent); override;
   published
@@ -497,6 +516,8 @@ type
          function Add : TdwsTypeSymbol;
    end;
 
+   { TdwsOperator }
+
    TdwsOperator = class(TdwsSymbol)
       private
          FOperator: TTokenType;
@@ -505,7 +526,7 @@ type
          FUsesAccess: UnicodeString;
 
       protected
-         function GetDisplayName: UnicodeString; override;
+         function GetDisplayName: AnsiString; override;
 
       public
          constructor Create(Collection: TCollection); override;
@@ -532,6 +553,8 @@ type
   TAssignExternalObjectEvent = procedure(Info: TProgramInfo; var ExtObject: TObject) of object;
   TMethodEvalEvent = procedure(Info: TProgramInfo; ExtObject: TObject) of object;
 
+  { TdwsMethod }
+
   TdwsMethod = class(TdwsFunction)
   private
     FAttributes : TMethodAttributes;
@@ -541,7 +564,7 @@ type
     FVisibility : TdwsVisibility;
     procedure SetResultType(const Value: TDataType);
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
     procedure Call(Caller: TdwsProgramExecution; Func: TFuncSymbol); override;
   public
     constructor Create(Collection: TCollection); override;
@@ -562,6 +585,8 @@ type
          function Add : TdwsMethod;
    end;
 
+  { TdwsConstructor }
+
   TdwsConstructor = class(TdwsFunction)
   private
     FAttributes: TMethodAttributes;
@@ -569,7 +594,7 @@ type
     FVisibility : TdwsVisibility;
     function GetResultType: UnicodeString;
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
     procedure Call(Caller: TdwsProgramExecution; Func: TFuncSymbol); override;
   public
     constructor Create(Collection: TCollection); override;
@@ -589,11 +614,13 @@ type
          function Add : TdwsConstructor;
    end;
 
+   { TdwsClassConstant }
+
    TdwsClassConstant = class(TdwsConstant)
       private
          FVisibility : TdwsVisibility;
       protected
-         function GetDisplayName: UnicodeString; override;
+         function GetDisplayName: AnsiString; override;
       public
          constructor Create(Collection: TCollection); override;
          procedure Assign(Source: TPersistent); override;
@@ -628,7 +655,7 @@ type
          FIsStatic : Boolean;
 
       protected
-         function GetDisplayName : UnicodeString; override;
+         function GetDisplayName : AnsiString; override;
          function StoreConstructors : Boolean;
          function StoreFields : Boolean;
          function StoreMethods : Boolean;
@@ -687,12 +714,14 @@ type
          function Add : TdwsMember; inline;
    end;
 
+   { TdwsRecord }
+
    TdwsRecord = class(TdwsSymbol)
       private
          FMembers : TdwsMembers;
          FProperties : TdwsProperties;
       protected
-         function GetDisplayName: UnicodeString; override;
+         function GetDisplayName: AnsiString; override;
       public
          constructor Create(Collection: TCollection); override;
          destructor Destroy; override;
@@ -712,6 +741,8 @@ type
 
   TdwsRecordsClass = class of TdwsRecords;
 
+  { TdwsElement }
+
   TdwsElement = class(TdwsSymbol)
   private
     FIsUserDef: Boolean;
@@ -719,7 +750,7 @@ type
     procedure SetUserDefValue(const Value: Integer);
     procedure SetIsUserDef(const Value: Boolean);
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     procedure Assign(Source: TPersistent); override;
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol; override;
@@ -735,11 +766,13 @@ type
          function Add : TdwsElement; inline;
    end;
 
+  { TdwsEnumeration }
+
   TdwsEnumeration = class(TdwsSymbol)
   private
     FElements: TdwsElements;
   protected
-    function GetDisplayName: UnicodeString; override;
+    function GetDisplayName: AnsiString; override;
   public
     constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
@@ -909,10 +942,10 @@ type
         procedure ExposeInstanceToUnit(const AName, AClassType: UnicodeString; AInstance: TObject);
         property Table: TUnitSymbolTable read FTable;
 
-      published
+      public
         constructor Create(AOwner: TComponent); override;
         destructor Destroy; override;
-
+      published
         property Arrays: TdwsArrays read FArrays write SetArrays stored StoreArrays;
         property Classes: TdwsClasses read FClasses write SetClasses stored StoreClasses;
         property Constants: TdwsConstants read FConstants write SetConstants stored StoreConstants;
@@ -1797,7 +1830,11 @@ begin
     begin
       PropertyName := UnicodeString(PropList^[i]^.Name);
       propIsDefault := WordBool(PropList^[i]^.Default);
+      {$IFDEF FPC}
+      propTypeData := GetTypeData(PropList^[i]^.PropType);
+      {$ELSE}
       propTypeData := GetTypeData(PropList^[i]^.PropType^);
+      {$ENDIF}
 
       Include := True;
       if IsTypeSupported(UnicodeString(PropList^[i]^.PropType^.Name)) then
@@ -1815,7 +1852,11 @@ begin
         tkVariant : PropertyType := SYS_VARIANT;
         tkEnumeration :    // Booleans are reported as enumerations. Only support booleans
           begin
+            {$IFDEF FPC}
+            if propTypeData^.BaseType = TypeInfo(Boolean) then
+            {$ELSE}
             if propTypeData^.BaseType^ = TypeInfo(Boolean) then
+            {$ENDIF}
               PropertyType := SYS_BOOLEAN
             else
               Include := False;
@@ -1948,7 +1989,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsConstant.GetDisplayName: UnicodeString;
+function TdwsConstant.GetDisplayName: AnsiString;
 var
    valAsString : UnicodeString;
 begin
@@ -1967,7 +2008,7 @@ begin
     FDataType := TdwsVariable(Source).DataType;
 end;
 
-function TdwsVariable.GetDisplayName: UnicodeString;
+function TdwsVariable.GetDisplayName: AnsiString;
 begin
   Result := Name + ' : ' + DataType;
 end;
@@ -2175,7 +2216,7 @@ begin
 //   Result := paramSym;
 end;
 
-function TdwsParameter.GetDisplayName: UnicodeString;
+function TdwsParameter.GetDisplayName: AnsiString;
 begin
    Result:=inherited GetDisplayName;
    if IsVarParam then
@@ -2230,7 +2271,7 @@ end;
 
 { TdwsFunction }
 
-constructor TdwsFunction.Create;
+constructor TdwsFunction.Create(Collection: TCollection);
 begin
   inherited;
   FParameters := TdwsParameters.Create(Self);
@@ -2287,7 +2328,7 @@ begin
   Result := -1;
 end;
 
-function TdwsFunction.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TdwsFunction.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid: tguid; out obj): longint;
 begin
   Result := 0;
 end;
@@ -2363,7 +2404,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsFunction.GetDisplayName: UnicodeString;
+function TdwsFunction.GetDisplayName: AnsiString;
 begin
    Result:=Parameters.GetDisplayName;
    if Result<>'' then
@@ -2417,7 +2458,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsField.GetDisplayName: UnicodeString;
+function TdwsField.GetDisplayName: AnsiString;
 begin
    Result:=TClassSymbol.VisibilityToString(Visibility)+' '+inherited GetDisplayName;
 end;
@@ -2448,7 +2489,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsMethod.GetDisplayName: UnicodeString;
+function TdwsMethod.GetDisplayName: AnsiString;
 begin
    Result:=Parameters.GetDisplayName;
 
@@ -2599,7 +2640,7 @@ begin
   end;
 end;
 
-function TdwsConstructor.GetDisplayName: UnicodeString;
+function TdwsConstructor.GetDisplayName: AnsiString;
 begin
   Result := Parameters.GetDisplayName;
 
@@ -2649,7 +2690,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsClassConstant.GetDisplayName: UnicodeString;
+function TdwsClassConstant.GetDisplayName: AnsiString;
 begin
    Result:=TClassSymbol.VisibilityToString(Visibility)+' '+inherited GetDisplayName;
 end;
@@ -2796,7 +2837,7 @@ begin
    Result:=classSym;
 end;
 
-function TdwsClass.GetDisplayName: UnicodeString;
+function TdwsClass.GetDisplayName: AnsiString;
 begin
   if Ancestor <> '' then
     Result := Name + ' (' + Ancestor + ')'
@@ -2918,7 +2959,7 @@ begin
    end;
 end;
 
-function TdwsRecord.GetDisplayName: UnicodeString;
+function TdwsRecord.GetDisplayName: AnsiString;
 begin
   Result := 'Record ' + Name;
 end;
@@ -2958,7 +2999,7 @@ begin
   Result := not IsDynamic;
 end;
 
-function TdwsArray.GetDisplayName: UnicodeString;
+function TdwsArray.GetDisplayName: AnsiString;
 begin
   if IsDynamic then
     Result := Format('%s = array of %s', [Name, DataType])
@@ -3064,7 +3105,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsProperty.GetDisplayName: UnicodeString;
+function TdwsProperty.GetDisplayName: AnsiString;
 begin
    Result:=TClassSymbol.VisibilityToString(Visibility)+' property '+Name;
    if FParameters.Count>0 then
@@ -3154,7 +3195,7 @@ begin
       raise Exception.CreateFmt(CPE_InvalidParameterType, [opSymbol.UsesSym.Name]);
 end;
 
-function TdwsClassOperator.GetDisplayName: UnicodeString;
+function TdwsClassOperator.GetDisplayName: AnsiString;
 begin
    Result:=Format('operator %s %s uses %s;', [cTokenStrings[FOperator], DataType, UsesAccess])
 end;
@@ -3177,7 +3218,7 @@ begin
   FIsGenerating := False;
 end;
 
-function TdwsSymbol.GetNamePath: UnicodeString;
+function TdwsSymbol.GetNamePath: AnsiString;
 begin
   if FName <> '' then
     Result := Collection.GetNamePath + FName
@@ -3187,7 +3228,7 @@ end;
 
 // Generate
 //
-function TdwsSymbol.Generate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol;
+function TdwsSymbol.Generate(table: TSymbolTable; parentSym: TSymbol): TSymbol;
 begin
    try
       Result := DoGenerate(Table, ParentSym);
@@ -3236,7 +3277,8 @@ end;
 
 { TdwsForward }
 
-function TdwsForward.DoGenerate;
+function TdwsForward.DoGenerate(Table: TSymbolTable; ParentSym: TSymbol
+  ): TSymbol;
 begin
    FIsGenerating := True;
    CheckName(Table, Name);
@@ -3246,7 +3288,7 @@ begin
    GetUnit.Table.AddSymbol(Result);
 end;
 
-function TdwsForward.GetDisplayName: UnicodeString;
+function TdwsForward.GetDisplayName: AnsiString;
 begin
   Result := Format('type %s = class;', [Name]);
 end;
@@ -3504,7 +3546,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsEnumeration.GetDisplayName: UnicodeString;
+function TdwsEnumeration.GetDisplayName: AnsiString;
 var
    i : Integer;
 begin
@@ -3541,7 +3583,7 @@ begin
   GetUnit.Table.AddSymbol(Result);
 end;
 
-function TdwsElement.GetDisplayName: UnicodeString;
+function TdwsElement.GetDisplayName: AnsiString;
 begin
   if FIsUserDef then
     Result := Name + ' = ' + IntToStr(FUserDefValue)
@@ -4065,7 +4107,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsTypeSymbol.GetDisplayName: UnicodeString;
+function TdwsTypeSymbol.GetDisplayName: AnsiString;
 begin
    Result:=FName;
 end;
@@ -4119,7 +4161,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsOperator.GetDisplayName: UnicodeString;
+function TdwsOperator.GetDisplayName: AnsiString;
 var
    i : Integer;
 begin
