@@ -745,8 +745,7 @@ function TInternalUnit.GetUnitTable(systemTable : TSymbolTable; unitSyms : TUnit
 begin
   if StaticSymbols and InitStaticSymbols(SystemTable, UnitSyms, operators) then
     Result := TLinkedSymbolTable.Create(FStaticTable)
-  else
-  begin
+   else begin
     Result := TUnitSymbolTable.Create(SystemTable);
     try
       InitUnitTable(SystemTable, UnitSyms, Result, operators);
@@ -849,6 +848,8 @@ end;
 //
 constructor TSourceUnit.Create(const unitName : UnicodeString; rootTable : TSymbolTable;
                                unitSyms : TUnitMainSymbols);
+var
+   ums : TUnitMainSymbol;
 begin
    inherited Create;
    FDependencies:=TStringList.Create;
@@ -857,8 +858,12 @@ begin
 
    FSymbol.CreateInterfaceTable;
 
+   unitSyms.Find(SYS_SYSTEM).ReferenceInSymbolTable(FSymbol.InterfaceTable);
    unitSyms.Find(SYS_INTERNAL).ReferenceInSymbolTable(FSymbol.InterfaceTable);
-   unitSyms.Find(SYS_DEFAULT).ReferenceInSymbolTable(FSymbol.InterfaceTable);
+
+   ums:=unitSyms.Find(SYS_DEFAULT);
+   if ums<>nil then
+      ums.ReferenceInSymbolTable(FSymbol.InterfaceTable);
 end;
 
 // Destroy

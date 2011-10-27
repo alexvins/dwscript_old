@@ -232,8 +232,7 @@ type
 
       protected
          constructor Create(ResultType: TdwsResultType); virtual;
-         procedure InitializeProgram(Prog: TdwsProgram); virtual;
-         procedure FinalizeProgram(Prog: TdwsProgram); virtual;
+
          property ResultType: TdwsResultType read FResultType;
 
       public
@@ -536,7 +535,8 @@ type
          function GetProgramObject : TdwsProgram;
 
       public
-         constructor Create(systemTable : TStaticSymbolTable; resultType : TdwsResultType;
+         constructor Create(systemTable : TStaticSymbolTable;
+                            resultType : TdwsResultType;
                             const stackParameters : TStackParameters);
          destructor Destroy; override;
 
@@ -2237,9 +2237,6 @@ begin
       FResult.Free;
       FResult:=FProg.FResultType.CreateProgResult;
 
-      // Result
-      FResult.InitializeProgram(FProg);
-
       // Debugger
       StartDebug;
 
@@ -2349,9 +2346,6 @@ begin
 
       // Object Cycles
       ReleaseObjects;
-
-      // Result
-      FResult.FinalizeProgram(FProg);
 
       // Debugger
       StopDebug;
@@ -2730,7 +2724,8 @@ end;
 
 // Create
 //
-constructor TdwsMainProgram.Create(systemTable : TStaticSymbolTable; resultType : TdwsResultType;
+constructor TdwsMainProgram.Create(systemTable : TStaticSymbolTable;
+                                   resultType : TdwsResultType;
                                    const stackParameters : TStackParameters);
 var
    systemUnitTable : TLinkedSymbolTable;
@@ -3129,18 +3124,6 @@ end;
 constructor TdwsResult.Create(ResultType: TdwsResultType);
 begin
   FResultType := ResultType;
-end;
-
-procedure TdwsResult.FinalizeProgram(Prog: TdwsProgram);
-begin
-  if Assigned(FResultType.FOnFinalizeProgram) then
-    FResultType.FOnFinalizeProgram(Prog);
-end;
-
-procedure TdwsResult.InitializeProgram(Prog: TdwsProgram);
-begin
-  if Assigned(FResultType.FOnInitializeProgram) then
-    FResultType.FOnInitializeProgram(Prog);
 end;
 
 // ------------------
@@ -8809,4 +8792,3 @@ begin
 end;
 
 end.
-
