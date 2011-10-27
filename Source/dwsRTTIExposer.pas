@@ -36,12 +36,12 @@ type
    //
    dwsPublished = class (TCustomAttribute)
       private
-         FNameOverride : String;
+         FNameOverride : UnicodeString;
       public
-         constructor Create(const nameOverride : String); overload;
-         property NameOverride : String read FNameOverride;
+         constructor Create(const nameOverride : UnicodeString); overload;
+         property NameOverride : UnicodeString read FNameOverride;
 
-         class function NameOf(item : TRttiNamedObject) : String; static;
+         class function NameOf(item : TRttiNamedObject) : UnicodeString; static;
    end;
 
    // TdwsNotPublished
@@ -80,7 +80,7 @@ type
       public
          function ExposeRTTI(ATypeInfo : Pointer; const options : TdwsRTTIExposerOptions = []) : TdwsSymbol;
 
-         class function RTTITypeToScriptType(const aType : TRTTIType) : String; static;
+         class function RTTITypeToScriptType(const aType : TRTTIType) : UnicodeString; static;
          class function RTTIVisibilityToVisibility(const aVisibility : TMemberVisibility) : TdwsVisibility; static;
    end;
 
@@ -121,7 +121,7 @@ type
          class procedure AssignRecordFromValue(const recInfo : IInfo; const value : TValue;
                                                asType : TRttiType); static;
 
-         class function ValueFromParam(progInfo : TProgramInfo; const paramName : String;
+         class function ValueFromParam(progInfo : TProgramInfo; const paramName : UnicodeString;
                                        asType : TRttiType) : TValue; static;
          class function ValueFromIInfo(asType : TRttiType; const info : IInfo) : TValue; static;
          class function ValueFromRecord(asType : TRttiType; const recInfo : IInfo) : TValue; static;
@@ -134,7 +134,7 @@ type
       private
          FMethod : TRttiMethod;  // referred, not owned
          FTypParams : array of TRttiType;
-         FNameParams : array of String;
+         FNameParams : array of UnicodeString;
          FVarParams : array of Integer;
          FTypResult : TRttiType;
 
@@ -196,14 +196,14 @@ implementation
 
 // Create
 //
-constructor dwsPublished.Create(const nameOverride : String);
+constructor dwsPublished.Create(const nameOverride : UnicodeString);
 begin
    FNameOverride:=nameOverride;
 end;
 
 // NameOf
 //
-class function dwsPublished.NameOf(item : TRttiNamedObject) : String;
+class function dwsPublished.NameOf(item : TRttiNamedObject) : UnicodeString;
 var
    attrib : TCustomAttribute;
 begin
@@ -291,14 +291,14 @@ end;
 
 // RTTITypeToScriptType
 //
-class function TdwsRTTIExposer.RTTITypeToScriptType(const aType : TRTTIType) : String;
+class function TdwsRTTIExposer.RTTITypeToScriptType(const aType : TRTTIType) : UnicodeString;
 begin
    if aType<>nil then begin
       case aType.TypeKind of
          tkInteger, tkInt64 :
             Result:='Integer';
          tkChar, tkString, tkUString, tkWChar, tkLString, tkWString :
-            Result:='String';
+            Result:='UnicodeString';
          tkFloat :
             Result:='Float';
          tkVariant :
@@ -512,7 +512,7 @@ function TdwsRTTIExposer.ExposeRTTIEnumeration(enum : TRttiEnumerationType;
                                                const options : TdwsRTTIExposerOptions) : TdwsEnumeration;
 var
    i : Integer;
-   enumName : String;
+   enumName : UnicodeString;
    element : TdwsElement;
 begin
    Result:=Enumerations.Add;
@@ -586,7 +586,7 @@ end;
 
 // ValueFromParam
 //
-class function TdwsRTTIInvoker.ValueFromParam(progInfo : TProgramInfo; const paramName : String;
+class function TdwsRTTIInvoker.ValueFromParam(progInfo : TProgramInfo; const paramName : UnicodeString;
                                               asType : TRttiType) : TValue;
 begin
    Result:=ValueFromIInfo(asType, progInfo.Vars[paramName]);
@@ -602,7 +602,7 @@ begin
       tkFloat :
          Result:=TValue.From<Double>(info.ValueAsFloat);
       tkChar, tkString, tkUString, tkWChar, tkLString, tkWString :
-         Result:=TValue.From<String>(info.ValueAsString);
+         Result:=TValue.From<UnicodeString>(info.ValueAsString);
       tkVariant :
          Result:=TValue.From<Variant>(info.Value);
       tkRecord :

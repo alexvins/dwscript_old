@@ -69,7 +69,7 @@ type
   private
     fAsmStart: Boolean;
     fRange: TRangeState;
-    fCommentClose : Char;
+    fCommentClose : WideChar;
     fIdentFuncTable: array[0..388] of TIdentFuncTableFunc;
     fKeyWords : TStringList;
     fKeyWords_PropertyScoped : TStringList;
@@ -123,7 +123,7 @@ type
 
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
-    class function GetLanguageName: string; override;
+    class function GetLanguageName: UnicodeString; override;
     class function GetFriendlyLanguageName: UnicodeString; override;
 
   public
@@ -256,7 +256,7 @@ end;
 
 function TSynDWSSyn.KeyWordFunc: TtkTokenKind;
 var
-   buf : String;
+   buf : UnicodeString;
 begin
    SetString(buf, fToIdent, fStringLen);
    if fKeyWords.IndexOf(buf)>0 then
@@ -285,7 +285,7 @@ end;
 //
 function TSynDWSSyn.FuncPropertyScoped: TtkTokenKind;
 var
-   buf : String;
+   buf : UnicodeString;
 begin
    SetString(buf, fToIdent, fStringLen);
    if (fRange = rsProperty) and (fKeyWords_PropertyScoped.IndexOf(buf)>0) then
@@ -828,7 +828,7 @@ begin
 end;
 
 
-class function TSynDWSSyn.GetLanguageName: string;
+class function TSynDWSSyn.GetLanguageName: UnicodeString;
 begin
   Result := SYNS_LangPascal;
 end;

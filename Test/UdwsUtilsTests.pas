@@ -4,7 +4,7 @@ unit UdwsUtilsTests;
 
 interface
 
-uses Windows, Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils, dwsJSON;
+uses Windows, Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils{, dwsJSON};
 
 type
 
@@ -24,9 +24,9 @@ type
          procedure WOBSBigFirstTest;
          procedure TightListTest;
          procedure LookupTest;
-
+        {
          procedure JSONTest;
-         procedure ParseJSON;
+         procedure ParseJSON; }
 
          procedure UnicodeCompareTextTest;
 
@@ -223,7 +223,7 @@ begin
       lookup.Free;
    end;
 end;
-
+     (*
 // JSONTest
 //
 procedure TdwsUtilsTests.JSONTest;
@@ -293,7 +293,7 @@ begin
    finally
       sl.Free;
    end;
-end;
+end;  *)
 
 // UnicodeCompareTextTest
 //

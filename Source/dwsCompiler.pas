@@ -2336,7 +2336,7 @@ procedure TdwsCompiler.ReadConditions(funcSymbol : TFuncSymbol; conditions : TSo
 var
    hotPos : TScriptPos;
    testExpr, msgExpr : TTypedExpr;
-   testStart : PChar;
+   testStart : PWideChar;
    testLength : Integer;
    msg : UnicodeString;
    srcCond : TSourceCondition;

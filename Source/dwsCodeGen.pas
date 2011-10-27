@@ -30,7 +30,7 @@ type
 
    TdwsMappedSymbol = record
       Symbol : TSymbol;
-      Name : String;
+      Name : UnicodeString;
    end;
 
    TdwsMappedSymbolHash = class(TSimpleHash<TdwsMappedSymbol>)
@@ -52,27 +52,27 @@ type
          FNames : TStringList;
          FLookup : TdwsMappedSymbol;
          FReservedSymbol : TSymbol;
-         FPrefix : String;
+         FPrefix : UnicodeString;
 
       protected
-         function DoNeedUniqueName(symbol : TSymbol; tryCount : Integer; canObfuscate : Boolean) : String; virtual;
+         function DoNeedUniqueName(symbol : TSymbol; tryCount : Integer; canObfuscate : Boolean) : UnicodeString; virtual;
 
       public
          constructor Create(aParent : TdwsCodeGenSymbolMap; aSymbol : TSymbol);
          destructor Destroy; override;
 
-         function SymbolToName(symbol : TSymbol) : String;
-         function NameToSymbol(const name : String; scope : TdwsCodeGenSymbolScope) : TSymbol;
+         function SymbolToName(symbol : TSymbol) : UnicodeString;
+         function NameToSymbol(const name : UnicodeString; scope : TdwsCodeGenSymbolScope) : TSymbol;
 
-         procedure ReserveName(const name : String); inline;
+         procedure ReserveName(const name : UnicodeString); inline;
          procedure ReserveExternalName(sym : TSymbol); inline;
 
-         function MapSymbol(symbol : TSymbol; scope : TdwsCodeGenSymbolScope; canObfuscate : Boolean) : String;
+         function MapSymbol(symbol : TSymbol; scope : TdwsCodeGenSymbolScope; canObfuscate : Boolean) : UnicodeString;
          procedure ForgetSymbol(symbol : TSymbol);
 
          property Maps : TdwsCodeGenSymbolMaps read FMaps write FMaps;
          property Parent : TdwsCodeGenSymbolMap read FParent;
-         property Prefix : String read FPrefix write FPrefix;
+         property Prefix : UnicodeString read FPrefix write FPrefix;
          property Symbol : TSymbol read FSymbol;
    end;
 
@@ -129,7 +129,7 @@ type
          FCompiledClasses : TTightList;
          FCompiledUnits : TTightList;
          FIndent : Integer;
-         FIndentString : String;
+         FIndentString : UnicodeString;
          FNeedIndent : Boolean;
          FIndentSize : Integer;
          FOptions : TdwsCodeGenOptions;
@@ -161,7 +161,7 @@ type
          procedure RegisterCodeGen(expr : TExprBaseClass; codeGen : TdwsExprCodeGen);
          function  FindCodeGen(expr : TExprBase) : TdwsExprCodeGen;
          function  FindSymbolAtStackAddr(stackAddr, level : Integer) : TDataSymbol;
-         function  SymbolMappedName(sym : TSymbol; scope : TdwsCodeGenSymbolScope) : String; virtual;
+         function  SymbolMappedName(sym : TSymbol; scope : TdwsCodeGenSymbolScope) : UnicodeString; virtual;
 
          procedure Compile(expr : TExprBase);
          procedure CompileNoWrap(expr : TTypedExpr);
@@ -193,18 +193,18 @@ type
          procedure Indent;
          procedure UnIndent;
 
-         procedure WriteString(const s : String); overload;
-         procedure WriteString(const c : Char); overload;
-         procedure WriteStringLn(const s : String);
+         procedure WriteString(const s : UnicodeString); overload;
+         procedure WriteString(const c : WideChar); overload;
+         procedure WriteStringLn(const s : UnicodeString);
          procedure WriteLineEnd;
 
          procedure WriteSymbolName(sym : TSymbol; scope : TdwsCodeGenSymbolScope = cgssGlobal);
 
-         function LocationString(e : TExprBase) : String;
-         function GetNewTempSymbol : String; virtual;
+         function LocationString(e : TExprBase) : UnicodeString;
+         function GetNewTempSymbol : UnicodeString; virtual;
 
          procedure WriteCompiledOutput(dest : TWriteOnlyBlockStream; const prog : IdwsProgram); virtual;
-         function CompiledOutput(const prog : IdwsProgram) : String;
+         function CompiledOutput(const prog : IdwsProgram) : UnicodeString;
          procedure FushDependencies;
 
          procedure Clear; virtual;
@@ -232,14 +232,14 @@ type
          FTemplate : array of TVarRec;
          FStatement : Boolean;
          FUnWrapable : Boolean;
-         FDependency : String;
+         FDependency : UnicodeString;
 
       protected
          procedure DoCodeGen(codeGen : TdwsCodeGen; expr : TExprBase; start, stop : Integer);
 
       public
          constructor Create(const template : array of const; statement : Boolean = False;
-                            const dependency : String = ''); overload;
+                            const dependency : UnicodeString = ''); overload;
 
          procedure CodeGen(codeGen : TdwsCodeGen; expr : TExprBase); override;
          procedure CodeGenNoWrap(codeGen : TdwsCodeGen; expr : TTypedExpr); override;
@@ -385,7 +385,7 @@ end;
 
 // SymbolMappedName
 //
-function TdwsCodeGen.SymbolMappedName(sym : TSymbol; scope : TdwsCodeGenSymbolScope) : String;
+function TdwsCodeGen.SymbolMappedName(sym : TSymbol; scope : TdwsCodeGenSymbolScope) : UnicodeString;
 var
    i : Integer;
 begin
@@ -861,7 +861,7 @@ end;
 
 // WriteString
 //
-procedure TdwsCodeGen.WriteString(const s : String);
+procedure TdwsCodeGen.WriteString(const s : UnicodeString);
 begin
    if FNeedIndent then begin
       WriteIndent;
@@ -872,7 +872,7 @@ end;
 
 // WriteString
 //
-procedure TdwsCodeGen.WriteString(const c : Char);
+procedure TdwsCodeGen.WriteString(const c : WideChar);
 begin
    if FNeedIndent then begin
       WriteIndent;
@@ -883,7 +883,7 @@ end;
 
 // WriteStringLn
 //
-procedure TdwsCodeGen.WriteStringLn(const s : String);
+procedure TdwsCodeGen.WriteStringLn(const s : UnicodeString);
 begin
    WriteString(s);
    WriteLineEnd;
@@ -906,7 +906,7 @@ end;
 
 // LocationString
 //
-function TdwsCodeGen.LocationString(e : TExprBase) : String;
+function TdwsCodeGen.LocationString(e : TExprBase) : UnicodeString;
 begin
    if Context is TdwsMainProgram then
       Result:=e.ScriptPos.AsInfo
@@ -915,7 +915,7 @@ end;
 
 // GetNewTempSymbol
 //
-function TdwsCodeGen.GetNewTempSymbol : String;
+function TdwsCodeGen.GetNewTempSymbol : UnicodeString;
 begin
    Inc(FTempSymbolCounter);
    Result:=IntToStr(FTempSymbolCounter);
@@ -931,7 +931,7 @@ end;
 
 // CompiledOutput
 //
-function TdwsCodeGen.CompiledOutput(const prog : IdwsProgram) : String;
+function TdwsCodeGen.CompiledOutput(const prog : IdwsProgram) : UnicodeString;
 var
    buf : TWriteOnlyBlockStream;
 begin
@@ -960,7 +960,7 @@ procedure TdwsCodeGen.EnterContext(proc : TdwsProgram);
   var
      i, k, n : Integer;
      sym : TSymbol;
-     locName : String;
+     locName : UnicodeString;
   begin
      if not (expr is TBlockExpr) then Exit;
      for i:=0 to TBlockExpr(expr).Table.Count-1 do begin
@@ -1008,7 +1008,7 @@ begin
       var
          i, k, n : Integer;
          sym : TSymbol;
-         locName : String;
+         locName : UnicodeString;
       begin
          if not (expr is TBlockExpr) then Exit;
          for i:=0 to TBlockExpr(expr).Table.Count-1 do begin
@@ -1144,7 +1144,7 @@ end;
 // Create
 //
 constructor TdwsExprGenericCodeGen.Create(const template : array of const; statement : Boolean = False;
-                                          const dependency : String = '');
+                                          const dependency : UnicodeString = '');
 var
    i : Integer;
 begin
@@ -1182,7 +1182,7 @@ end;
 procedure TdwsExprGenericCodeGen.DoCodeGen(codeGen : TdwsCodeGen; expr : TExprBase; start, stop : Integer);
 var
    i : Integer;
-   c : Char;
+   c : WideChar;
    item : TExprBase;
 begin
    if FDependency<>'' then
@@ -1200,7 +1200,7 @@ begin
             end;
          end;
          vtUnicodeString :
-            codeGen.WriteString(String(FTemplate[i].VUnicodeString));
+            codeGen.WriteString(UnicodeString(FTemplate[i].VUnicodeString));
          vtWideChar : begin
             c:=FTemplate[i].VWideChar;
             case c of
@@ -1230,9 +1230,9 @@ end;
 procedure TdwsExprCodeGen.CodeGen(codeGen : TdwsCodeGen; expr : TExprBase);
 begin
    if expr is TTypedExpr then begin
-      codeGen.WriteString('(');
+      codeGen.WriteString(WideChar('('));
       CodeGenNoWrap(codeGen, TTypedExpr(expr));
-      codeGen.WriteString(')');
+      codeGen.WriteString(WideChar(')'));
    end;
 end;
 
@@ -1294,7 +1294,7 @@ end;
 
 // SymbolToName
 //
-function TdwsCodeGenSymbolMap.SymbolToName(symbol : TSymbol) : String;
+function TdwsCodeGenSymbolMap.SymbolToName(symbol : TSymbol) : UnicodeString;
 begin
    FLookup.Symbol:=symbol;
    if FHash.Match(FLookup) then
@@ -1316,7 +1316,7 @@ end;
 
 // NameToSymbol
 //
-function TdwsCodeGenSymbolMap.NameToSymbol(const name : String; scope : TdwsCodeGenSymbolScope) : TSymbol;
+function TdwsCodeGenSymbolMap.NameToSymbol(const name : UnicodeString; scope : TdwsCodeGenSymbolScope) : TSymbol;
 var
    i : Integer;
    iter : TdwsCodeGenSymbolMap;
@@ -1361,7 +1361,7 @@ end;
 
 // ReserveName
 //
-procedure TdwsCodeGenSymbolMap.ReserveName(const name : String);
+procedure TdwsCodeGenSymbolMap.ReserveName(const name : UnicodeString);
 begin
    FNames.AddObject(name, FReservedSymbol);
 end;
@@ -1384,9 +1384,9 @@ end;
 
 // MapSymbol
 //
-function TdwsCodeGenSymbolMap.MapSymbol(symbol : TSymbol; scope : TdwsCodeGenSymbolScope; canObfuscate : Boolean) : String;
+function TdwsCodeGenSymbolMap.MapSymbol(symbol : TSymbol; scope : TdwsCodeGenSymbolScope; canObfuscate : Boolean) : UnicodeString;
 
-   function NewName : String;
+   function NewName : UnicodeString;
    var
       i : Integer;
    begin
@@ -1410,7 +1410,7 @@ end;
 
 // DoNeedUniqueName
 //
-function TdwsCodeGenSymbolMap.DoNeedUniqueName(symbol : TSymbol; tryCount : Integer; canObfuscate : Boolean) : String;
+function TdwsCodeGenSymbolMap.DoNeedUniqueName(symbol : TSymbol; tryCount : Integer; canObfuscate : Boolean) : UnicodeString;
 begin
    if symbol.Name='' then begin
       if tryCount=0 then

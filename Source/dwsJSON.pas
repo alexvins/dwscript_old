@@ -19,7 +19,7 @@ unit dwsJSON;
 
 interface
 
-uses Classes, SysUtils, Variants, dwsUtils;
+uses Classes, SysUtils, Variants, dwsUtils, dwsXPlatform;
 
 type
 
@@ -37,7 +37,7 @@ type
       Indent : Integer;
    end;
 
-   TdwsJSONNeedCharFunc = function : Char of object;
+   TdwsJSONNeedCharFunc = function : WideChar of object;
 
    // TdwsJSONValue
    //
@@ -60,18 +60,18 @@ type
          function DoElementCount : Integer; virtual;
          function GetValue(const index : Variant) : TdwsJSONValue;
 
-         procedure DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                           var trailCharacter : Char); virtual; abstract;
+         procedure DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                           var trailCharacter : WideChar); virtual; abstract;
          procedure WriteTo(writer : TdwsJSONWriter); virtual; abstract;
 
          class procedure RaiseJSONException(const msg : UnicodeString); static;
-         class procedure RaiseJSONParseError(const msg : UnicodeString; c : Char = #0); static;
+         class procedure RaiseJSONParseError(const msg : UnicodeString; c : WideChar = #0); static;
 
       public
          destructor Destroy; override;
 
          class function Parse(const needChar : TdwsJSONNeedCharFunc;
-                              var trailCharacter : Char) : TdwsJSONValue; static;
+                              var trailCharacter : WideChar) : TdwsJSONValue; static;
          class function ParseString(const json : UnicodeString) : TdwsJSONValue; static;
 
          function ToString : UnicodeString; reintroduce;
@@ -115,8 +115,8 @@ type
          function DoGetItem(const name : UnicodeString) : TdwsJSONValue; override;
          function DoElementCount : Integer; override;
 
-         procedure DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                           var trailCharacter : Char); override;
+         procedure DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                           var trailCharacter : WideChar); override;
          procedure WriteTo(writer : TdwsJSONWriter); override;
 
       public
@@ -151,8 +151,8 @@ type
          function DoGetItem(const name : UnicodeString) : TdwsJSONValue; override;
          function DoElementCount : Integer; override;
 
-         procedure DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                           var trailCharacter : Char); override;
+         procedure DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                           var trailCharacter : WideChar); override;
          procedure WriteTo(writer : TdwsJSONWriter); override;
 
       public
@@ -183,8 +183,8 @@ type
          function GetAsNumber : Double;
          procedure SetAsNumber(const val : Double); inline;
 
-         procedure DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                           var trailCharacter : Char); override;
+         procedure DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                           var trailCharacter : WideChar); override;
          procedure WriteTo(writer : TdwsJSONWriter); override;
 
       public
@@ -273,7 +273,7 @@ var
 
 // SkipBlanks
 //
-function SkipBlanks(currentChar : Char; const needChar : TdwsJSONNeedCharFunc) : Char; overload; inline;
+function SkipBlanks(currentChar : WideChar; const needChar : TdwsJSONNeedCharFunc) : WideChar; overload; inline;
 begin
    Result:=currentChar;
    repeat
@@ -288,13 +288,13 @@ end;
 
 // ParseJSONString
 //
-function ParseJSONString(initialChar : Char; const needChar : TdwsJSONNeedCharFunc) : UnicodeString;
+function ParseJSONString(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc) : UnicodeString;
 var
-   c : Char;
+   c : WideChar;
    wobs : TWriteOnlyBlockStream;
    hexBuf, hexCount, n, nw : Integer;
-   localBufferPtr : PChar;
-   localBuffer : array [0..50] of Char;
+   localBufferPtr : PWideChar;
+   localBuffer : array [0..50] of WideChar;
 begin
    Assert(initialChar='"');
    localBufferPtr:=@localBuffer[0];
@@ -330,7 +330,7 @@ begin
                            TdwsJSONValue.RaiseJSONParseError('Invalid unicode hex character "%s"', c);
                         end;
                      end;
-                     localBufferPtr^:=Char(hexBuf);
+                     localBufferPtr^:=WideChar(hexBuf);
                   end;
                else
                   TdwsJSONValue.RaiseJSONParseError('Invalid character "%s" after escape', c);
@@ -342,20 +342,20 @@ begin
          if localBufferPtr=@localBuffer[High(localBuffer)] then begin
             if wobs=nil then
                wobs:=TWriteOnlyBlockStream.Create;
-            wobs.Write(localBuffer[0], Length(localBuffer)*SizeOf(Char));
+            wobs.Write(localBuffer[0], Length(localBuffer)*SizeOf(WideChar));
             localBufferPtr:=@localBuffer[0];
          end else Inc(localBufferPtr);
       until False;
-      n:=(NativeInt(localBufferPtr)-NativeInt(@localBuffer[0])) div SizeOf(Char);
+      n:=(NativeInt(localBufferPtr)-NativeInt(@localBuffer[0])) div SizeOf(WideChar);
       if wobs<>nil then begin
-         nw:=(wobs.Size div SizeOf(Char));
+         nw:=(wobs.Size div SizeOf(WideChar));
          SetLength(Result, n+nw);
          wobs.StoreData(Result[1]);
       end else begin
          SetLength(Result, n);
       end;
       if n>0 then
-         Move(localBuffer[0], Result[1], n*SizeOf(Char));
+         Move(localBuffer[0], Result[1], n*SizeOf(WideChar));
    finally
       wobs.Free;
    end;
@@ -363,12 +363,12 @@ end;
 
 // ParseJSONNumber
 //
-function ParseHugeJSONNumber(initialChars : PChar; initialCharCount : Integer;
+function ParseHugeJSONNumber(initialChars : PWideChar; initialCharCount : Integer;
                              const needChar : TdwsJSONNeedCharFunc;
-                             var trailCharacter : Char) : Double;
+                             var trailCharacter : WideChar) : Double;
 var
    buf : UnicodeString;
-   c : Char;
+   c : WideChar;
 begin
    SetString(buf, initialChars, initialCharCount);
    repeat
@@ -385,13 +385,13 @@ end;
 
 // ParseJSONNumber
 //
-function ParseJSONNumber(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                         var trailCharacter : Char) : Double;
+function ParseJSONNumber(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                         var trailCharacter : WideChar) : Double;
 var
-   bufPtr : PChar;
-   c : Char;
+   bufPtr : PWideChar;
+   c : WideChar;
    resultBuf : Extended;
-   buf : array [0..40] of Char;
+   buf : array [0..40] of WideChar;
 begin
    buf[0]:=initialChar;
    bufPtr:=@buf[1];
@@ -410,7 +410,7 @@ begin
       end;
    until False;
    bufPtr^:=#0;
-   TextToFloat(PChar(@buf[0]), resultBuf, fvExtended, vJSONFormatSettings);
+   TextToFloatU(PWideChar(@buf[0]), resultBuf, fvExtended, vJSONFormatSettings);
    Result:=resultBuf;
 end;
 
@@ -452,9 +452,9 @@ end;
 
 // Parse
 //
-class function TdwsJSONValue.Parse(const needChar : TdwsJSONNeedCharFunc; var trailCharacter : Char) : TdwsJSONValue;
+class function TdwsJSONValue.Parse(const needChar : TdwsJSONNeedCharFunc; var trailCharacter : WideChar) : TdwsJSONValue;
 var
-   c : Char;
+   c : WideChar;
 begin
    Result:=nil;
    if not Assigned(needChar) then Exit;
@@ -484,10 +484,10 @@ end;
 type
    TStringCharProvider = class
       Str : UnicodeString;
-      Ptr, ColStart : PChar;
+      Ptr, ColStart : PWideChar;
       Line : Integer;
       constructor Create(const aStr : UnicodeString);
-      function NeedChar : Char;
+      function NeedChar : WideChar;
       function Location : UnicodeString;
    end;
 
@@ -496,14 +496,14 @@ type
 constructor TStringCharProvider.Create(const aStr : UnicodeString);
 begin
    Str:=aStr;
-   Ptr:=PChar(aStr);
+   Ptr:=PWideChar(aStr);
 end;
 
 // NeedChar
 //
-function TStringCharProvider.NeedChar : Char;
+function TStringCharProvider.NeedChar : WideChar;
 var
-   p : PChar;
+   p : PWideChar;
 begin
    p:=Ptr;
    Inc(Ptr);
@@ -520,15 +520,15 @@ function TStringCharProvider.Location : UnicodeString;
 begin
    Result:=Format('line %d, col %d (offset %d)',
                   [Line+1,
-                   (NativeInt(Ptr)-NativeInt(ColStart)) div SizeOf(Char)+1,
-                   (NativeInt(Ptr)-NativeInt(PChar(Str))) div SizeOf(Char)+1]);
+                   (NativeInt(Ptr)-NativeInt(ColStart)) div SizeOf(WideChar)+1,
+                   (NativeInt(Ptr)-NativeInt(PWideChar(Str))) div SizeOf(WideChar)+1]);
 end;
 
 // ParseString
 //
 class function TdwsJSONValue.ParseString(const json : UnicodeString) : TdwsJSONValue;
 var
-   c : Char;
+   c : WideChar;
    provider : TStringCharProvider;
 begin
    Result:=nil;
@@ -699,7 +699,7 @@ end;
 
 // RaiseJSONParseError
 //
-class procedure TdwsJSONValue.RaiseJSONParseError(const msg : UnicodeString; c : Char = #0);
+class procedure TdwsJSONValue.RaiseJSONParseError(const msg : UnicodeString; c : WideChar = #0);
 begin
    if c>#31 then
       raise EdwsJSONParseError.CreateFmt(msg, [c])
@@ -858,9 +858,9 @@ end;
 
 // DoParse
 //
-procedure TdwsJSONObject.DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc; var trailCharacter : Char);
+procedure TdwsJSONObject.DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc; var trailCharacter : WideChar);
 var
-   c : Char;
+   c : WideChar;
    name : UnicodeString;
    value : TdwsJSONValue;
 begin
@@ -1050,10 +1050,10 @@ end;
 
 // DoParse
 //
-procedure TdwsJSONArray.DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                                var trailCharacter : Char);
+procedure TdwsJSONArray.DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                                var trailCharacter : WideChar);
 var
-   c : Char;
+   c : WideChar;
    value : TdwsJSONValue;
 begin
    Assert(initialChar='[');
@@ -1155,8 +1155,8 @@ end;
 
 // DoParse
 //
-procedure TdwsJSONImmediate.DoParse(initialChar : Char; const needChar : TdwsJSONNeedCharFunc;
-                                    var trailCharacter : Char);
+procedure TdwsJSONImmediate.DoParse(initialChar : WideChar; const needChar : TdwsJSONNeedCharFunc;
+                                    var trailCharacter : WideChar);
 begin
    trailCharacter:=' ';
    case initialChar of

@@ -32,12 +32,12 @@ const
 type
    TdwsRTTIConnector = class(TdwsAbstractStaticUnit, IUnknown, IConnector)
       private
-         function ConnectorCaption : String;
-         function ConnectorName : String;
-         function GetUnit(const UnitName : String): IConnectorType;
+         function ConnectorCaption : UnicodeString;
+         function ConnectorName : UnicodeString;
+         function GetUnit(const UnitName : UnicodeString): IConnectorType;
 
       protected
-         function GetUnitName : String; override;
+         function GetUnitName : UnicodeString; override;
          procedure AddUnitSymbols(table : TSymbolTable; operators : TOperators); override;
 
       published
@@ -60,7 +60,7 @@ type
    TRTTIConnectorSymbol = class (TConnectorSymbol)
       public
          function IsCompatible(typSym : TTypeSymbol) : Boolean; override;
-         function Specialize(table : TSymbolTable; const qualifier : String) : TConnectorSymbol; override;
+         function Specialize(table : TSymbolTable; const qualifier : UnicodeString) : TConnectorSymbol; override;
    end;
 
    EdwsRTTIException = class(Exception) end;
@@ -92,13 +92,13 @@ type
          FRttiType : TRttiType;
 
       protected
-         function ConnectorCaption : String;
+         function ConnectorCaption : UnicodeString;
          function AcceptsParams(const params : TConnectorParamArray) : Boolean;
-         function HasMethod(const methodName : String; const params : TConnectorParamArray;
+         function HasMethod(const methodName : UnicodeString; const params : TConnectorParamArray;
                             var typSym : TTypeSymbol) : IConnectorCall;
-         function HasMember(const memberName : String; var typSym : TTypeSymbol;
+         function HasMember(const memberName : UnicodeString; var typSym : TTypeSymbol;
                             isWrite : Boolean) : IConnectorMember;
-         function HasIndex(const propName : String; const params : TConnectorParamArray;
+         function HasIndex(const propName : UnicodeString; const params : TConnectorParamArray;
                            var typSym : TTypeSymbol; isWrite : Boolean) : IConnectorCall;
       public
          constructor Create(table : TSymbolTable; rttiType : TRttiType);
@@ -108,26 +108,26 @@ type
 
    TdwsRTTIConnectorCall = class(TInterfacedSelfObject, IUnknown, IConnectorCall)
       private
-         FMethodName : String;
+         FMethodName : UnicodeString;
          FMethodType : TdwsRTTIMethodType;
 
       protected
          function Call(const base : Variant; args : TConnectorArgs) : TData;
 
       public
-         constructor Create(const methodName : String; const params : TConnectorParamArray;
+         constructor Create(const methodName : UnicodeString; const params : TConnectorParamArray;
                             methodType : TdwsRTTIMethodType);
    end;
 
    TdwsRTTIConnectorMember = class(TInterfacedSelfObject, IUnknown, IConnectorMember)
       protected
-         FMemberName : String;
+         FMemberName : UnicodeString;
 
          function Read(const base : Variant) : TData;
          procedure Write(const base : Variant; const data : TData);
 
       public
-         constructor Create(const memberName : String);
+         constructor Create(const memberName : UnicodeString);
    end;
 
 // ValueToVariant
@@ -158,28 +158,28 @@ end;
 
 // ConnectorCaption
 //
-function TdwsRTTIConnector.ConnectorCaption : String;
+function TdwsRTTIConnector.ConnectorCaption : UnicodeString;
 begin
    Result:=RTTI_ConnectorCaption;
 end;
 
 // ConnectorName
 //
-function TdwsRTTIConnector.ConnectorName : String;
+function TdwsRTTIConnector.ConnectorName : UnicodeString;
 begin
    Result:=RTTI_UnitName;
 end;
 
 // GetUnit
 //
-function TdwsRTTIConnector.GetUnit(const unitName : String) : IConnectorType;
+function TdwsRTTIConnector.GetUnit(const unitName : UnicodeString) : IConnectorType;
 begin
    raise Exception.Create('Not supported');
 end;
 
 // GetUnitName
 //
-function TdwsRTTIConnector.GetUnitName : String;
+function TdwsRTTIConnector.GetUnitName : UnicodeString;
 begin
    Result:=RTTI_UnitName;
 end;
@@ -221,7 +221,7 @@ procedure TCreateComponentFunc.Execute(info : TProgramInfo);
 var
    parent : TdwsRTTIVariant;
    obj : TObject;
-   clsName : String;
+   clsName : UnicodeString;
    comp : TComponent;
    compClass : TClass;
    compType : TRttiType;
@@ -263,7 +263,7 @@ end;
 
 // ConnectorCaption
 //
-function TdwsRTTIConnectorType.ConnectorCaption: string;
+function TdwsRTTIConnectorType.ConnectorCaption: UnicodeString;
 begin
    Result:=SYS_RTTIVARIANT;
    if FRttiType<>nil then
@@ -272,7 +272,7 @@ end;
 
 // HasIndex
 //
-function TdwsRTTIConnectorType.HasIndex(const propName : String; const params : TConnectorParamArray;
+function TdwsRTTIConnectorType.HasIndex(const propName : UnicodeString; const params : TConnectorParamArray;
                                         var typSym : TTypeSymbol; isWrite : Boolean) : IConnectorCall;
 begin
    Result:=nil; // unsupported by Delphi XE RTTI
@@ -284,7 +284,7 @@ end;
 
 // HasMember
 //
-function TdwsRTTIConnectorType.HasMember(const memberName : String; var typSym : TTypeSymbol;
+function TdwsRTTIConnectorType.HasMember(const memberName : UnicodeString; var typSym : TTypeSymbol;
                                       isWrite : Boolean) : IConnectorMember;
 begin
    if FRttiType<>nil then
@@ -297,7 +297,7 @@ end;
 
 // HasMethod
 //
-function TdwsRTTIConnectorType.HasMethod(const methodName : String; const params : TConnectorParamArray;
+function TdwsRTTIConnectorType.HasMethod(const methodName : UnicodeString; const params : TConnectorParamArray;
                                       var typSym : TTypeSymbol) : IConnectorCall;
 begin
    if (FRttiType<>nil) and (FRttiType.GetMethod(methodName)=nil) then
@@ -327,7 +327,7 @@ end;
 
 // Create
 //
-constructor TdwsRTTIConnectorCall.Create(const methodName : String; const params : TConnectorParamArray;
+constructor TdwsRTTIConnectorCall.Create(const methodName : UnicodeString; const params : TConnectorParamArray;
                                       methodType : TdwsRTTIMethodType);
 begin
    FMethodName:=methodName;
@@ -377,7 +377,7 @@ end;
 
 // Create
 //
-constructor TdwsRTTIConnectorMember.Create(const memberName : String);
+constructor TdwsRTTIConnectorMember.Create(const memberName : UnicodeString);
 begin
    FMemberName:=memberName;
 end;
@@ -481,10 +481,10 @@ end;
 
 // Specialize
 //
-function TRTTIConnectorSymbol.Specialize(table : TSymbolTable; const qualifier : String) : TConnectorSymbol;
+function TRTTIConnectorSymbol.Specialize(table : TSymbolTable; const qualifier : UnicodeString) : TConnectorSymbol;
 var
    t : TRttiType;
-   qualifiedName : String;
+   qualifiedName : UnicodeString;
 begin
    if qualifier<>'' then begin
       t:=vRTTIContext.FindType(qualifier);

@@ -1853,14 +1853,14 @@ function TExprBaseListExec.GetAsDataString(const x : Integer) : RawByteString;
 var
    ustr : UnicodeString;
    i, n : Integer;
-   pSrc : PChar;
+   pSrc : PWideChar;
    pDest : PByteArray;
 begin
    ustr:=GetAsString(x);
    if ustr='' then Exit('');
    n:=Length(ustr);
    SetLength(Result, n);
-   pSrc:=PChar(NativeUInt(ustr));
+   pSrc:=PWideChar(NativeUInt(ustr));
    pDest:=PByteArray(NativeUInt(Result));
    for i:=0 to n-1 do
       pDest[i]:=PByte(@pSrc[i])^;

@@ -50,8 +50,8 @@ const
   {$ENDIF}
 {$ENDIF}
 
-procedure SetDecimalSeparator(c : Char);
-function GetDecimalSeparator : Char;
+procedure SetDecimalSeparator(c : WideChar);
+function GetDecimalSeparator : WideChar;
 
 procedure CollectFiles(const directory, fileMask : UnicodeString; list : TStrings);
 
@@ -125,7 +125,9 @@ function UTCDateTime : TDateTime;
 
 function AnsiCompareText(const S1, S2 : UnicodeString) : Integer;
 function AnsiCompareStr(const S1, S2 : UnicodeString) : Integer;
-function UnicodeComparePChars(p1 : PChar; n1 : Integer; p2 : PChar; n2 : Integer) : Integer;
+function UnicodeComparePChars(p1 : PWideChar; n1 : Integer; p2 : PWideChar; n2 : Integer) : Integer;
+
+function TextToFloatU(Buffer: PWideChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
 {$IFDEF FPC}
    procedure VarCopy(var ADest: Variant; const ASource: Variant);
@@ -181,14 +183,28 @@ end;
 
 // UnicodeComparePChars
 //
-function UnicodeComparePChars(p1 : PChar; n1 : Integer; p2 : PChar; n2 : Integer) : Integer;
+function UnicodeComparePChars(p1 : PWideChar; n1 : Integer; p2 : PWideChar; n2 : Integer) : Integer;
 const
    CSTR_EQUAL = 2;
 begin
-   Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, p1, n1, p2, n2)-CSTR_EQUAL;
+   Result:=CompareStringW(LOCALE_USER_DEFAULT, NORM_IGNORECASE, p1, n1, p2, n2)-CSTR_EQUAL;
 end;
 
 {$IFDEF FPC}
+
+function TextToFloatU(Buffer: PWideChar; out Value; ValueType: TFloatValue;
+  const FormatSettings: TFormatSettings): Boolean;
+var
+  temp: AnsiString;
+begin
+{$IFDEF FPC}
+   WideCharToStrVar(Buffer, temp);
+   Result := TextToFloat(@temp[1], Value, ValueType, FormatSettings);
+{$ELSE}
+   Result := TextToFloat(Buffer, Value, ValueType, FormatSettings);
+{$ENDIF}
+end;
+
 procedure VarCopy(var ADest: Variant; const ASource: Variant);
 begin
   ADest := ASource;
@@ -234,7 +250,7 @@ end;
 
 // SetDecimalSeparator
 //
-procedure SetDecimalSeparator(c : Char);
+procedure SetDecimalSeparator(c : WideChar);
 begin
    {$IFDEF FPC}
       FormatSettings.DecimalSeparator:=c;
@@ -249,7 +265,7 @@ end;
 
 // GetDecimalSeparator
 //
-function GetDecimalSeparator : Char;
+function GetDecimalSeparator : WideChar;
 begin
    {$IFDEF FPC}
       Result:=FormatSettings.DecimalSeparator;
