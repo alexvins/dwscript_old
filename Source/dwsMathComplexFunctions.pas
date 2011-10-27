@@ -21,7 +21,7 @@ unit dwsMathComplexFunctions;
 interface
 
 uses dwsFunctions, dwsSymbols, dwsExprs, dwsStrings, dwsOperators, dwsStack,
-   dwsTokenizer, SysUtils;
+   dwsTokenizer, SysUtils, dwsXPlatform;
 
 type
    TComplexBinOpExpr = class(TInternalFunction)
@@ -53,17 +53,17 @@ implementation
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-type
-   TComplexProgram = class helper for TdwsProgram
-      function TypComplex : TRecordSymbol;
-   end;
-
-// TypComplex
+//type
+//   TComplexProgram = class helper for TdwsProgram
+//      function TypComplex : TRecordSymbol;
+//   end;
 //
-function TComplexProgram.TypComplex : TRecordSymbol;
-begin
-   Result:=SystemTable.FindTypeSymbol(SYS_COMPLEX, cvMagic) as TRecordSymbol;
-end;
+//// TypComplex
+////
+//function TComplexProgram.TypComplex : TRecordSymbol;
+//begin
+//   Result:=SystemTable.FindTypeSymbol(SYS_COMPLEX, cvMagic) as TRecordSymbol;
+//end;
 
 // RegisterComplexType
 //
@@ -124,7 +124,7 @@ begin
    r:=c.Member['Re'].ValueAsFloat;
    i:=c.Member['Im'].ValueAsFloat;
    if i>0 then
-      info.ResultAsString:=Format('%f + %fi', [r, i])
+      info.ResultAsString:= Format('%f + %fi', [r, i])
    else if i<0 then
       info.ResultAsString:=Format('%f - %fi', [r, Abs(i)])
    else info.ResultAsString:=Format('%f', [r]);

@@ -10,10 +10,10 @@ uses
   dwsCodeGen, dwsComp, dwsCompiler, dwsCoreExprs, dwsDebugger, dwsErrors, 
   dwsExprs, dwsFileSystem, dwsFunctions, dwsGlobalVarsFunctions, 
   dwsHtmlFilter, dwsJSON, dwsLanguageExtension, dwsMagicExprs, 
-  dwsMathFunctions, dwsRelExprs, dwsStack, dwsStringFunctions, 
-  dwsStringResult, dwsStrings, dwsSymbols, dwsTimeFunctions, dwsTokenizer, 
-  dwsUtils, dwsVariantFunctions, dwsVCLGUIFunctions, dwsXPlatform, 
-  dwsMathComplexFunctions, dwsOperators, dwsPascalTokenizer;
+  dwsMathComplexFunctions, dwsMathFunctions, dwsOperators, dwsPascalTokenizer, 
+  dwsRelExprs, dwsStack, dwsStringFunctions, dwsStringResult, dwsStrings, 
+  dwsSymbols, dwsTimeFunctions, dwsTokenizer, dwsUtils, dwsVariantFunctions, 
+  dwsVCLGUIFunctions, dwsXPlatform;
 
 implementation
 
