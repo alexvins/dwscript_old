@@ -34,6 +34,7 @@ type
    PIUnknown = ^IUnknown;
 
    TStackParameters = record
+   public
       MaxLevel : Integer;
       ChunkSize : Integer;
       MaxByteSize : Integer;
@@ -49,8 +50,8 @@ type
    // TStackMixIn
    //
    TStack = ^TStackMixIn;
-   TStackMixIn = record
-      private
+   TStackMixIn = {$IFDEF FPC} object  {$ELSE} record  {$ENDIF}
+      public
          FBasePointer : Integer;
          FBaseData : PDataArray;
          FBpStore : array of TSimpleStack<Integer>;

@@ -55,7 +55,11 @@ type
       public
          SourceFile : TSourceFile;
 
+         {$IFDEF FPC}
+         class function Create(aSourceFile : TSourceFile; aLine, aCol : Integer):TScriptPos; static;
+         {$ELSE}
          constructor Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
+         {$ENDIF}
 
          property LineCol : Cardinal read FLineCol write FLineCol;
          property Line : Integer read GetLine write SetLine;
@@ -222,11 +226,20 @@ implementation
 
 // Create
 //
+{$IFDEF FPC}
+class function TScriptPos.Create(aSourceFile: TSourceFile; aLine, aCol: Integer
+  ): TScriptPos;
+begin
+   Result.SourceFile:=aSourceFile;
+   Result.FLineCol:=(aCol shl 20)+aLine;
+end;
+{$ELSE}
 constructor TScriptPos.Create(aSourceFile : TSourceFile; aLine, aCol : Integer);
 begin
    SourceFile:=aSourceFile;
    FLineCol:=(aCol shl 20)+aLine;
 end;
+{$ENDIF}
 
 // GetLine
 //

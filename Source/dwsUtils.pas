@@ -176,7 +176,7 @@ type
       protected
          function GetItem(index : Integer) : T;
          function Find(const item : T; var index : Integer) : Boolean;
-         function Compare(const item1, item2 : T) : Integer; virtual; abstract;
+         function Compare(const item1, item2 : T) : Integer; virtual; {$IFNDEF FPC} abstract;  {$ENDIF}
          procedure InsertItem(index : Integer; const anItem : T);
       public
          function Add(const anItem : T) : Integer;
@@ -305,7 +305,7 @@ type
          procedure WriteSubString(const utf16String : UnicodeString; startPos, length : Integer); overload;
          procedure WriteChar(utf16Char : Char);
          // assumes data is an utf16 UnicodeString
-         function ToString : UnicodeString; {$IFNDEF FPC} override; {$ENDIF}
+         function ToString : UnicodeString; {$IFDEF FPC} reintroduce; virtual; {$ELSE} override; {$ENDIF}
 
          procedure Clear;
 
@@ -394,7 +394,17 @@ begin
          i:=sl.IndexOf(fromStr);
          if i<0 then
             i:=sl.Add(fromStr);
+         {$IFDEF FPC}
+         {$PUSH}
+         {$ENDIF}
+         {$WARNINGS OFF}
          toStr:=TStringListCracker(sl).FList[i].FString;
+         {$IFDEF FPC}
+         {$POP}
+         {$ELSE}
+         {$WARNINGS ON}
+         {$ENDIF}
+
          vUnifierLock.Leave;
       end else toStr:=fromStr;
    end;
@@ -1041,6 +1051,13 @@ begin
    FCount:=0;
 end;
 
+{$IFDEF FPC}
+function TSortedList<T>.Compare(const item1, item2: T): Integer;
+begin
+  Result := 0;
+end;
+{$ENDIF}
+
 // Clean
 //
 procedure TSortedList<T>.Clean;
@@ -1228,6 +1245,7 @@ end;
 function TWriteOnlyBlockStream.Read(var Buffer; Count: Longint): Longint;
 begin
    raise EStreamError.Create('not allowed');
+   Result := 0; //suppress warning in FPC
 end;
 
 // Write

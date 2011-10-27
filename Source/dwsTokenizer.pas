@@ -24,8 +24,18 @@ unit dwsTokenizer;
 interface
 
 uses
-  SysUtils, Classes, TypInfo, dwsErrors, dwsStrings, dwsXPlatform, dwsUtils,
-  Character;
+  SysUtils, Classes, TypInfo, dwsErrors, dwsStrings, dwsXPlatform, dwsUtils
+  {$IFDEF FPC}
+  {$IF FPC_FULLVERSION >= 20700}
+  ,
+  Character
+  {$ENDIF}
+  {$ELSE}
+  ,
+  Character
+  {$ENDIF}
+
+  ;
 
 type
 
@@ -135,9 +145,17 @@ type
 
    TTokenizer = class;
 
+   {$IFDEF FPC}
+   TStatesList = TObjectList<TState>;
+   {$ENDIF}
+
    TTokenizerRules = class
       private
+         {$IFDEF FPC}
+         FStates : TStatesList;
+         {$ELSE}
          FStates : TObjectList<TState>;
+         {$ENDIF}
 
       protected
          function CreateState : TState;
@@ -1112,7 +1130,11 @@ end;
 //
 constructor TTokenizerRules.Create;
 begin
-   FStates:=TObjectList<TState>.Create;
+{$IFDEF FPC}
+  FStates:=TStatesList.Create;
+{$ELSE}
+  FStates:=TObjectList<TState>.Create;
+{$ENDIF}
 end;
 
 // Destroy
