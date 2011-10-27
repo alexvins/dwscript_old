@@ -161,7 +161,7 @@ type
          procedure SetStaticSymbols(const Value: Boolean);
          function _AddRef: Integer; stdcall;
          function _Release: Integer; stdcall;
-         function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+         function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
          function GetDependencies: TStrings;
          function GetUnitName: UnicodeString;
          procedure InitUnitTable(systemTable : TSymbolTable; unitSyms : TUnitMainSymbols;
@@ -788,7 +788,7 @@ begin
       FPostInitProcs[i](SystemTable, UnitSyms, UnitTable, operators);
 end;
 
-function TInternalUnit.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TInternalUnit.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   Result := 0;
 end;

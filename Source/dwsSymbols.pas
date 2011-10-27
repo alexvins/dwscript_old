@@ -115,6 +115,7 @@ type
    TExecutionStatusResult = (esrNone, esrExit, esrBreak, esrContinue);
 
    TSimpleStackVariant = TSimpleStack<Variant>;
+   TSimpleStackExpr = TSimpleStack<TExprBase>;
 
    // TdwsExecution
    //
@@ -311,6 +312,7 @@ type
 
    // TAddrGenerator
    //
+
    TAddrGeneratorRec = record
       private
          FDataSize : Integer;
@@ -1668,10 +1670,10 @@ var
    i : Integer;
    abort : Boolean;
    base, expr : TExprBase;
-   stack : TSimpleStack<TExprBase>;
+   stack : TSimpleStackExpr;
 begin
    if Self=nil then Exit;
-   stack:=TSimpleStack<TExprBase>.Create;
+   stack:=TSimpleStackExpr.Create;
    try
       abort:=False;
       stack.Push(Self);
@@ -4698,20 +4700,22 @@ end;
 {$IFDEF FPC}
 // CreatePositive
 //
-constructor TAddrGeneratorRec.CreatePositive(aLevel : SmallInt; anInitialSize: Integer = 0);
+class function TAddrGeneratorRec.CreatePositive(aLevel: SmallInt;
+  anInitialSize: Integer): TAddrGeneratorRec;
 begin
-   FDataSize:=anInitialSize;
-   FLevel:=aLevel;
-   FSign:=agsPositive;
+   Result.FDataSize:=anInitialSize;
+   Result.FLevel:=aLevel;
+   Result.FSign:=agsPositive;
 end;
 
 // CreateNegative
 //
-constructor TAddrGeneratorRec.CreateNegative(aLevel : SmallInt);
+class function TAddrGeneratorRec.CreateNegative(aLevel: SmallInt
+  ): TAddrGeneratorRec;
 begin
-   FDataSize:=0;
-   FLevel:=aLevel;
-   FSign:=agsNegative;
+   Result.FDataSize:=0;
+   Result.FLevel:=aLevel;
+   Result.FSign:=agsNegative;
 end;
 {$ELSE}
 // CreatePositive

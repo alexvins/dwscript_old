@@ -222,7 +222,9 @@ type
       HashCode : Integer;
       Value : T;
    end;
+   {$IFNDEF FPC}
    TSimpleHashBucketArray<T> = array of TSimpleHashBucket<T>;
+   {$ENDIF}
    {$IFDEF FPC}
    TSimpleHashProc<T> = procedure (const item : T) of object;// is nested;
    {$ELSE}
@@ -231,11 +233,18 @@ type
 
    {: Minimalistic open-addressing hash, subclasses must override SameItem and GetItemHashCode.
       HashCodes *MUST* be non zero }
+
+   { TSimpleHash }
+
    TSimpleHash<T> = class
       {$IFDEF FPC}
       private
         type
           THashBucket = TSimpleHashBucket<T>;
+          THashBucketArray = array of THashBucket;
+      public
+         type
+           THashEnumProc = TSimpleHashProc<T>;
       {$ENDIF}
       private
          {$IFDEF FPC}
@@ -260,7 +269,11 @@ type
          function Extract(const anItem : T) : Boolean; // true if extracted
          function Contains(const anItem : T) : Boolean;
          function Match(var anItem : T) : Boolean;
+         {$IFDEF FPC}
+         procedure Enumerate(const callBack : THashEnumProc);
+         {$ELSE}
          procedure Enumerate(const callBack : TSimpleHashProc<T>);
+         {$ENDIF}
          procedure Clear;
 
          property Count : Integer read FCount;
@@ -1435,7 +1448,11 @@ end;
 procedure TSimpleHash<T>.Grow;
 var
    i, j, n : Integer;
+   {$IFDEF FPC}
+   oldBuckets : THashBucketArray;
+   {$ELSE}
    oldBuckets : TSimpleHashBucketArray<T>;
+   {$ENDIF}
 begin
    if FCapacity=0 then
       FCapacity:=16
@@ -1535,24 +1552,27 @@ end;
 
 // Enumerate
 //
-procedure TSimpleHash<T>.Enumerate(const callBack : TSimpleHashProc<T>);
+{$IFDEF FPC}
+procedure TSimpleHash<T>.Enumerate(const callBack: THashEnumProc);
 var
    i : Integer;
-{$IFDEF FPC}
   _cb:TSimpleHashProc<T>; //TODO: remove ugly workaround
-{$ENDIF}
 begin
-   {$IFDEF FPC}
    _cb := callBack;
    for i:=0 to High(FBuckets) do
       if FBuckets[i].HashCode<>0 then
          _cb(FBuckets[i].Value);
-   {$ELSE}
+end;
+{$ELSE}
+procedure TSimpleHash<T>.Enumerate(const callBack : TSimpleHashProc<T>);
+var
+   i : Integer;
+begin
    for i:=0 to High(FBuckets) do
       if FBuckets[i].HashCode<>0 then
          callBack(FBuckets[i].Value);
-   {$ENDIF}
 end;
+{$ENDIF}
 
 // Clear
 //

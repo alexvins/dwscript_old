@@ -24,7 +24,7 @@ unit dwsExprs;
 interface
 
 uses Classes, Variants, SysUtils, TypInfo, dwsSymbols, dwsErrors, dwsUtils,
-   dwsStrings, dwsStack, SyncObjs, dwsFileSystem, dwsTokenizer;
+   dwsStrings, dwsStack, SyncObjs, dwsFileSystem, dwsTokenizer, dwsXPlatform;
 
 type
    TRelOps = (roEqual, roUnEqual, roLess, roLessEqual, roMore, roMoreEqual);
@@ -251,7 +251,7 @@ type
 
          procedure AddString(const str : UnicodeString); override;
          procedure Clear; override;
-         function ToString : UnicodeString; override;
+         function ToString : UnicodeString; {$IFDEF FPC} reintroduce; virtual; {$ELSE} override; {$ENDIF}
 
          property Text: UnicodeString read GetText;
    end;
@@ -488,10 +488,18 @@ type
          property TypInterface : TInterfaceSymbol read FBaseTypes.FTypInterface;
    end;
 
+   {$IFDEF FPC}
+   TExprSortedList = TSortedList<TExprBase>;
+   {$ENDIF}
+
    // A script main executable program
    TdwsMainProgram = class (TdwsProgram, IdwsProgram)
       private
+         {$IFDEF FPC}
+         FUnifiedConstList : TExprSortedList;
+         {$ELSE}
          FUnifiedConstList : TSortedList<TExprBase>;
+         {$ENDIF}
 
          FDefaultUserObject : TObject;
 
@@ -555,7 +563,11 @@ type
          property MaxRecursionDepth : Integer read FStackParameters.MaxRecursionDepth write FStackParameters.MaxRecursionDepth;
          property MaxDataSize : Integer read FStackParameters.MaxByteSize write FStackParameters.MaxByteSize;
          property StackChunkSize : Integer read FStackParameters.ChunkSize write FStackParameters.ChunkSize;
+         {$IFDEF FPC}
+         property UnifiedConstList : TExprSortedList read FUnifiedConstList;
+         {$ELSE}
          property UnifiedConstList : TSortedList<TExprBase> read FUnifiedConstList;
+         {$ENDIF}
          property RuntimeFileSystem : TdwsCustomFileSystem read FRuntimeFileSystem write FRuntimeFileSystem;
 
          property Operators : TObject read FOperators write FOperators;
@@ -5764,7 +5776,7 @@ var
 begin
    p:=PVarData(GetParamAsPVariant(index));
    if p^.VType=varUString then
-      Result:=UnicodeString(p.VUString)
+      Result:= VarDataToUniStr(p)
    else Result:=PVariant(p)^;
 end;
 
@@ -5794,7 +5806,7 @@ end;
 
 function TProgramInfo.FindClassMatch(AObject: TObject; ExactMatch: Boolean): TClassSymbol;
 var
-  ParentRTTI: PPTypeInfo;
+  ParentRTTI: TRTTIInfo;
   unitList: TList;      // build the list once, may search for many symbols
   typeSym: TSymbol;
 begin
@@ -5827,7 +5839,8 @@ begin
             Break;
           end
           else                               // if no match found yet, try higher ancestor
-            ParentRTTI := GetTypeData(ParentRTTI^)^.ParentInfo;
+//            ParentRTTI := GetTypeData(ParentRTTI^)^.ParentInfo;
+            ParentRTTI := GetParentTypeInfo(ParentRTTI);
         until ParentRTTI = nil;
       end;{if Assigned}
     end;{if not ExactMatch}
@@ -6446,7 +6459,7 @@ begin
    if (FDataMaster=nil) and (FTypeSym<>nil) and (FTypeSym.Size=1) then begin
       varData:=@FData[FOffset];
       if varData.VType=varUString then
-         Result:=UnicodeString(varData.VUString)
+         Result:= VarDataToUniStr(varData)
       else Result:=PVariant(varData)^;
    end else Result:=inherited GetValueAsString;
 end;

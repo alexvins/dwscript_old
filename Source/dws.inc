@@ -49,6 +49,7 @@
     {$MODE DELPHI}
   {$ENDIF}
   {$modeswitch nestedprocvars}
+  {$DEFINE PUREPASCAL} //temp workaround
 {$ENDIF}
 
 {.$DEFINE PUREPASCAL}

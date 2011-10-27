@@ -24,7 +24,7 @@ unit dwsCoreExprs;
 interface
 
 uses Windows, Classes, Variants, SysUtils, dwsSymbols, dwsErrors, dwsStrings,
-   dwsStack, dwsExprs, dwsUtils, dwsTokenizer, dwsRelExprs;
+   dwsStack, dwsExprs, dwsUtils, dwsTokenizer, dwsRelExprs, dwsXPlatform;
 
 type
 
@@ -198,7 +198,11 @@ type
 
    // TUnifiedConstList
    //
+   {$IFDEF FPC}
+   TUnifiedConstList = class (TExprSortedList)
+   {$ELSE}
    TUnifiedConstList = class (TSortedList<TExprBase>)
+   {$ENDIF}
       protected
          function Compare(const item1, item2 : TExprBase) : Integer; override;
       public
@@ -2161,7 +2165,7 @@ begin
          rawResult:=Integer(vd1.VType)-Integer(vd2.VType);
          if rawResult=0 then begin
             case vd1.VType of
-               varUString : rawResult:=CompareStr(UnicodeString(vd1.VUString), UnicodeString(vd2.VUString));
+               varUString : rawResult:=CompareStr(VarDataToUniStr(vd1),VarDataToUniStr(vd2));
                varInt64 : rawResult:=vd1.VInt64-vd2.VInt64;
                varBoolean : rawResult:=Integer(vd1.VBoolean)-Integer(vd2.VBoolean);
             else
@@ -4212,11 +4216,12 @@ asm
    mov   ecx, [eax]
    call  [ecx+VMTOFFSET EvalAsFloat]
    fmul  st(0), st(0)
+end;
 {$else}
 begin
    Result:=Sqr(FExpr.EvalAsFloat(exec));
-{$ifend}
 end;
+{$ifend}
 
 // ------------------
 // ------------------ TDivideExpr ------------------
@@ -5996,7 +6001,7 @@ var
    err : EScriptError;
    msg : UnicodeString;
 begin
-   mainException:=System.ExceptObject as Exception;
+   mainException:= GetExceptObject as Exception;
 
    if mainException is EScriptException then begin
       // a raise-statement created an Exception object
@@ -6068,7 +6073,7 @@ begin
       exec.DoStep(FTryExpr);
       FTryExpr.EvalNoResult(exec);
    except
-      excObj:=System.ExceptObject;
+      excObj:=GetExceptObject;
       if    (excObj.ClassType=EScriptStopped)
          or not (excObj is Exception) then raise;
 
@@ -6087,7 +6092,11 @@ begin
                // Find a "on x: Class do ..." statement matching to this exception class
                doExpr := TExceptDoExpr(FDoExprs.List[x]);
                if doExpr.ExceptionVar.Typ.IsCompatible(objSym) then begin
+                  {$IFDEF FPC}
+                  PVariant(@exec.Stack.Data[exec.Stack.BasePointer +  doExpr.FExceptionVar.StackAddr])^ := obj;
+                  {$ELSE}
                   exec.Stack.Data[exec.Stack.BasePointer +  doExpr.FExceptionVar.StackAddr] := obj;
+                  {$ENDIF}
                   try
                      exec.DoStep(doExpr);
                      doExpr.EvalNoResult(exec);
@@ -6189,7 +6198,7 @@ begin
       oldStatus:=exec.Status;
       try
          exec.Status:=esrNone;
-         excObj:=System.ExceptObject;
+         excObj:=GetExceptObject;
          if (excObj=nil) or (excObj.ClassType<>EScriptStopped) then begin
             if excObj is Exception then begin
                EnterExceptionBlock(exec);

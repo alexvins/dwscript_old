@@ -205,7 +205,11 @@ end;
 //
 function TMagicFuncExpr.GetData(exec : TdwsExecution) : TData;
 begin
+   {$IFDEF FPC}
+   PVariant(@exec.Stack.Data[exec.Stack.BasePointer])^:=Eval(exec);
+   {$ELSE}
    exec.Stack.Data[exec.Stack.BasePointer]:=Eval(exec);
+   {$ENDIF}
    Result:=exec.Stack.Data;
 end;
 

@@ -35,7 +35,7 @@ unit dwsXPlatform;
 
 interface
 
-uses Windows, Classes, SysUtils
+uses Windows, Classes, SysUtils, typinfo
    {$IFNDEF VER200}, IOUtils{$ENDIF}
    ;
 
@@ -83,6 +83,12 @@ type
    {$ENDIF}
    {$ENDIF}
 
+  {$IFDEF FPC}
+    TRTTIInfo = PTypeInfo;
+  {$ELSE}
+    TRTTIInfo = PPTypeInfo;
+  {$ENDIF}
+
    TPath = class
       class function GetTempFileName : UnicodeString; static;
    end;
@@ -112,6 +118,10 @@ function UnicodeComparePChars(p1 : PChar; n1 : Integer; p2 : PChar; n2 : Integer
 
 function VarDataToUniStr(vardata: PVarData): UnicodeString; inline;
 procedure UniStrToVarData(vardata: PVarData; AValue: UnicodeString); inline;
+
+function GetExceptObject: TObject;
+
+function GetParentTypeInfo(info: TRTTIInfo):TRTTIInfo;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -186,6 +196,24 @@ begin
      UnicodeString(varData.vstring):=AValue;
   {$ELSE}
      UnicodeString(varData.VUString):=AValue;
+  {$ENDIF}
+end;
+
+function GetExceptObject: TObject;
+begin
+  {$IFDEF FPC}
+  Result := System.RaiseList.FObject;
+  {$ELSE}
+  Result := System.ExceptObject;
+  {$ENDIF}
+end;
+
+function GetParentTypeInfo(info: TRTTIInfo): TRTTIInfo;
+begin
+  {$IFDEF FPC}
+  Result :=  GetTypeData(info)^.ParentInfo;
+  {$ELSE}
+  Result :=  GetTypeData(info^)^.ParentInfo;
   {$ENDIF}
 end;
 
