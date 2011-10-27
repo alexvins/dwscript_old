@@ -48,6 +48,7 @@
   {$ELSE}
     {$MODE DELPHI}
   {$ENDIF}
+  {$modeswitch nestedprocvars}
 {$ENDIF}
 
 {.$DEFINE PUREPASCAL}

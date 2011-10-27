@@ -114,6 +114,8 @@ type
 
    TExecutionStatusResult = (esrNone, esrExit, esrBreak, esrContinue);
 
+   TSimpleStackVariant = TSimpleStack<Variant>;
+
    // TdwsExecution
    //
    TdwsExecution = class abstract (TInterfacedObject, IdwsExecution)
@@ -125,7 +127,7 @@ type
          FSelfScriptClassSymbol : TClassSymbol;
          FLastScriptError : TExprBase;
          FLastScriptCallStack : TdwsExprLocationArray;
-         FExceptionObjectStack : TSimpleStack<Variant>;
+         FExceptionObjectStack : TSimpleStackVariant;
 
          FDebugger : IDebugger;
          FIsDebugging : Boolean;
@@ -172,7 +174,7 @@ type
 
          property LastScriptError : TExprBase read FLastScriptError;
          property LastScriptCallStack : TdwsExprLocationArray read FLastScriptCallStack;
-         property ExceptionObjectStack : TSimpleStack<Variant> read FExceptionObjectStack;
+         property ExceptionObjectStack : TSimpleStackVariant read FExceptionObjectStack;
 
          property ProgramState : TProgramState read FProgramState;
 
@@ -189,7 +191,11 @@ type
          property UserObject : TObject read GetUserObject write SetUserObject;
    end;
 
+   {$IFDEF FPC}
+   TExprBaseEnumeratorProc = procedure (parent, expr : TExprBase; var abort : Boolean) is nested;
+   {$ELSE}
    TExprBaseEnumeratorProc = reference to procedure (parent, expr : TExprBase; var abort : Boolean);
+   {$ENDIF}
 
    // Base class for all Exprs
    TExprBase = class
@@ -312,8 +318,13 @@ type
          FSign : TAddrGeneratorSign;
 
       public
-         constructor CreatePositive(aLevel : SmallInt; anInitialSize : Integer = 0);
+         {$IFDEF FPC}
+         class function CreatePositive(aLevel : SmallInt; anInitialSize : Integer = 0):TAddrGeneratorRec; static;
+         class function CreateNegative(aLevel : SmallInt):TAddrGeneratorRec; static;
+         {$ELSE}
+         constructor CreatePositive(aLevel : SmallInt; anInitialSize : Integer = 0):TAddrGeneratorRec;
          constructor CreateNegative(aLevel : SmallInt);
+         {$ENDIF}
 
          function GetStackAddr(size : Integer) : Integer;
 
@@ -1229,7 +1240,15 @@ type
    TClassSymbolFlags = set of TClassSymbolFlag;
 
    // type X = class ... end;
+
+   { TClassSymbol }
+
    TClassSymbol = class (TStructuredTypeSymbol)
+      {$IFDEF FPC}
+         strict private
+           procedure OnEnumerate(const item : TResolvedInterface);
+      {$ENDIF}
+
       private
          FFlags : TClassSymbolFlags;
          FForwardPosition : PScriptPos;
@@ -3301,6 +3320,7 @@ procedure TClassSymbol.AddOverriddenInterfaces;
 var
    iter : TClassSymbol;
    loopProtection : TList;
+
 begin
    iter:=Parent;
    loopProtection:=TList.Create;
@@ -3309,11 +3329,15 @@ begin
          if loopProtection.IndexOf(iter)>0 then Break;
          loopProtection.Add(iter);
          if iter.Interfaces<>nil then begin
+            {$IFDEF FPC}
+            iter.Interfaces.Enumerate(OnEnumerate);
+            {$ELSE}
             iter.Interfaces.Enumerate(
                procedure (const item : TResolvedInterface)
                begin
                   Self.AddOverriddenInterface(item);
                end);
+            {$ENDIF}
          end;
          iter:=iter.Parent;
       end;
@@ -3427,6 +3451,11 @@ begin
    if Parent<>nil then
       Result:=Parent.IsOfType(typSym.UnAliasedType)
    else Result:=False;
+end;
+
+procedure TClassSymbol.OnEnumerate(const item: TResolvedInterface);
+begin
+  Self.AddOverriddenInterface(item)
 end;
 
 // VMTMethod
@@ -4666,6 +4695,7 @@ end;
 // ------------------ TAddrGeneratorRec ------------------
 // ------------------
 
+{$IFDEF FPC}
 // CreatePositive
 //
 constructor TAddrGeneratorRec.CreatePositive(aLevel : SmallInt; anInitialSize: Integer = 0);
@@ -4683,6 +4713,25 @@ begin
    FLevel:=aLevel;
    FSign:=agsNegative;
 end;
+{$ELSE}
+// CreatePositive
+//
+constructor TAddrGeneratorRec.CreatePositive(aLevel : SmallInt; anInitialSize: Integer = 0);
+begin
+   FDataSize:=anInitialSize;
+   FLevel:=aLevel;
+   FSign:=agsPositive;
+end;
+
+// CreateNegative
+//
+constructor TAddrGeneratorRec.CreateNegative(aLevel : SmallInt);
+begin
+   FDataSize:=0;
+   FLevel:=aLevel;
+   FSign:=agsNegative;
+end;
+{$ENDIF}
 
 // GetStackAddr
 //

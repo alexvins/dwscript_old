@@ -18,10 +18,6 @@ unit dwsUtils;
 
 {$I dws.inc}
 
-{$IFDEF FPC}
-{$modeswitch nestedprocvars}
-{$ENDIF}
-
 interface
 
 uses Classes, SysUtils, Variants, SyncObjs, dwsXPlatform;
@@ -195,11 +191,19 @@ type
       Note that internal array items are NOT cleared on Pop, for refcounted types,
       you need to clear yourself manually via Peek. }
    TSimpleStack<T> = class
+      {$IFDEF FPC} //todo: fix temp workaround
+      public
+      {$ELSE}
       private
+      {$ENDIF}
          FItems : array of T;
          FCount : Integer;
          FCapacity : Integer;
+      {$IFDEF FPC}
+      public
+      {$ELSE}
       protected
+      {$ENDIF}
          procedure Grow;
          function GetPeek : T; inline;
          procedure SetPeek(const item : T);
@@ -220,7 +224,7 @@ type
    end;
    TSimpleHashBucketArray<T> = array of TSimpleHashBucket<T>;
    {$IFDEF FPC}
-   TSimpleHashProc<T> = procedure (const item : T) is nested;
+   TSimpleHashProc<T> = procedure (const item : T) of object;// is nested;
    {$ELSE}
    TSimpleHashProc<T> = reference to procedure (const item : T);
    {$ENDIF}

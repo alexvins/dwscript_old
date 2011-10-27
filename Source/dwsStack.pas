@@ -23,7 +23,7 @@ unit dwsStack;
 
 interface
 
-uses Variants, Classes, SysUtils, dwsStrings, dwsUtils;
+uses Variants, Classes, SysUtils, dwsStrings, dwsUtils, dwsXPlatform;
 
 type
 
@@ -34,17 +34,20 @@ type
    PIUnknown = ^IUnknown;
 
    TStackParameters = record
+   public
       MaxLevel : Integer;
       ChunkSize : Integer;
       MaxByteSize : Integer;
       MaxRecursionDepth : Integer;
    end;
 
-   {$IFDEF VER200}
-   // D2009 workaround for:
-   // [DCC Fatal Error] dwsCoreExprs.pas(5327): F2051 Unit dwsCoreExprs was compiled with a different version of dwsStack.TSimpleStack<System.Integer>
-   TSimpleStackIntegerDummy = TSimpleStack<Integer>;
-   {$ENDIF}
+   //{$IFDEF VER200}
+   //// D2009 workaround for:
+   //// [DCC Fatal Error] dwsCoreExprs.pas(5327): F2051 Unit dwsCoreExprs was compiled with a different version of dwsStack.TSimpleStack<System.Integer>
+   //TSimpleStackIntegerDummy = TSimpleStack<Integer>;
+   //{$ENDIF}
+
+   TSimpleStackInteger = TSimpleStack<Integer>;
 
    // TStackMixIn
    //
@@ -53,7 +56,7 @@ type
       private
          FBasePointer : Integer;
          FBaseData : PDataArray;
-         FBpStore : array of TSimpleStack<Integer>;
+         FBpStore : array of TSimpleStackInteger;
          FParams : TStackParameters;
          FMaxSize : Integer;
          FSize : Integer;
@@ -185,7 +188,11 @@ begin
          varDouble :
             Result:=TVarData(v1).VDouble=TVarData(v2).VDouble;
          varUString :
+            {$IFDEF FPC}
+            Result:=UnicodeString(TVarData(v1).vstring)=UnicodeString(TVarData(v2).vstring);
+            {$ELSE}
             Result:=UnicodeString(TVarData(v1).VUString)=UnicodeString(TVarData(v2).VUString);
+            {$ENDIF}
          varUnknown :
             Result:=TVarData(v1).VUnknown=TVarData(v2).VUnknown;
       else
@@ -317,7 +324,7 @@ begin
    ClearBpStore;
    SetLength(FBpStore, FParams.MaxLevel + 1);
    for i:=0 to High(FBpStore) do begin
-      FBpStore[i]:=TSimpleStack<Integer>.Create;
+      FBpStore[i]:=TSimpleStackInteger.Create;
       FBpStore[i].Push(0);
    end;
 end;
@@ -446,7 +453,10 @@ var
 begin
    varData:=@Data[SourceAddr];
    if varData.VType=varUString then
-      Result:=UnicodeString(varData.VUString)
+{$IFDEF FPC}
+      Result:=UnicodeString(varData.vstring)
+{$ELSE}
+      Result:=UnicodeString(varData.VUString)   {$ENDIF}
    else Result:=PVariant(varData)^;
 end;
 
@@ -532,7 +542,11 @@ var
 begin
    varData:=@FBaseData[destAddr];
    if varData.VType=varUString then
+      {$IFDEF FPC}
+      UnicodeString(varData.vstring):=UnicodeString(varData.vstring)+value
+      {$ELSE}
       UnicodeString(varData.VUString):=UnicodeString(varData.VUString)+value
+      {$ENDIF}
    else Fallback(varData);
 end;
 
@@ -623,7 +637,7 @@ var
 begin
    varData:=@Data[DestAddr];
    if varData.VType=varUString then
-      UnicodeString(varData.VUString):=Value
+      UniStrToVarData(varData, Value)
    else PVariant(varData)^:=Value;
 end;
 
@@ -656,12 +670,18 @@ end;
 function TStackMixIn.SetStrChar(DestAddr: Integer; index : Integer; c : Char) : Boolean;
 var
    varData : PVarData;
+   str: UnicodeString;
 begin
    varData:=@Data[DestAddr];
+   str := VarDataToUniStr(varData);
    if varData.VType=varUString then
-      if index>Length(UnicodeString(varData.VUString)) then
+      if index>Length(str) then
          Exit(False)
-      else UnicodeString(varData.VUString)[index]:=c
+      else
+      begin
+        str[index] := c; //TODO: char MUST be WideChar
+        UniStrToVarData(varData,str);
+      end
    else PVariant(varData)^[index]:=c;
    Result:=True;
 end;

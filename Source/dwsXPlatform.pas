@@ -40,10 +40,14 @@ uses Windows, Classes, SysUtils
    ;
 
 const
-{$IFDEF UNIX}
-   cLineTerminator  = #10;
+{$IFDEF FPC}
+   cLineTerminator  = System.LineEnding;
 {$ELSE}
-   cLineTerminator  = #13#10;
+  {$IFDEF UNIX}
+     cLineTerminator  = #10;
+  {$ELSE}
+     cLineTerminator  = #13#10;
+  {$ENDIF}
 {$ENDIF}
 
 procedure SetDecimalSeparator(c : Char);
@@ -67,9 +71,16 @@ type
    {$ENDIF}
 
    {$IFDEF FPC}
+   {$IF FPC_FULLVERSION >=20700}
+   TBytes = SysUtils.TBytes;
+   {$ELSE}
    TBytes = array of Byte;
-
-   RawByteString = String;
+   {$ENDIF}
+   {$IFNDEF FPC_HAS_CPSTRING}
+   RawByteString = type AnsiString;
+   {$else}
+   //RawByteString is defined in System
+   {$ENDIF}
    {$ENDIF}
 
    TPath = class
@@ -94,6 +105,13 @@ function UTCDateTime : TDateTime;
 function AnsiCompareText(const S1, S2 : UnicodeString) : Integer;
 function AnsiCompareStr(const S1, S2 : UnicodeString) : Integer;
 function UnicodeComparePChars(p1 : PChar; n1 : Integer; p2 : PChar; n2 : Integer) : Integer;
+
+{$IFDEF FPC}
+   procedure VarCopy(var ADest: Variant; const ASource: Variant);
+{$ENDIF}
+
+function VarDataToUniStr(vardata: PVarData): UnicodeString; inline;
+procedure UniStrToVarData(vardata: PVarData; AValue: UnicodeString); inline;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -143,6 +161,32 @@ const
    CSTR_EQUAL = 2;
 begin
    Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, p1, n1, p2, n2)-CSTR_EQUAL;
+end;
+
+{$IFDEF FPC}
+procedure VarCopy(var ADest: Variant; const ASource: Variant);
+begin
+  ADest := ASource;
+end;
+{$ENDIF}
+
+
+function VarDataToUniStr(vardata: PVarData): UnicodeString;
+begin
+{$IFDEF FPC}
+   Result := UnicodeString(varData.vstring);
+{$ELSE}
+   Result := UnicodeString(varData.VUString);
+{$ENDIF}
+end;
+
+procedure UniStrToVarData(vardata: PVarData; AValue: UnicodeString);
+begin
+  {$IFDEF FPC}
+     UnicodeString(varData.vstring):=AValue;
+  {$ELSE}
+     UnicodeString(varData.VUString):=AValue;
+  {$ENDIF}
 end;
 
 // SetDecimalSeparator
@@ -199,6 +243,10 @@ end;
 // GetTempFileName
 //
 class function TPath.GetTempFileName : UnicodeString;
+{$IFDEF FPC}
+begin
+   Result:=SysUtils.GetTempFileName(SysUtils.GetTempDir(False),'DWS');
+{$ELSE}
 {$IFDEF VER200} // Delphi 2009
 var
    tempPath, tempFileName : array [0..MAX_PATH] of Char; // Buf sizes are MAX_PATH+1
@@ -211,6 +259,7 @@ begin
 {$ELSE}
 begin
    Result:=IOUTils.TPath.GetTempFileName;
+{$ENDIF}
 {$ENDIF}
 end;
 
