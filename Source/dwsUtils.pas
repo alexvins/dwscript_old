@@ -18,6 +18,10 @@ unit dwsUtils;
 
 {$I dws.inc}
 
+{$IFDEF FPC}
+{$modeswitch nestedprocvars}
+{$ENDIF}
+
 interface
 
 uses Classes, SysUtils, Variants, SyncObjs, dwsXPlatform;
@@ -144,7 +148,7 @@ type
    // TObjectList
    //
    {: A simple generic object list, owns objects }
-   TObjectList<T: class> = class
+   TObjectList<T{$IFNDEF FPC} : class {$ENDIF}> = class
       private
          FItems : array of T;
          FCount : Integer;
@@ -165,7 +169,7 @@ type
    // TSortedList
    //
    {: List that maintains its elements sorted, subclasses must override Compare }
-   TSortedList<T: class> = class
+   TSortedList<T{$IFNDEF FPC} : class {$ENDIF}> = class
       private
          FItems : array of T;
          FCount : Integer;
@@ -215,13 +219,21 @@ type
       Value : T;
    end;
    TSimpleHashBucketArray<T> = array of TSimpleHashBucket<T>;
+   {$IFDEF FPC}
+   TSimpleHashProc<T> = procedure (const item : T) is nested;
+   {$ELSE}
    TSimpleHashProc<T> = reference to procedure (const item : T);
+   {$ENDIF}
 
    {: Minimalistic open-addressing hash, subclasses must override SameItem and GetItemHashCode.
       HashCodes *MUST* be non zero }
    TSimpleHash<T> = class
       private
+         {$IFDEF FPC}
+         FBuckets : array of TSimpleHashBucket<T>;
+         {$ELSE}
          FBuckets : TSimpleHashBucketArray<T>;
+         {$ENDIF}
          FCount : Integer;
          FGrowth : Integer;
          FCapacity : Integer;
@@ -245,7 +257,7 @@ type
          property Count : Integer read FCount;
    end;
 
-   TSimpleObjectHash<T: Class> = class(TSimpleHash<T>)
+   TSimpleObjectHash<T{$IFNDEF FPC} : Class {$ENDIF}> = class(TSimpleHash<T>)
       protected
          function SameItem(const item1, item2 : T) : Boolean; override;
          function GetItemHashCode(const item1 : T) : Integer; override;
@@ -293,7 +305,7 @@ type
          procedure WriteSubString(const utf16String : UnicodeString; startPos, length : Integer); overload;
          procedure WriteChar(utf16Char : Char);
          // assumes data is an utf16 UnicodeString
-         function ToString : UnicodeString; override;
+         function ToString : UnicodeString; {$IFNDEF FPC} override; {$ENDIF}
 
          procedure Clear;
 
@@ -302,11 +314,11 @@ type
    end;
 
    TFastCompareStringList = class (TStringList)
-      function CompareStrings(const S1, S2: UnicodeString): Integer; override;
+      function CompareStrings(const S1, S2: UnicodeString): Integer; {$IFNDEF FPC} override;  {$ENDIF}
    end;
 
    TFastCompareTextList = class (TStringList)
-      function CompareStrings(const S1, S2: UnicodeString): Integer; override;
+      function CompareStrings(const S1, S2: UnicodeString): Integer; {$IFNDEF FPC} override;  {$ENDIF}
    end;
 
    ETightListOutOfBound = class(Exception);
@@ -1501,10 +1513,20 @@ end;
 procedure TSimpleHash<T>.Enumerate(const callBack : TSimpleHashProc<T>);
 var
    i : Integer;
+{$IFDEF FPC}
+  _cb:TSimpleHashProc<T>; //TODO: remove ugly workaround
+{$ENDIF}
 begin
+   {$IFDEF FPC}
+   _cb := callBack;
+   for i:=0 to High(FBuckets) do
+      if FBuckets[i].HashCode<>0 then
+         _cb(FBuckets[i].Value);
+   {$ELSE}
    for i:=0 to High(FBuckets) do
       if FBuckets[i].HashCode<>0 then
          callBack(FBuckets[i].Value);
+   {$ENDIF}
 end;
 
 // Clear

@@ -52,7 +52,10 @@ function GetDecimalSeparator : Char;
 procedure CollectFiles(const directory, fileMask : UnicodeString; list : TStrings);
 
 type
-   {$IFNDEF FPC}
+   {$IFDEF FPC}
+   PNativeInt = ^NativeInt;
+   PNativeUInt = ^NativeUInt;
+   {$ELSE}
    {$IF CompilerVersion<22.0}
    // NativeUInt broken in D2009, and PNativeInt is missing in D2010
    // http://qc.embarcadero.com/wc/qcmain.aspx?d=71292
