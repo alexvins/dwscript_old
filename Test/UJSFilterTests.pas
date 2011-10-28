@@ -20,8 +20,8 @@ type
          FHtmlUnit : TdwsHtmlUnit;
          FChromium : TChromium;
          FChromiumForm : TForm;
-         FLastJSResult : String;
-         FConsole : String;
+         FLastJSResult : UnicodeString;
+         FConsole : UnicodeString;
          FLoadEnded : Boolean;
 
       public
@@ -35,10 +35,10 @@ type
          procedure DoLoadEnd(Sender: TObject; const browser: ICefBrowser; const frame: ICefFrame;
                              httpStatusCode: Integer; out Result: Boolean);
 
-         procedure DoInclude(const scriptName: string; var scriptSource: string);
-         function  DoNeedUnit(const unitName : String; var unitSource : String) : IdwsUnit;
+         procedure DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
+         function  DoNeedUnit(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit;
 
-         procedure BrowserLoadAndWait(const src : String);
+         procedure BrowserLoadAndWait(const src : UnicodeString);
 
       published
          procedure TestScripts;
@@ -143,7 +143,7 @@ end;
 
 // DoInclude
 //
-procedure TJSFilterTests.DoInclude(const scriptName: string; var scriptSource: string);
+procedure TJSFilterTests.DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 var
    sl : TStringList;
 begin
@@ -158,7 +158,7 @@ end;
 
 // DoNeedUnit
 //
-function TJSFilterTests.DoNeedUnit(const unitName : String; var unitSource : String) : IdwsUnit;
+function TJSFilterTests.DoNeedUnit(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit;
 var
    sl : TStringList;
 begin
@@ -174,7 +174,7 @@ end;
 
 // BrowserLoadAndWait
 //
-procedure TJSFilterTests.BrowserLoadAndWait(const src : String);
+procedure TJSFilterTests.BrowserLoadAndWait(const src : UnicodeString);
 begin
    FLoadEnded:=False;
    FChromium.Browser.MainFrame.LoadString(src, 'dummy');
@@ -186,8 +186,8 @@ end;
 //
 procedure TJSFilterTests.TestScripts;
 var
-   s: string;
-   resultFileName, output : String;
+   s: UnicodeString;
+   resultFileName, output : UnicodeString;
    prog: IdwsProgram;
    sl : TStringList;
    exec : IdwsProgramExecution;

@@ -64,9 +64,9 @@ type
 
    TTestInstance = class
       private
-         FValue : String;
+         FValue : UnicodeString;
       published
-         property Value : String read FValue;
+         property Value : UnicodeString read FValue;
    end;
 
    [dwsPublished('TRect')]

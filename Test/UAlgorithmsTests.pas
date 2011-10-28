@@ -45,11 +45,11 @@ end;
 type
 
    TThreadedRunner = class(TdwsThread)
-      Script : String;
+      Script : UnicodeString;
       Exec : IdwsProgramExecution;
       Count : Integer;
-      ExpectedResult : String;
-      ActualResult : String;
+      ExpectedResult : UnicodeString;
+      ActualResult : UnicodeString;
 
       procedure Execute; override;
    end;
@@ -254,7 +254,7 @@ var
    i : Integer;
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
-   resultsFileName, output : String;
+   resultsFileName, output : UnicodeString;
 begin
    source:=TStringList.Create;
    expectedResult:=TStringList.Create;

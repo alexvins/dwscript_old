@@ -135,7 +135,7 @@ var
 begin
    prog:=FCompiler.Compile('');
    stringsSymbol:=prog.Table.FindSymbol('TStrings', cvMagic) as TClassSymbol;
-   CheckEquals('property Strings[x: Integer]: String read GetStrings write SetStrings; default;',
+   CheckEquals('property Strings[x: Integer]: UnicodeString read GetStrings write SetStrings; default;',
                stringsSymbol.Members.FindSymbol('Strings', cvPublic).Description, 'Strings Description');
 end;
 
@@ -147,7 +147,7 @@ var
    i : Integer;
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
-   resultsFileName : String;
+   resultsFileName : UnicodeString;
 begin
    source:=TStringList.Create;
    expectedResult:=TStringList.Create;

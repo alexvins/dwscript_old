@@ -23,8 +23,8 @@ type
          procedure SetUp; override;
          procedure TearDown; override;
 
-         procedure DoInclude(const scriptName : String; var scriptSource : String);
-         function DoNeedUnit(const unitName : String; var unitSource : String) : IdwsUnit;
+         procedure DoInclude(const scriptName : UnicodeString; var scriptSource : UnicodeString);
+         function DoNeedUnit(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit;
 
          procedure Compilation;
          procedure Execution;
@@ -80,10 +80,10 @@ end;
 
 // DoInclude
 //
-procedure TBuildTests.DoInclude(const scriptName: string; var scriptSource: string);
+procedure TBuildTests.DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 var
    sl : TStringList;
-   fileName : String;
+   fileName : UnicodeString;
 begin
    fileName:='BuildScripts\'+scriptName;
    if FileExists(fileName) then begin
@@ -99,7 +99,7 @@ end;
 
 // DoNeedUnit
 //
-function TBuildTests.DoNeedUnit(const unitName : String; var unitSource : String) : IdwsUnit;
+function TBuildTests.DoNeedUnit(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit;
 begin
    Result:=nil;
    DoInclude(unitName+'.pas', unitSource);
@@ -112,7 +112,7 @@ var
    source, expectedResult : TStringList;
    i : Integer;
    prog : IdwsProgram;
-   output, resultsFileName : String;
+   output, resultsFileName : UnicodeString;
 begin
    source:=TStringList.Create;
    expectedResult:=TStringList.Create;
@@ -161,8 +161,8 @@ var
    source, expectedResult : TStringList;
    i : Integer;
    prog : IdwsProgram;
-   resultsFileName : String;
-   output : String;
+   resultsFileName : UnicodeString;
+   output : UnicodeString;
    exec : IdwsProgramExecution;
 begin
    source:=TStringList.Create;

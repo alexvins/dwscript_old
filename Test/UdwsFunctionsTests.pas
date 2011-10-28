@@ -11,7 +11,7 @@ type
 
    TdwsFunctionsTestsBase = class (TTestCase)
       private
-         FFolder : String;
+         FFolder : UnicodeString;
          FTests : TStringList;
          FCompiler : TDelphiWebScript;
 
@@ -126,7 +126,7 @@ var
    i : Integer;
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
-   resultsFileName : String;
+   resultsFileName : UnicodeString;
 begin
    source:=TStringList.Create;
    expectedResult:=TStringList.Create;

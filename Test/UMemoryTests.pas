@@ -229,7 +229,7 @@ var
    i : Integer;
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
-   resultsFileName : String;
+   resultsFileName : UnicodeString;
 begin
    FTestObjects.Clear;
 

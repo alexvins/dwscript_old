@@ -200,7 +200,7 @@ begin
 
    func:=FUnit.Functions.Add;
    func.Name:='FuncOne';
-   func.ResultType:='String';
+   func.ResultType:='UnicodeString';
    func.OnEval:=FuncOneEval;
 
    func:=FUnit.Functions.Add;
@@ -297,7 +297,7 @@ begin
    cst:=cls.Constructors.Add;
    cst.Name:='MyCreate';
    param:=cst.Parameters.Add;
-   param.DataType:='String';
+   param.DataType:='UnicodeString';
    param.Name:='v';
    cst.OnEval:=ClassConstructor;
 
@@ -330,7 +330,7 @@ begin
    meth.Name:='GetArrayProp';
    meth.ResultType:='Integer';
    param:=meth.Parameters.Add;
-   param.DataType:='String';
+   param.DataType:='UnicodeString';
    param.Name:='v';
    meth.OnEval:=MethodGetArrayIntEval;
 
@@ -355,12 +355,12 @@ begin
    prop.DataType:='Integer';
    prop.ReadAccess:='GetArrayProp';
    param:=prop.Parameters.Add;
-   param.DataType:='String';
+   param.DataType:='UnicodeString';
    param.Name:='v';
 
    constant:=cls.Constants.Add;
    constant.Name:='cTest';
-   constant.DataType:='String';
+   constant.DataType:='UnicodeString';
    constant.Value:='My class const';
 end;
 
@@ -372,11 +372,11 @@ var
 begin
    v:=FUnit.Variables.Add;
    v.Name:='xyzVar';
-   v.DataType:='String';
+   v.DataType:='UnicodeString';
 
    v:=FUnit.Variables.Add;
    v.Name:='magicVar';
-   v.DataType:='String';
+   v.DataType:='UnicodeString';
 
    v.OnReadVar:=DoReadVar;
    v.OnWriteVar:=DoWriteVar;
@@ -646,7 +646,7 @@ var
    cls : TdwsClassCracker;
 begin
    CheckEquals('function Func1 : Integer;', FuncByName('Func1').GetDisplayName);
-   CheckEquals('function FuncOne : String;', FuncByName('FuncOne').GetDisplayName);
+   CheckEquals('function FuncOne : UnicodeString;', FuncByName('FuncOne').GetDisplayName);
    CheckEquals('function FuncOneDotFive : Float;', FuncByName('FuncOneDotFive').GetDisplayName);
    CheckEquals('function FuncTrue : Boolean;', FuncByName('FuncTrue').GetDisplayName);
    CheckEquals('procedure FuncException;', FuncByName('FuncException').GetDisplayName);
@@ -661,10 +661,10 @@ begin
    CheckEquals('public property MyReadOnlyProp: Integer read GetMyProp;', PropertyByName(cls, 'MyReadOnlyProp').GetDisplayName);
    CheckEquals('public function GetMyProp : Integer;', MethodByName(cls, 'GetMyProp').GetDisplayName);
    CheckEquals('public procedure SetMyProp(v : Integer);', MethodByName(cls, 'SetMyProp').GetDisplayName);
-   CheckEquals('public property ArrayProp[v : String]: Integer read GetArrayProp;', PropertyByName(cls, 'ArrayProp').GetDisplayName);
+   CheckEquals('public property ArrayProp[v : UnicodeString]: Integer read GetArrayProp;', PropertyByName(cls, 'ArrayProp').GetDisplayName);
    CheckEquals('public property MyReadOnlyProp: Integer read GetMyProp;', PropertyByName(cls, 'MyReadOnlyProp').GetDisplayName);
    CheckEquals('public property MyWriteOnlyProp: Integer write SetMyProp;', PropertyByName(cls, 'MyWriteOnlyProp').GetDisplayName);
-   CheckEquals('public const cTest: String = ''My class const'';', ConstByName(cls, 'cTest').GetDisplayName);
+   CheckEquals('public const cTest: UnicodeString = ''My class const'';', ConstByName(cls, 'cTest').GetDisplayName);
 
    CheckEquals('operator ^ (Float, Float) : Float uses FuncFloat', TdwsOperatorCracker(FUnit.Operators.Items[0]).GetDisplayName);
 end;
@@ -683,7 +683,7 @@ begin
    CheckEquals('function Func1(): Integer', sym.Description);
    CheckEquals('Func1: Integer', sym.Caption);
    sym:=prog.Table.FindSymbol('FuncOne', cvMagic);
-   CheckEquals('function FuncOne(): String', sym.Description);
+   CheckEquals('function FuncOne(): UnicodeString', sym.Description);
    sym:=prog.Table.FindSymbol('FuncOneDotFive', cvMagic);
    CheckEquals('function FuncOneDotFive(): Float', sym.Description);
    sym:=prog.Table.FindSymbol('FuncTrue', cvMagic);
@@ -709,8 +709,8 @@ begin
    sym:=symClass.Members.FindLocal('SetMyProp');
    CheckEquals('procedure SetMyProp(v: Integer)', sym.Description);
    sym:=symClass.Members.FindLocal('ArrayProp');
-   CheckEquals('property ArrayProp[v: String]: Integer read GetArrayProp', sym.Description);
-   CheckEquals('property ArrayProp[v: String]: Integer read GetArrayProp', sym.Caption);
+   CheckEquals('property ArrayProp[v: UnicodeString]: Integer read GetArrayProp', sym.Description);
+   CheckEquals('property ArrayProp[v: UnicodeString]: Integer read GetArrayProp', sym.Caption);
 end;
 
 // CompilationNormal
@@ -807,7 +807,7 @@ var
    funcInfo, funcResult : IInfo;
    exec : IdwsProgramExecution;
 begin
-   prog:=FCompiler.Compile( 'function Hello(name : String) : String;'
+   prog:=FCompiler.Compile( 'function Hello(name : UnicodeString) : UnicodeString;'
                            +'begin'
                            +'   Result:=''Hello ''+name;'
                            +'end;');
@@ -848,7 +848,7 @@ var
    exec : IdwsProgramExecution;
    paramString : UnicodeString;
 begin
-   prog:=FCompiler.Compile( 'function Hello(var name : String) : String;'
+   prog:=FCompiler.Compile( 'function Hello(var name : UnicodeString) : UnicodeString;'
                            +'begin'
                            +'   Result:=''was ''+name;'
                            +'   name:=''world'';'
@@ -1005,7 +1005,7 @@ var
    data : TData;
    myData : TData;
 begin
-   prog:=FCompiler.Compile( 'var astr : array of String;'#13#10
+   prog:=FCompiler.Compile( 'var astr : array of UnicodeString;'#13#10
                            +'astr.Add("hello");'#13#10
                            +'astr.Add("world");'#13#10
                            +'procedure MyTest; begin Print(astr.Length); Print(astr[0]); end;'#13#10
@@ -1019,7 +1019,7 @@ begin
 
       astr:=exec.Info.Vars['astr'];
 
-      CheckEquals('array of String', astr.ValueAsString, 'as string');
+      CheckEquals('array of UnicodeString', astr.ValueAsString, 'as UnicodeString');
 
       CheckEquals(0, astr.Member['low'].ValueAsInteger, 'low');
       CheckEquals(1, astr.Member['high'].ValueAsInteger, 'high');

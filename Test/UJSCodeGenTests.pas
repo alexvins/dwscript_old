@@ -15,8 +15,8 @@ type
          FASMModule : TdwsJSLibModule;
          FChromium : TChromium;
          FChromiumForm : TForm;
-         FLastJSResult : String;
-         FConsole : String;
+         FLastJSResult : UnicodeString;
+         FConsole : UnicodeString;
 
       public
          procedure SetUp; override;
@@ -26,10 +26,10 @@ type
                              const message: ustring; out Result: Boolean);
          procedure DoConsoleMessage(Sender: TObject; const browser: ICefBrowser; message, source: ustring;
                                     line: Integer; out Result: Boolean);
-         procedure DoInclude(const scriptName: string; var scriptSource: string);
-         function  DoNeedUnit(const unitName : String; var unitSource : String) : IdwsUnit;
+         procedure DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
+         function  DoNeedUnit(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit;
 
-         function GetExpectedResult(const fileName : String) : String;
+         function GetExpectedResult(const fileName : UnicodeString) : UnicodeString;
 
          procedure Compilation;
          procedure Execution;
@@ -129,7 +129,7 @@ end;
 
 // DoInclude
 //
-procedure TJSCodeGenTests.DoInclude(const scriptName: string; var scriptSource: string);
+procedure TJSCodeGenTests.DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 var
    sl : TStringList;
 begin
@@ -144,10 +144,10 @@ end;
 
 // DoNeedUnit
 //
-function TJSCodeGenTests.DoNeedUnit(const unitName : String; var unitSource : String) : IdwsUnit;
+function TJSCodeGenTests.DoNeedUnit(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit;
 var
    sl : TStringList;
-   fName : String;
+   fName : UnicodeString;
 begin
    fName:='BuildScripts\' + unitName + '.pas';
    if not FileExists(fName) then Exit(nil);
@@ -220,8 +220,8 @@ var
    source : TStringList;
    i, ignored : Integer;
    prog : IdwsProgram;
-   jscode : String;
-   output, expectedResult : String;
+   jscode : UnicodeString;
+   output, expectedResult : UnicodeString;
    diagnostic : TStringList;
 begin
    ignored:=0;
@@ -372,10 +372,10 @@ end;
 
 // GetExpectedResult
 //
-function TJSCodeGenTests.GetExpectedResult(const fileName : String) : String;
+function TJSCodeGenTests.GetExpectedResult(const fileName : UnicodeString) : UnicodeString;
 var
    expectedResult : TStringList;
-   resultsFileName : String;
+   resultsFileName : UnicodeString;
 begin
    expectedResult:=TStringList.Create;
    try

@@ -15,8 +15,8 @@ type
          FDebugger : TdwsDebugger;
 
          FDebugEvalAtLine : Integer;
-         FDebugEvalExpr : String;
-         FDebugLastEvalResult : String;
+         FDebugEvalExpr : UnicodeString;
+         FDebugLastEvalResult : UnicodeString;
 
          procedure DoCreateExternal(Info: TProgramInfo; var ExtObject: TObject);
          procedure DoCleanupExternal(externalObject : TObject);
@@ -48,13 +48,13 @@ implementation
 
 type
    TTestObject = class
-      FField : String;
-      constructor Create(const value : String);
+      FField : UnicodeString;
+      constructor Create(const value : UnicodeString);
    end;
 
 // Create
 //
-constructor TTestObject.Create(const value : String);
+constructor TTestObject.Create(const value : UnicodeString);
 begin
    FField:=value;
 end;
@@ -86,7 +86,7 @@ begin
    cst.OnEval:=DoCreateExternal;
 
    meth:=cls.Methods.Add as TdwsMethod;
-   meth.ResultType:='String';
+   meth.ResultType:='UnicodeString';
    meth.Name:='GetValue';
    meth.OnEval:=DoGetValue;
 end;
@@ -136,7 +136,7 @@ var
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
    expr : IdwsEvaluateExpr;
-   buf : String;
+   buf : UnicodeString;
 begin
    prog:=FCompiler.Compile('var i := 10;');
    try
@@ -243,7 +243,7 @@ var
    prog : IdwsProgram;
    breakpointables : TdwsBreakpointableLines;
 
-   function ReportBreakpointables : String;
+   function ReportBreakpointables : UnicodeString;
    var
       i, j : Integer;
       lines : TBits;

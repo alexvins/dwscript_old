@@ -165,7 +165,7 @@ var
    i : Integer;
    prog : IdwsProgram;
    expectedError : TStringList;
-   expectedErrorsFileName : String;
+   expectedErrorsFileName : UnicodeString;
 begin
    FCompiler.Config.CompilerOptions:=[coOptimize, coAssertions];
    source:=TStringList.Create;
@@ -200,8 +200,8 @@ var
    i : Integer;
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
-   resultsFileName : String;
-   output : String;
+   resultsFileName : UnicodeString;
+   output : UnicodeString;
 begin
    source:=TStringList.Create;
    expectedResult:=TStringList.Create;

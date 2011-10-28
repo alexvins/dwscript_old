@@ -258,7 +258,7 @@ type
 
          procedure AddString(const str : UnicodeString); override;
          procedure Clear; override;
-         function ToString : UnicodeString; {$IFDEF FPC} reintroduce; virtual; {$ELSE} override; {$ENDIF}
+         function ToString : UnicodeString; override;
 
          property Text: UnicodeString read GetText;
    end;
@@ -3147,7 +3147,7 @@ end;
 
 function TdwsResult.ToString: UnicodeString;
 begin
-  Result := Inherited ToString;
+  //Result := Inherited ToString;
 end;
 
 // ------------------

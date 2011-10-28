@@ -147,10 +147,10 @@ End;
 Function TDispItem.Call(Const AParams : Array Of Variant) : Variant;
 Const
 
- LineBreak : Array [Boolean] Of String = ('', sLineBreak);
+ LineBreak : Array [Boolean] Of UnicodeString = ('', sLineBreak);
 
  //
- Function _GetArrayInfo(Const AArray : Variant) : String;
+ Function _GetArrayInfo(Const AArray : Variant) : UnicodeString;
  Var
 
  Index : Integer;
@@ -168,7 +168,7 @@ Const
 Var
 
  Index : Integer;
- S     : String;
+ S     : UnicodeString;
 
 Begin
 
