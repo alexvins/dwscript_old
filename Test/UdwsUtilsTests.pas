@@ -4,9 +4,10 @@ unit UdwsUtilsTests;
 
 interface
 
-uses Windows, Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils{, dwsJSON};
+uses Windows, Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils, dwsJSON;
 
 type
+   TSimpleStackInt = TSimpleStack<Integer>;
 
    TdwsUtilsTests = class (TTestCase)
       private
@@ -24,9 +25,9 @@ type
          procedure WOBSBigFirstTest;
          procedure TightListTest;
          procedure LookupTest;
-        {
+
          procedure JSONTest;
-         procedure ParseJSON; }
+         procedure ParseJSON;
 
          procedure UnicodeCompareTextTest;
 
@@ -49,9 +50,9 @@ implementation
 //
 procedure TdwsUtilsTests.StackIntegerTest;
 var
-   stack : TSimpleStack<Integer>;
+   stack : TSimpleStackInt;
 begin
-   stack:=TSimpleStack<Integer>.Create;
+   stack:=TSimpleStackInt.Create;
 
    CheckEquals(0, stack.Count);
 
@@ -223,7 +224,7 @@ begin
       lookup.Free;
    end;
 end;
-     (*
+
 // JSONTest
 //
 procedure TdwsUtilsTests.JSONTest;
@@ -293,7 +294,7 @@ begin
    finally
       sl.Free;
    end;
-end;  *)
+end;
 
 // UnicodeCompareTextTest
 //

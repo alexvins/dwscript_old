@@ -17,7 +17,7 @@ type
          procedure SetUp; override;
          procedure TearDown; override;
 
-         procedure DoInclude(const scriptName: string; var scriptSource: string);
+         procedure DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 
          procedure Compilation;
          procedure Execution;
@@ -81,7 +81,7 @@ end;
 
 // DoInclude
 //
-procedure TScriptTests.DoInclude(const scriptName: string; var scriptSource: string);
+procedure TScriptTests.DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 var
    sl : TStringList;
 begin
@@ -130,8 +130,8 @@ var
    source, expectedResult : TStringList;
    i : Integer;
    prog : IdwsProgram;
-   resultsFileName : String;
-   output : String;
+   resultsFileName : UnicodeString;
+   output : UnicodeString;
    exec : IdwsProgramExecution;
 begin
    source:=TStringList.Create;
@@ -231,7 +231,7 @@ var
    i : Integer;
    prog : IdwsProgram;
    expectedError : TStringList;
-   expectedErrorsFileName : String;
+   expectedErrorsFileName : UnicodeString;
 begin
    source:=TStringList.Create;
    expectedError:=TStringList.Create;

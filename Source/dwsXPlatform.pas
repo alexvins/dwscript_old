@@ -59,6 +59,7 @@ type
    {$IFDEF FPC}
    PNativeInt = ^NativeInt;
    PNativeUInt = ^NativeUInt;
+   Int32 = longint;
    {$ELSE}
    {$IF CompilerVersion<22.0}
    // NativeUInt broken in D2009, and PNativeInt is missing in D2010
@@ -233,7 +234,7 @@ end;
 function GetExceptObject: TObject;
 begin
   {$IFDEF FPC}
-  Result := System.RaiseList.FObject;
+  Result := RaiseList.FObject;
   {$ELSE}
   Result := System.ExceptObject;
   {$ENDIF}
@@ -323,7 +324,7 @@ end;
 class function TPath.GetTempFileName : UnicodeString;
 {$IFDEF FPC}
 begin
-   Result:=SysUtils.GetTempFileName(SysUtils.GetTempDir(False),'DWS');
+   Result:=SysUtils.GetTempFileName(GetTempDir(False),'DWS');
 {$ELSE}
 {$IFDEF VER200} // Delphi 2009
 var

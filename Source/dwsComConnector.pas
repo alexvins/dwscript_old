@@ -25,7 +25,7 @@ interface
 
 uses Windows, Variants, Classes, SysUtils, SysConst, dwsComp, dwsSymbols,
    dwsExprs, dwsStrings, dwsFunctions, dwsStack, ComObj, ComConst, ActiveX,
-   AxCtrls, dwsOperators, dwsUtils;
+  { AxCtrls,} dwsOperators, dwsUtils, dwsXPlatform;
 
 const
   COM_ConnectorCaption = 'COM Connector 1.0';
@@ -440,8 +440,12 @@ begin
               // Transform Delphi-strings to OLE-strings
               with strings[strCount] do
               begin
-                BStr := StringToOleStr(UnicodeString(PVarData(PParams[x]).VUString));
+                BStr := StringToOleStr(VarDataToUniStr(PVarData(PParams[x])));
+                {$IFDEF FPC}
+                PStr := @(PVarData(PParams[x]).vstring);
+                {$ELSE}
                 PStr := @(PVarData(PParams[x]).VUString);
+                {$ENDIF}
                 argPtr.vt := VT_BSTR or VT_BYREF;
                 argPtr.pbstrVal := @BStr;
               end;

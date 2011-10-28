@@ -3,7 +3,7 @@ unit UMemoryTests;
 interface
 
 uses Windows, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
-   dwsComConnector, Variants, ActiveX, ComObj, dwsXPlatform, dwsUtils,
+   {dwsComConnector,} Variants, {ActiveX, ComObj,} dwsXPlatform, dwsUtils,
    dwsSymbols;
 
 type
@@ -140,7 +140,8 @@ end;
 //
 procedure TMemoryTests.DoCreateBoomExternal(Info: TProgramInfo; var ExtObject: TObject);
 begin
-   raise ETestFailure.Create('boom');
+   //raise ETestFailure.Create('boom');
+   raise Exception.Create('boom');
 end;
 
 // DoCleanupExternal

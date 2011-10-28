@@ -19,7 +19,7 @@ type
       procedure SetUp; override;
       procedure TearDown; override;
 
-      procedure DoInclude(const scriptName: string; var scriptSource: string);
+      procedure DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 
    published
       procedure TestHTMLScript;
@@ -75,8 +75,8 @@ end;
 
 procedure THTMLFilterTests.TestHTMLScript;
 var
-   s: string;
-   resultFileName : String;
+   s: UnicodeString;
+   resultFileName : UnicodeString;
    prog: IdwsProgram;
    sl : TStringList;
    exec : IdwsProgramExecution;
@@ -163,7 +163,7 @@ end;
 
 // DoInclude
 //
-procedure THTMLFilterTests.DoInclude(const scriptName: string; var scriptSource: string);
+procedure THTMLFilterTests.DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 var
   sl: TStringList;
 begin

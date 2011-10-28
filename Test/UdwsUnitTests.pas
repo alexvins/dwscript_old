@@ -11,7 +11,7 @@ type
       private
          FCompiler : TDelphiWebScript;
          FUnit : TdwsUnit;
-         FMagicVar : String;
+         FMagicVar : UnicodeString;
 
       public
          procedure SetUp; override;
@@ -594,7 +594,7 @@ end;
 //
 procedure TdwsUnitTests.DesignTimeDisplayValues;
 
-   function FuncByName(const aName : String) : TdwsFunctionCracker;
+   function FuncByName(const aName : UnicodeString) : TdwsFunctionCracker;
    var
       i : Integer;
    begin
@@ -602,7 +602,7 @@ procedure TdwsUnitTests.DesignTimeDisplayValues;
       Result:=TdwsFunctionCracker(FUnit.Functions.Items[i] as TdwsFunction);
    end;
 
-   function ClassByName(const aName : String) : TdwsClassCracker;
+   function ClassByName(const aName : UnicodeString) : TdwsClassCracker;
    var
       i : Integer;
    begin
@@ -610,7 +610,7 @@ procedure TdwsUnitTests.DesignTimeDisplayValues;
       Result:=TdwsClassCracker(FUnit.Classes.Items[i] as TdwsClass);
    end;
 
-   function PropertyByName(cls : TdwsClass; const aName : String) : TdwsPropertyCracker;
+   function PropertyByName(cls : TdwsClass; const aName : UnicodeString) : TdwsPropertyCracker;
    var
       i : Integer;
    begin
@@ -618,7 +618,7 @@ procedure TdwsUnitTests.DesignTimeDisplayValues;
       Result:=TdwsPropertyCracker(cls.Properties.Items[i] as TdwsProperty);
    end;
 
-   function MethodByName(cls : TdwsClass; const aName : String) : TdwsMethodCracker;
+   function MethodByName(cls : TdwsClass; const aName : UnicodeString) : TdwsMethodCracker;
    var
       i : Integer;
    begin
@@ -626,7 +626,7 @@ procedure TdwsUnitTests.DesignTimeDisplayValues;
       Result:=TdwsMethodCracker(cls.Methods.Items[i] as TdwsMethod);
    end;
 
-   function ConstByName(cls : TdwsClass; const aName : String) : TdwsClassConstantCracker;
+   function ConstByName(cls : TdwsClass; const aName : UnicodeString) : TdwsClassConstantCracker;
    var
       i : Integer;
    begin
@@ -634,7 +634,7 @@ procedure TdwsUnitTests.DesignTimeDisplayValues;
       Result:=TdwsClassConstantCracker(cls.Constants.Items[i] as TdwsConstant);
    end;
 
-   function EnumByName(const aName : String) : TdwsEnumerationCracker;
+   function EnumByName(const aName : UnicodeString) : TdwsEnumerationCracker;
    var
       i : Integer;
    begin
@@ -784,7 +784,7 @@ end;
 procedure TdwsUnitTests.ListOrdAutoEnum;
 var
    i : Integer;
-   script : String;
+   script : UnicodeString;
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
 begin
@@ -846,7 +846,7 @@ var
    prog : IdwsProgram;
    funcInfo : IInfo;
    exec : IdwsProgramExecution;
-   paramString : String;
+   paramString : UnicodeString;
 begin
    prog:=FCompiler.Compile( 'function Hello(var name : String) : String;'
                            +'begin'
