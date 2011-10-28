@@ -110,11 +110,13 @@ begin
   inherited SetUp;
   FCompiler := TDelphiWebScript.Create(nil);
   FProg     := nil;
+  FExec := nil;
 end;
 
 procedure TDWSTestCaseBase.TearDown;
 begin
-  FreeAndNil(FProg);
+  FExec := nil;
+  FProg := nil;
   FreeAndNil(FCompiler);
   inherited TearDown;
 end;
