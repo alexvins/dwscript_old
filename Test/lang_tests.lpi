@@ -148,7 +148,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="17">
+    <Exceptions Count="18">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -200,6 +200,9 @@
       <Item17>
         <Name Value="EGenerationError"/>
       </Item17>
+      <Item18>
+        <Name Value="EScriptStackOverflow"/>
+      </Item18>
     </Exceptions>
   </Debugging>
 </CONFIG>
