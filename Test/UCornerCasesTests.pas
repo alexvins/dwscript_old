@@ -220,16 +220,6 @@ end;
 // IncludeViaFile
 //
 procedure TCornerCasesTests.IncludeViaFile;
-
-   function GetTemporaryFilesPath : UnicodeString;
-   var
-      n: Integer;
-   begin
-      SetLength(Result, MAX_PATH);
-      n:=GetTempPath(MAX_PATH-1, PChar(Result));
-      SetLength(Result, n);
-   end;
-
 var
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
@@ -239,7 +229,7 @@ var
 begin
    FCompiler.OnInclude:=nil;
 
-   tempDir:=GetTemporaryFilesPath;
+   tempDir:= dwsXPlatform.TPath.GetTemporaryFilesPath;
    tempFile:=tempDir+'test.dummy';
 
    sl:=TStringList.Create;
@@ -268,16 +258,6 @@ end;
 // IncludeViaFileRestricted
 //
 procedure TCornerCasesTests.IncludeViaFileRestricted;
-
-   function GetTemporaryFilesPath : UnicodeString;
-   var
-      n: Integer;
-   begin
-      SetLength(Result, MAX_PATH);
-      n:=GetTempPath(MAX_PATH-1, PChar(Result));
-      SetLength(Result, n);
-   end;
-
 var
    prog : IdwsProgram;
    exec : IdwsProgramExecution;
@@ -290,7 +270,7 @@ begin
    FCompiler.OnInclude:=nil;
    FCompiler.Config.CompileFileSystem:=restricted;
 
-   tempDir:=GetTemporaryFilesPath;
+   tempDir:=dwsXPlatform.TPath.GetTemporaryFilesPath;
    tempFile:=tempDir+'test.dummy';
 
    sl:=TStringList.Create;

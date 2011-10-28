@@ -711,7 +711,7 @@ type
       protected
          class function GetSymbolClass : TdwsSymbolClass; override;
       public
-         function Add : TdwsMember; inline;
+         function Add : TdwsMember; {inline;} //todo: remove temp fix
    end;
 
    { TdwsRecord }
@@ -736,7 +736,7 @@ type
       protected
          class function GetSymbolClass: TdwsSymbolClass; override;
       public
-         function Add : TdwsRecord; inline;
+         function Add : TdwsRecord; {inline;} //todo: remove temp fix
    end;
 
   TdwsRecordsClass = class of TdwsRecords;
@@ -763,7 +763,7 @@ type
       protected
          class function GetSymbolClass : TdwsSymbolClass; override;
       public
-         function Add : TdwsElement; inline;
+         function Add : TdwsElement; {inline;} //todo: remove temp fix
    end;
 
   { TdwsEnumeration }
@@ -1848,7 +1848,7 @@ begin
         case PropList^[i]^.PropType^.Kind of
         tkInteger : PropertyType := SYS_INTEGER;
         tkFloat : PropertyType := SYS_FLOAT;
-        tkString, tkLString, tkWString : PropertyType := SYS_STRING;
+        tkString, tkLString, tkWString{$IFDEF FPC} , tkUString {$ENDIF} : PropertyType := SYS_STRING;
         tkVariant : PropertyType := SYS_VARIANT;
         tkEnumeration :    // Booleans are reported as enumerations. Only support booleans
           begin

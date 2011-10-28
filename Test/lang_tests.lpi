@@ -128,8 +128,6 @@
     <CodeGeneration>
       <Checks>
         <IOChecks Value="True"/>
-        <RangeChecks Value="True"/>
-        <OverflowChecks Value="True"/>
       </Checks>
     </CodeGeneration>
     <Linking>
@@ -150,7 +148,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="15">
+    <Exceptions Count="17">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -196,6 +194,12 @@
       <Item15>
         <Name Value="EIntOverflow"/>
       </Item15>
+      <Item16>
+        <Name Value="EHandledGenerationError"/>
+      </Item16>
+      <Item17>
+        <Name Value="EGenerationError"/>
+      </Item17>
     </Exceptions>
   </Debugging>
 </CONFIG>

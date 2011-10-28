@@ -90,8 +90,11 @@ type
     TRTTIInfo = PPTypeInfo;
   {$ENDIF}
 
+   { TPath }
+
    TPath = class
       class function GetTempFileName : UnicodeString; static;
+      class function GetTemporaryFilesPath : UnicodeString; static;
    end;
 
    TFile = class
@@ -340,6 +343,15 @@ begin
    Result:=IOUTils.TPath.GetTempFileName;
 {$ENDIF}
 {$ENDIF}
+end;
+
+class function TPath.GetTemporaryFilesPath: UnicodeString;
+begin
+  {$IFDEF FPC}
+  Result := SysUtils.GetTempDir(False);
+  {$ELSE}
+  {$ERROR NOT IMPLEMENTED}
+  {$ENDIF}
 end;
 
 // ------------------
