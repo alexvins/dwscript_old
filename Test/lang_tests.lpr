@@ -6,7 +6,7 @@ uses
   Interfaces, Forms, GuiTestRunner, dws_fpcunit, UTestDispatcher,
   UAlgorithmsTests, UCornerCasesTests, UdwsFunctionsTests, UdwsUnitTests,
   UdwsUtilsTests, UHTMLFilterTests, UMemoryTests, UScriptTests,
-  dwsXPlatformTests;
+  dwsXPlatformTests, UBuildTests;
 
 {$R *.res}
 

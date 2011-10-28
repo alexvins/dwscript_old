@@ -9,7 +9,7 @@ unit UBuildTests;
 
 interface
 
-uses Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs, dwsUtils,
+uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs, dwsUtils,
    dwsXPlatform, dwsSymbols, dwsFunctions;
 
 type
@@ -251,6 +251,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('BuildTests', TBuildTests.Suite);
+   RegisterTest('BuildTests', TBuildTests);
 
 end.

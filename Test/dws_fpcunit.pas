@@ -70,6 +70,7 @@ type
     procedure CompilationWithMapAndSymbols;
     procedure ExecutionNonOptimized;
     procedure ExecutionOptimized;
+    procedure ExecutionThreaded;
   end;
 
   TDWSCompilerTestCaseClass = class of TDWSCompilerTestCase;
@@ -355,6 +356,11 @@ procedure TDWSCompilerTestCase.ExecutionOptimized;
 begin
   SetOptions([coOptimize]);
   Execution;
+end;
+
+procedure TDWSCompilerTestCase.ExecutionThreaded;
+begin
+  //TODO:TDWSCompilerTestCase.ExecutionThreaded
 end;
 
 end.

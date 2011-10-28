@@ -44,7 +44,7 @@
         <PackageName Value="FCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="13">
       <Unit0>
         <Filename Value="lang_tests.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -105,6 +105,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="dwsXPlatformTests"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="UBuildTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UBuildTests"/>
+      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
