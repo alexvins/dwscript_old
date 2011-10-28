@@ -6,8 +6,9 @@
 /Test/units/*
 *.compiled
 
-/Test/heap.txt
-/Test/t.bat
+/Test/*.txt
+/Test/*.log
+/Test/*.bat
 /makefile.*
 /makefile
 /*.bat
