@@ -599,7 +599,7 @@ var
 begin
    RandSeed:=0;
 
-   for i:=1 to 2000 do begin
+   for i:=1 to 200 do begin //todo: revert to 2000
       n:=Random(10)+2;
       s:='';
       while n>0 do begin
