@@ -500,15 +500,14 @@ end;
 
 // GetCaption
 //
+function SafeSymbolName(symbol : TSymbol) : UnicodeString;
+begin
+   if symbol<>nil then
+      Result:=symbol.Name
+   else Result:='???';
+end;
+
 function TdwsSuggestions.GetCaption(i : Integer) : UnicodeString;
-
-   function SafeSymbolName(symbol : TSymbol) : UnicodeString;
-   begin
-      if symbol<>nil then
-         Result:=symbol.Name
-      else Result:='???';
-   end;
-
 var
    symbol : TSymbol;
    funcSym : TFuncSymbol;

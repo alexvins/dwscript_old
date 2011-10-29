@@ -1385,8 +1385,8 @@ end;
 // MapSymbol
 //
 function TdwsCodeGenSymbolMap.MapSymbol(symbol : TSymbol; scope : TdwsCodeGenSymbolScope; canObfuscate : Boolean) : UnicodeString;
-
-   function NewName : UnicodeString;
+   {
+   function NewName : UnicodeString; //workaround for mantis 18702
    var
       i : Integer;
    begin
@@ -1401,11 +1401,24 @@ function TdwsCodeGenSymbolMap.MapSymbol(symbol : TSymbol; scope : TdwsCodeGenSym
       FLookup.Symbol:=symbol;
       FHash.Add(FLookup);
    end;
-
+   }
+var
+   i : Integer;
 begin
    Result:=SymbolToName(symbol);
    if Result='' then
-      Result:=NewName;
+   begin
+      i:=0;
+      Result:=DoNeedUniqueName(symbol, i, canObfuscate);
+      while NameToSymbol(Result, scope)<>nil do begin
+         Inc(i);
+         Result:=DoNeedUniqueName(symbol, i, canObfuscate);
+      end;
+      FNames.AddObject(Result, symbol);
+      FLookup.Name:=Result;
+      FLookup.Symbol:=symbol;
+      FHash.Add(FLookup);
+   end;
 end;
 
 // DoNeedUniqueName
