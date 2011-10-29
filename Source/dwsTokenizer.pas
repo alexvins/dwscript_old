@@ -284,8 +284,8 @@ const cReservedNames : TTokenTypes = [
    ttTYPE, ttUNIT, ttUNTIL, ttUSES, ttVAR, ttWHILE, ttXOR
    ];
 
-const
-   cFormatSettings : TFormatSettings = ( DecimalSeparator : '.' );
+var
+   cFormatSettings : TFormatSettings;
 
 // AppendChar
 //
@@ -1174,7 +1174,8 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
-
+   cFormatSettings := SysUtils.FormatSettings;
+   cFormatSettings.DecimalSeparator := '.';
    PrepareAlphaToTokenType;
 
 end.

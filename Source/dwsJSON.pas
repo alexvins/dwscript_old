@@ -346,7 +346,7 @@ begin
             localBufferPtr:=@localBuffer[0];
          end else Inc(localBufferPtr);
       until False;
-      n:=(NativeInt(localBufferPtr)-NativeInt(@localBuffer[0])) div SizeOf(WideChar);
+      n:=(NativeUInt(localBufferPtr)-NativeUInt(@localBuffer[0])) div SizeOf(WideChar);
       if wobs<>nil then begin
          nw:=(wobs.Size div SizeOf(WideChar));
          SetLength(Result, n+nw);
@@ -520,8 +520,8 @@ function TStringCharProvider.Location : UnicodeString;
 begin
    Result:=Format('line %d, col %d (offset %d)',
                   [Line+1,
-                   (NativeInt(Ptr)-NativeInt(ColStart)) div SizeOf(WideChar)+1,
-                   (NativeInt(Ptr)-NativeInt(PWideChar(Str))) div SizeOf(WideChar)+1]);
+                   (NativeUInt(Ptr)-NativeUInt(ColStart)) div SizeOf(WideChar)+1,
+                   (NativeUInt(Ptr)-NativeUInt(PWideChar(Str))) div SizeOf(WideChar)+1]);
 end;
 
 // ParseString

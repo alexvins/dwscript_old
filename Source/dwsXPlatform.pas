@@ -165,10 +165,15 @@ function UTCDateTime : TDateTime;
 var
    systemTime : TSystemTime;
 begin
-   GetSystemTime(systemTime);
+   GetSystemTime(systemTime); //todo: crossplatform solution
+   {$IFDEF FPC}
+   Result := SystemTimeToDateTime(systemTime);
+   {$ELSE}
    with systemTime do
       Result:= EncodeDate(wYear, wMonth, wDay)
               +EncodeTime(wHour, wMinute, wSecond, wMilliseconds);
+   {$ENDIF}
+
 end;
 
 // AnsiCompareText

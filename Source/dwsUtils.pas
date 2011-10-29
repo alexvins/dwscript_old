@@ -171,7 +171,7 @@ type
          FCount : Integer;
       protected
          function GetItem(index : Integer) : T;
-         function Find(const item : T; var index : Integer) : Boolean;
+         function Find(const item : T; out index : Integer) : Boolean;
          function Compare(const item1, item2 : T) : Integer; virtual; {$IFNDEF FPC} abstract;  {$ENDIF}
          procedure InsertItem(index : Integer; const anItem : T);
       public
@@ -492,11 +492,11 @@ begin
          n2:=Length(s2);
          dn:=n1-n2;
          if dn<0 then begin
-            Result:=UnicodeCompareLen(PWideChar(NativeInt(s1)), PWideChar(NativeInt(s2)), n1);
+            Result:=UnicodeCompareLen(PWideChar(NativeUint(s1)), PWideChar(NativeUint(s2)), n1);
             if Result=0 then
                Result:=-1;
          end else begin
-            Result:=UnicodeCompareLen(PWideChar(NativeInt(S1)), PWideChar(NativeInt(s2)), n2);
+            Result:=UnicodeCompareLen(PWideChar(NativeUint(S1)), PWideChar(NativeUint(s2)), n2);
             if (Result=0) and (dn>0) then
                Result:=1;
          end;
@@ -995,7 +995,7 @@ end;
 
 // Find
 //
-function TSortedList<T>.Find(const item : T; var index : Integer) : Boolean;
+function TSortedList<T>.Find(const item : T; out index : Integer) : Boolean;
 var
    lo, hi, mid, compResult : Integer;
 begin
