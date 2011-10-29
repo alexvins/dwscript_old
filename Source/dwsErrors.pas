@@ -24,7 +24,7 @@ unit dwsErrors;
 interface
 
 uses
-   Classes, SysUtils, dwsStrings, dwsUtils;
+   Classes, SysUtils, dwsStrings, dwsUtils, dwsXPlatform;
 
 type
 
@@ -320,17 +320,17 @@ begin
       Result:=''
    else begin
       if not IsMainModule then
-         Result:=Format(MSG_ScriptPosFile, [SourceFile.Name])
+         Result:=dwsFormat(MSG_ScriptPosFile, [SourceFile.Name])
       else Result:='';
       if Col<>cNullPos.Col then begin
          if Result<>'' then
             Result:=', '+Result;
-         Result:=Format(MSG_ScriptPosColumn, [Col])+Result;
+         Result:=dwsFormat(MSG_ScriptPosColumn, [Col])+Result;
       end;
       if Line<>cNullPos.Line then begin
          if Result<>'' then
             Result:=', '+Result;
-         Result:=Format(MSG_ScriptPosLine, [Line])+Result;
+         Result:=dwsFormat(MSG_ScriptPosLine, [Line])+Result;
       end;
       if Result<>'' then
          Result:=' ['+Result+']';
@@ -472,7 +472,7 @@ end;
 //
 function TInfoMessage.AsInfo: UnicodeString;
 begin
-   Result:=Format(MSG_Info, [Text]);
+   Result:=dwsFormat(MSG_Info, [Text]);
 end;
 
 // ------------------
@@ -502,7 +502,7 @@ end;
 //
 function THintMessage.AsInfo: UnicodeString;
 begin
-   Result:=Format(MSG_Hint, [inherited AsInfo]);
+   Result:=dwsFormat(MSG_Hint, [inherited AsInfo]);
 end;
 
 // ------------------
@@ -513,7 +513,7 @@ end;
 //
 function TWarningMessage.AsInfo: UnicodeString;
 begin
-   Result:=Format(MSG_Warning, [inherited AsInfo]);
+   Result:=dwsFormat(MSG_Warning, [inherited AsInfo]);
 end;
 
 // ------------------
@@ -524,7 +524,7 @@ end;
 //
 function TCompilerErrorMessage.AsInfo: UnicodeString;
 begin
-   Result:=Format(MSG_CompileError, [inherited AsInfo]);
+   Result:=dwsFormat(MSG_CompileError, [inherited AsInfo]);
 end;
 
 // ------------------
@@ -535,7 +535,7 @@ end;
 //
 function TSyntaxErrorMessage.AsInfo: UnicodeString;
 begin
-   Result:=Format(MSG_SyntaxError, [inherited AsInfo]);
+   Result:=dwsFormat(MSG_SyntaxError, [inherited AsInfo]);
 end;
 
 // ------------------
@@ -561,7 +561,7 @@ end;
 //
 procedure TdwsCompileMessageList.AddCompilerHintFmt(const Pos: TScriptPos; const textFormat : UnicodeString; const args: array of const);
 begin
-   AddCompilerHint(Pos, Format(textFormat, args));
+   AddCompilerHint(Pos, dwsFormat(textFormat, args));
 end;
 
 // AddCompilerWarning
@@ -576,7 +576,7 @@ end;
 //
 procedure TdwsCompileMessageList.AddCompilerWarningFmt(const Pos: TScriptPos; const textFormat : UnicodeString; const args: array of const);
 begin
-   AddCompilerWarning(Pos, Format(textFormat, args));
+   AddCompilerWarning(Pos, dwsFormat(textFormat, args));
 end;
 
 // AddCompilerError
@@ -599,7 +599,7 @@ end;
 procedure TdwsCompileMessageList.AddCompilerErrorFmt(const Pos: TScriptPos;
    const textFormat: UnicodeString; const args: array of const; messageClass : TScriptMessageClass);
 begin
-   AddCompilerError(Pos, Format(textFormat, args), messageClass);
+   AddCompilerError(Pos, dwsFormat(textFormat, args), messageClass);
 end;
 
 // AddCompilerErrorFmt
@@ -630,14 +630,14 @@ end;
 procedure TdwsCompileMessageList.AddCompilerStopFmt(const Pos: TScriptPos; const textFormat : UnicodeString;
                                    const args: array of const; messageClass : TScriptMessageClass);
 begin
-   AddCompilerStop(Pos, Format(textFormat, args), messageClass);
+   AddCompilerStop(Pos, dwsFormat(textFormat, args), messageClass);
 end;
 
 // AddCompilerStopFmt
 //
 procedure TdwsCompileMessageList.AddCompilerStopFmt(const Pos: TScriptPos; const textFormat : UnicodeString; const args: array of const);
 begin
-   AddCompilerStop(Pos, Format(textFormat, args), TSyntaxErrorMessage);
+   AddCompilerStop(Pos, dwsFormat(textFormat, args), TSyntaxErrorMessage);
 end;
 
 end.

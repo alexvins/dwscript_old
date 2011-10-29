@@ -6260,7 +6260,7 @@ begin
    FExceptionExpr.EvalAsVariant(exec, exceptVal);
    exceptMessage:=VarToStr(IScriptObj(IUnknown(exceptVal)).GetData[0]);
    if exceptMessage<>'' then
-      raise EScriptException.Create(Format(RTE_UserDefinedException_Msg, [exceptMessage]),
+      raise EScriptException.Create(dwsFormat(RTE_UserDefinedException_Msg, [exceptMessage]),
                                     exceptVal, FExceptionExpr.Typ, FScriptPos)
    else raise EScriptException.Create(RTE_UserDefinedException,
                                       exceptVal, FExceptionExpr.Typ, FScriptPos);

@@ -146,6 +146,10 @@ function GetParentTypeInfo(info: TRTTIInfo):TRTTIInfo;
 
 function UnicodeStringOfChar(c: WideChar; i: SizeInt):UnicodeString;
 
+Function dwsFormat (Const Fmt : UnicodeString; const Args : Array of const) : UnicodeString; overload; {$IFNDEF FPC} inline; {$ENDIF}
+Function dwsFormat (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString; overload;{$IFNDEF FPC} inline; {$ENDIF}
+
+
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -263,6 +267,26 @@ function UnicodeStringOfChar(c: WideChar; i: SizeInt): UnicodeString;
 begin
   SetLength(Result,i);
   FillWord(Result[1],i,Word(c));
+end;
+
+function dwsFormat(const Fmt: UnicodeString;
+  const Args: array of const): UnicodeString;
+begin
+  {$IFDEF FPC}
+  Result := UnicodeFormat(Fmt, Args);
+  {$ELSE}
+  Result := Format(Fmt, Args);
+  {$ENDIF}
+end;
+
+function dwsFormat(const Fmt: UnicodeString; const Args: array of const;
+  const FormatSettings: TFormatSettings): UnicodeString;
+begin
+  {$IFDEF FPC}
+  Result := UnicodeFormat(Fmt, Args, FormatSettings);
+  {$ELSE}
+  Result := Format(Fmt, Args, FormatSettings);
+  {$ENDIF}
 end;
 
 // SetDecimalSeparator

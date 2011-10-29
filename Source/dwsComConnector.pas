@@ -58,7 +58,7 @@ procedure DwsOleCheck(Result: HResult);
 
    procedure RaiseOleError;
    begin
-      raise EOleSysError.Create(Format('OLE Error %.8x (%s)',
+      raise EOleSysError.Create(dwsFormat('OLE Error %.8x (%s)',
                                        [Cardinal(Result), SysErrorMessage(Cardinal(Result))]),
                                 Result, 0);
    end;

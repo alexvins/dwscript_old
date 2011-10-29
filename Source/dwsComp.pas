@@ -1062,9 +1062,9 @@ begin
       varNull :
          Result := 'Null';
       varString, varUString, varOleStr, varStrArg :
-         Result := Format('''%s''', [VarToStr(value)]);
+         Result := dwsFormat('''%s''', [VarToStr(value)]);
       varDate :
-         Result := Format('DateTime(%f)', [TVarData(value).VDate]);
+         Result := dwsFormat('DateTime(%f)', [TVarData(value).VDate]);
    else
       Result := VarToStr(value);
    end;
@@ -1996,7 +1996,7 @@ begin
    valAsString:=VarToStr(Value);
    if SameText(DataType, SYS_STRING) then  // just for show
       valAsString:=''''+valAsString+'''';
-   Result := Format('const %s: %s = %s;', [Name, DataType, valAsString]);
+   Result := dwsFormat('const %s: %s = %s;', [Name, DataType, valAsString]);
 end;
 
 { TdwsVariable }
@@ -2226,7 +2226,7 @@ begin
    else if IsLazy then
       Result:='lazy '+Result;
    if HasDefaultValue then
-      Result:=Result+Format(' = %s', [ValueToString(DefaultValue)]);
+      Result:=Result+dwsFormat(' = %s', [ValueToString(DefaultValue)]);
 end;
 
 procedure TdwsParameter.SetDefaultValue(const Value: Variant);
@@ -2410,8 +2410,8 @@ begin
    if Result<>'' then
       Result:='('+Result+')';
    if ResultType='' then
-      Result:=Format('procedure %s%s;', [Name, Result])
-   else Result:=Format('function %s%s : %s;', [Name, Result, ResultType]);
+      Result:=dwsFormat('procedure %s%s;', [Name, Result])
+   else Result:=dwsFormat('function %s%s : %s;', [Name, Result, ResultType]);
    if Deprecated<>'' then
       Result:=Result+' deprecated;'
 end;
@@ -2498,17 +2498,17 @@ begin
 
    case FKind of
       mkProcedure:
-         Result:=Format('procedure %s%s;', [Name, Result]);
+         Result:=dwsFormat('procedure %s%s;', [Name, Result]);
       mkFunction:
-         Result:=Format('function %s%s : %s;', [Name, Result, ResultType]);
+         Result:=dwsFormat('function %s%s : %s;', [Name, Result, ResultType]);
       mkConstructor:
-         Result:=Format('constructor %s%s;', [Name, Result]);
+         Result:=dwsFormat('constructor %s%s;', [Name, Result]);
       mkDestructor:
-         Result:=Format('destructor %s%s;', [Name, Result]);
+         Result:=dwsFormat('destructor %s%s;', [Name, Result]);
       mkClassProcedure:
-         Result:=Format('class procedure %s%s;', [Name, Result]);
+         Result:=dwsFormat('class procedure %s%s;', [Name, Result]);
       mkClassFunction:
-         Result:=Format('class function %s%s : %s;', [Name, Result, ResultType]);
+         Result:=dwsFormat('class function %s%s : %s;', [Name, Result, ResultType]);
    else
       Assert(false); // if triggered, this func needs upgrade !
    end;
@@ -2647,7 +2647,7 @@ begin
   if Result <> '' then
     Result := '(' + Result + ')';
 
-  Result:=TClassSymbol.VisibilityToString(Visibility)+Format(' constructor %s%s;', [Name, Result]);
+  Result:=TClassSymbol.VisibilityToString(Visibility)+dwsFormat(' constructor %s%s;', [Name, Result]);
 end;
 
 function TdwsConstructor.GetResultType: UnicodeString;
@@ -3002,9 +3002,9 @@ end;
 function TdwsArray.GetDisplayName: AnsiString;
 begin
   if IsDynamic then
-    Result := Format('%s = array of %s', [Name, DataType])
+    Result := dwsFormat('%s = array of %s', [Name, DataType])
   else
-    Result := Format('%s = array [%d .. %d] of %s', [Name, LowBound, HighBound,
+    Result := dwsFormat('%s = array [%d .. %d] of %s', [Name, LowBound, HighBound,
       DataType]);
 end;
 
@@ -3197,7 +3197,7 @@ end;
 
 function TdwsClassOperator.GetDisplayName: AnsiString;
 begin
-   Result:=Format('operator %s %s uses %s;', [cTokenStrings[FOperator], DataType, UsesAccess])
+   Result:=dwsFormat('operator %s %s uses %s;', [cTokenStrings[FOperator], DataType, UsesAccess])
 end;
 
 { TdwsSymbol }
@@ -3290,7 +3290,7 @@ end;
 
 function TdwsForward.GetDisplayName: AnsiString;
 begin
-  Result := Format('type %s = class;', [Name]);
+  Result := dwsFormat('type %s = class;', [Name]);
 end;
 
 { TReadVarEventFunc }

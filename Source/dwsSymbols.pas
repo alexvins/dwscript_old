@@ -3117,7 +3117,7 @@ end;
 //
 function TPropertySymbol.GetDescription : UnicodeString;
 begin
-   Result := Format('property %s%s: %s', [Name, GetArrayIndicesDescription, Typ.Name]);
+   Result := dwsFormat('property %s%s: %s', [Name, GetArrayIndicesDescription, Typ.Name]);
 
    if Assigned(FIndexSym) then
       Result:=Result+' index '+VarToStr(FIndexValue[0]);
@@ -5393,7 +5393,7 @@ begin
    if Length(FCallStack)>0 then begin
       Result:=result+#13#10+TExprBase.CallStackToString(FCallStack);
    end;
-   Result:=Format(MSG_RuntimeError, [Result]);
+   Result:=dwsFormat(MSG_RuntimeError, [Result]);
 end;
 
 // ------------------

@@ -334,8 +334,8 @@ begin
       if p<0 then begin
          p10:=Power(10, p);
          v:=Round(v*p10)/p10;
-         Result:=Format('%.0f', [v]);
-      end else Result:=Format('%.*f', [p, v]);
+         Result:=dwsFormat('%.0f', [v]);
+      end else Result:=dwsFormat('%.*f', [p, v]);
    end;
 end;
 
@@ -780,7 +780,7 @@ begin
    // current implementation, limitations may be relaxed later
    if varRecs=nil then raise EScriptError.Create('Constant expression or open array expected');
    try
-      Result:=Format(args.AsString[0], varRecs.VarRecArray);
+      Result:=dwsFormat(args.AsString[0], varRecs.VarRecArray);
    finally
       varRecs.Free;
    end;

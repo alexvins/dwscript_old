@@ -969,7 +969,7 @@ procedure TdwsCodeGen.EnterContext(proc : TdwsProgram);
            if FLocalVarSymbolMap.IndexOf(sym.Name)>=0 then begin
               n:=1;
               repeat
-                 locName:=Format('%s_%d', [sym.Name, n]);
+                 locName:=dwsFormat('%s_%d', [sym.Name, n]);
                  k:=FLocalVarSymbolMap.IndexOf(locName);
                  Inc(n);
               until k<0;
@@ -1017,7 +1017,7 @@ begin
                if FLocalVarSymbolMap.IndexOf(sym.Name)>=0 then begin
                   n:=1;
                   repeat
-                     locName:=Format('%s_%d', [sym.Name, n]);
+                     locName:=dwsFormat('%s_%d', [sym.Name, n]);
                      k:=FLocalVarSymbolMap.IndexOf(locName);
                      Inc(n);
                   until k<0;
@@ -1415,11 +1415,11 @@ begin
    if symbol.Name='' then begin
       if tryCount=0 then
          Result:='a$'
-      else Result:=Format('a$%d', [tryCount]);
+      else Result:=dwsFormat('a$%d', [tryCount]);
    end else begin;
       if tryCount=0 then
          Result:=Prefix+symbol.Name
-      else Result:=Format('%s%s$%d', [Prefix, symbol.Name, tryCount]);
+      else Result:=dwsFormat('%s%s$%d', [Prefix, symbol.Name, tryCount]);
    end;
 end;
 

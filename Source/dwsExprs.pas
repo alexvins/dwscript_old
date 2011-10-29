@@ -2405,7 +2405,7 @@ var
    exceptObj : IScriptObj;
    fmtMsg : UnicodeString;
 begin
-   fmtMsg:=Format(fmt, args);
+   fmtMsg:=dwsFormat(fmt, args);
    exceptObj:=IScriptObj(IUnknown(ProgramInfo.Vars[SYS_EASSERTIONFAILED].Method[SYS_TOBJECT_CREATE].Call([fmtMsg]).Value));
    (exceptObj.ExternalObject as TdwsExceptionContext).Skip(1); // temporary constructor expression
    raise EScriptAssertionFailed.Create(fmtMsg, exceptObj, scriptPos)

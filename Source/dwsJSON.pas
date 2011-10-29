@@ -424,7 +424,7 @@ begin
    for c in str do begin
       case c of
          #0..#7, #9, #11, #12, #14..#31, #255..#65535 :
-            destStream.WriteString(Format('\u%.04x', [Ord(c)]));
+            destStream.WriteString(dwsFormat('\u%.04x', [Ord(c)]));
          #8 : destStream.WriteString('\t');
          #10 : destStream.WriteString('\n');
          #13 : destStream.WriteString('\r');
@@ -518,7 +518,7 @@ end;
 //
 function TStringCharProvider.Location : UnicodeString;
 begin
-   Result:=Format('line %d, col %d (offset %d)',
+   Result:=dwsFormat('line %d, col %d (offset %d)',
                   [Line+1,
                    (NativeUInt(Ptr)-NativeUInt(ColStart)) div SizeOf(WideChar)+1,
                    (NativeUInt(Ptr)-NativeUInt(PWideChar(Str))) div SizeOf(WideChar)+1]);

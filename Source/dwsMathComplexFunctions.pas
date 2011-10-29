@@ -124,10 +124,10 @@ begin
    r:=c.Member['Re'].ValueAsFloat;
    i:=c.Member['Im'].ValueAsFloat;
    if i>0 then
-      info.ResultAsString:= Format('%f + %fi', [r, i])
+      info.ResultAsString:= dwsFormat('%f + %fi', [r, i])
    else if i<0 then
-      info.ResultAsString:=Format('%f - %fi', [r, Abs(i)])
-   else info.ResultAsString:=Format('%f', [r]);
+      info.ResultAsString:=dwsFormat('%f - %fi', [r, Abs(i)])
+   else info.ResultAsString:=dwsFormat('%f', [r]);
 end;
 
 // ------------------
