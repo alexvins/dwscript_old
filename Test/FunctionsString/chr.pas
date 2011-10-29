@@ -1,4 +1,4 @@
-﻿if Chr($41)<>'A' then PrintLn('bug A');
+if Chr($41)<>'A' then PrintLn('bug A');
 if Chr($263A)<>'☺' then PrintLn('bug smiling face');
 if Chr($10000)<>#$D800#$DC00 then PrintLn('bug U+10000');
 if Chr($103FF)<>#$D800#$DFFF then PrintLn('bug U+103FF');
