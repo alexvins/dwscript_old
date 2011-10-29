@@ -1,5 +1,5 @@
-PrintLn(UpperCase('Hello éric!'));
-PrintLn(AnsiUpperCase('Hello éric!'));
+PrintLn(UpperCase('Hello Ð¹ric!'));
+PrintLn(AnsiUpperCase('Hello Ð¹ric!'));
 
-PrintLn(LowerCase('Hello éric!'));
-PrintLn(AnsiLowerCase('Hello éric!'));
+PrintLn(LowerCase('Hello Ð™ric!'));
+PrintLn(AnsiLowerCase('Hello Ð™ric!'));

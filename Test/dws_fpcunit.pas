@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform;
+  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform, FileUtil;
 
 type
 
@@ -26,7 +26,7 @@ type
     procedure SetMaxRecursionDepth(AValue: Integer);
     procedure SetMaxDataSize(AValue: Integer);
     procedure Compile(const ASource: UnicodeString);
-    procedure Compile(const ASource: TStrings);
+    //procedure Compile(const ASource: TStrings);
     procedure Execute;
     procedure ExecuteWTimeout(TimeOut: Integer);
 
@@ -46,7 +46,7 @@ type
     FOldDS: Char;
   strict protected
     FTestFilename: UnicodeString;
-    FSource: TStringList;
+    FSource: UnicodeString;
     FResultFileName: UnicodeString;
     FExpectedResult: TStringList;
   protected
@@ -162,10 +162,10 @@ begin
   FProg := FCompiler.Compile(ASource);
 end;
 
-procedure TDWSTestCaseBase.Compile(const ASource: TStrings);
-begin
-  Compile(ASource.Text);
-end;
+//procedure TDWSTestCaseBase.Compile(const ASource: TStrings);
+//begin
+//  Compile(ASource.Text);
+//end;
 
 procedure TDWSTestCaseBase.Execute;
 begin
@@ -290,11 +290,11 @@ begin
   FOldDS := GetDecimalSeparator;
   SetDecimalSeparator('.');
 
-  FSource := TStringList.Create;
-  FSource.LoadFromFile(FTestFilename);
+  FSource := UTF8Decode(ReadFileToString(UTF8Encode(FTestFilename)));
 
   FResultFileName := ChangeFileExt(FTestFilename, '.txt');
   FExpectedResult := TStringList.Create;
+
   if FileExists(FResultFileName) then
   begin
     FExpectedResult.LoadFromFile(FResultFileName);
@@ -307,7 +307,6 @@ end;
 procedure TDWSCompilerTestCase.TearDown;
 begin
   FExpectedResult.Free;
-  FSource.Free;
   SetDecimalSeparator(FOldDS);
   inherited;
 end;

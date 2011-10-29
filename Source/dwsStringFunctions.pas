@@ -449,7 +449,11 @@ end;
 //
 procedure TAnsiLowerCaseFunc.DoEvalAsString(args : TExprBaseList; var Result : UnicodeString);
 begin
+   {$IFDEF FPC}  //todo: TAnsiLowerCaseFunc.DoEvalAsString
+   Result:=UnicodeLowerCase(args.AsString[0]);
+   {$ELSE}
    Result:=AnsiLowerCase(args.AsString[0]);
+   {$ENDIF}
 end;
 
 { TUpperCaseFunc }
@@ -458,7 +462,7 @@ end;
 //
 procedure TUpperCaseFunc.DoEvalAsString(args : TExprBaseList; var Result : UnicodeString);
 begin
-   Result:=UpperCase(args.AsString[0]);
+   Result:= UpperCase(args.AsString[0]);
 end;
 
 { TAnsiUpperCaseFunc }
@@ -467,7 +471,11 @@ end;
 //
 procedure TAnsiUpperCaseFunc.DoEvalAsString(args : TExprBaseList; var Result : UnicodeString);
 begin
+   {$IFDEF FPC}
+   Result:=UnicodeUpperCase(args.AsString[0]); //todo: TAnsiLowerCaseFunc.DoEvalAsString
+   {$ELSE}
    Result:=AnsiUpperCase(args.AsString[0]);
+   {$ENDIF}
 end;
 
 { TPosFunc }
