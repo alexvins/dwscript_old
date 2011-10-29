@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform, FileUtil;
+  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform, dwsXPlatformTests, FileUtil, lazutf8classes;
 
 type
 
@@ -35,7 +35,8 @@ type
     //default result as text
     procedure CheckEqualsResult(Expected: UnicodeString; msg: UnicodeString = '');
     procedure CheckCompile(const ASource: UnicodeString);
-    procedure CheckCompile(const ASource: TStrings);
+    //procedure CheckCompile(const ASource: TStrings);
+    procedure CheckEqualsOutput(Expected: UnicodeString; msg: UnicodeString = '');
 
   end;
 
@@ -48,7 +49,7 @@ type
     FTestFilename: UnicodeString;
     FSource: UnicodeString;
     FResultFileName: UnicodeString;
-    FExpectedResult: TStringList;
+    FExpectedResult: UnicodeString;
   protected
     property TestFilename: UnicodeString read FTestFilename;
     procedure SetUp; override;
@@ -70,7 +71,6 @@ type
     procedure CompilationWithMapAndSymbols;
     procedure ExecutionNonOptimized;
     procedure ExecutionOptimized;
-    procedure ExecutionThreaded;
   end;
 
   TDWSCompilerTestCaseClass = class of TDWSCompilerTestCase;
@@ -85,12 +85,6 @@ type
     procedure ExecutionOptimized;
   end;
 
-  { TDWSCustomThreadedTest }
-
-  TDWSCustomThreadedTest = class (TDWSCustomTest)
-  published
-    procedure ExecutionThreaded;
-  end;
 
   { TTestFolderSuite }
 
@@ -110,13 +104,6 @@ type
 
 
 implementation
-
-{ TDWSCustomThreadedTest }
-
-procedure TDWSCustomThreadedTest.ExecutionThreaded;
-begin
-  inherited;
-end;
 
 { TDWSTestCaseBase }
 
@@ -183,6 +170,17 @@ begin
   CheckEquals(Expected, FProg.Msgs.AsInfo, 'Prog.Info ' + msg);
 end;
 
+procedure TDWSTestCaseBase.CheckEqualsOutput(Expected: UnicodeString;
+   msg: UnicodeString);
+var
+   output : UnicodeString;
+begin
+  output:=fexec.Result.ToString;
+  if FExec.Msgs.Count>0 then
+    output:=output+#13#10+'>>> Runtime Error: '+fexec.Msgs.AsInfo;
+  CheckEquals(Expected, output, msg);
+end;
+
 procedure TDWSTestCaseBase.CheckEmptyInfo(msg: UnicodeString);
 begin
   CheckEqualsInfo('', msg);
@@ -200,10 +198,10 @@ begin
   CheckEmptyInfo('Compilation error');
 end;
 
-procedure TDWSTestCaseBase.CheckCompile(const ASource: TStrings);
-begin
-  CheckCompile(ASource.Text);
-end;
+//procedure TDWSTestCaseBase.CheckCompile(const ASource: TStrings);
+//begin
+//  CheckCompile(ASource.Text);
+//end;
 
 { TDWSCustomTest }
 
@@ -285,6 +283,7 @@ end;
 { TDWSCompilerTestCase }
 
 procedure TDWSCompilerTestCase.SetUp;
+
 begin
   inherited;
   FOldDS := GetDecimalSeparator;
@@ -293,20 +292,18 @@ begin
   FSource := UTF8Decode(ReadFileToString(UTF8Encode(FTestFilename)));
 
   FResultFileName := ChangeFileExt(FTestFilename, '.txt');
-  FExpectedResult := TStringList.Create;
 
   if FileExists(FResultFileName) then
   begin
-    FExpectedResult.LoadFromFile(FResultFileName);
+    FExpectedResult := LoadScriptSource(FResultFileName);
   end else
   begin
-    FExpectedResult.Clear;
+    FExpectedResult := '';
   end;
 end;
 
 procedure TDWSCompilerTestCase.TearDown;
 begin
-  FExpectedResult.Free;
   SetDecimalSeparator(FOldDS);
   inherited;
 end;
@@ -320,7 +317,7 @@ procedure TDWSCompilerTestCase.Execution;
 begin
   Compilation;
   Execute;
-  CheckEqualsResult(FExpectedResult.Text, 'Exec result');
+  CheckEqualsResult(FExpectedResult, 'Exec result');
   CheckEmptyInfo('Info after exec');
   PostExec;
 end;
@@ -369,13 +366,6 @@ procedure TDWSCompilerTestCase.ExecutionOptimized;
 begin
   SetOptions([coOptimize, coAssertions]);
   Execution;
-end;
-
-procedure TDWSCompilerTestCase.ExecutionThreaded;
-begin
-  //TODO:TDWSCompilerTestCase.ExecutionThreaded
-
-
 end;
 
 end.

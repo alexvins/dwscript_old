@@ -1,1 +1,1 @@
-﻿println('ต่ายอรทัย'); // thai
+println('ต่ายอรทัย'); // thai

@@ -3,28 +3,29 @@ unit UAlgorithmsTests;
 interface
 
 uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
-   dwsXPlatform, dwsUtils, dwsSymbols;
+   dwsXPlatform, dwsUtils, dwsSymbols,dws_fpcunit,testregistry;
 
 type
 
-   TAlgorithmsTests = class (TTestCase)
-      private
-         FTests : TStringList;
-         FCompiler : TDelphiWebScript;
-
+   TAlgorithmsTests = class (TDWSCustomTest)
       public
          procedure SetUp; override;
          procedure TearDown; override;
 
-         procedure Execution;
-         procedure Compilation;
+         procedure Execution; override;
+         procedure Compilation; override;
 
+   end;
+
+   { TAlgorithmsThreadedTests }
+
+   TAlgorithmsThreadedTests = class (TDWSTestCaseBase)
+      private
+         FTests : TStringList;
+      public
+         procedure SetUp; override;
+         procedure TearDown; override;
       published
-
-         procedure CompilationNormal;
-         procedure CompilationWithMapAndSymbols;
-         procedure ExecutionNonOptimized;
-         procedure ExecutionOptimized;
 
          procedure ExecutionThreaded;
    end;
@@ -84,88 +85,42 @@ end;
 //
 procedure TAlgorithmsTests.SetUp;
 begin
-   FormatSettings.DecimalSeparator:='.';
-
-   FTests:=TStringList.Create;
-
-   CollectFiles(ExtractFilePath(ParamStr(0))+'Algorithms'+PathDelim, '*.pas', FTests);
-
-   FCompiler:=TDelphiWebScript.Create(nil);
+   inherited;
 end;
 
 // TearDown
 //
 procedure TAlgorithmsTests.TearDown;
 begin
-   FCompiler.Free;
-
-   FTests.Free;
+   inherited;
 end;
 
 // Compilation
 //
 procedure TAlgorithmsTests.Compilation;
-var
-   source : TStringList;
-   i : Integer;
-   prog : IdwsProgram;
 begin
-   source:=TStringList.Create;
-   try
-
-      for i:=0 to FTests.Count-1 do begin
-
-         source.LoadFromFile(FTests[i]);
-
-         prog:=FCompiler.Compile(source.Text);
-
-         CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
-
-         (prog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
-         (prog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
-
-      end;
-
-   finally
-      source.Free;
-   end;
+   inherited;
+   fprog.GetProgramObject.InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
+   fprog.GetProgramObject.Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
 end;
 
-// CompilationNormal
+
+
+// Execution
 //
-procedure TAlgorithmsTests.CompilationNormal;
+procedure TAlgorithmsTests.Execution;
 begin
-   FCompiler.Config.CompilerOptions:=[coOptimize];
    Compilation;
+   Execute;
+   CheckEmptyInfo('Info after exec');
+   CheckEqualsOutput(FExpectedResult,'Exec result');
+   PostExec;
 end;
 
-// CompilationWithMapAndSymbols
-//
-procedure TAlgorithmsTests.CompilationWithMapAndSymbols;
-begin
-   FCompiler.Config.CompilerOptions:=[coSymbolDictionary, coContextMap, coAssertions];
-   Compilation;
-end;
 
-// ExecutionNonOptimized
-//
-procedure TAlgorithmsTests.ExecutionNonOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=[coAssertions];
-   Execution;
-end;
+{ TAlgorithmsThreadedTests }
 
-// ExecutionOptimized
-//
-procedure TAlgorithmsTests.ExecutionOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=[coOptimize, coAssertions];
-   Execution;
-end;
-
-// ExecutionThreaded
-//
-procedure TAlgorithmsTests.ExecutionThreaded;
+procedure TAlgorithmsThreadedTests.ExecutionThreaded;
 const
    cRunsPerThread = 15;
    cThreadsPerScript = 3;
@@ -246,44 +201,21 @@ begin
    end;
 end;
 
-// Execution
-//
-procedure TAlgorithmsTests.Execution;
-var
-   source, expectedResult : TStringList;
-   i : Integer;
-   prog : IdwsProgram;
-   exec : IdwsProgramExecution;
-   resultsFileName, output : UnicodeString;
+procedure TAlgorithmsThreadedTests.SetUp;
 begin
-   source:=TStringList.Create;
-   expectedResult:=TStringList.Create;
-   try
+   inherited SetUp;
 
-      for i:=0 to FTests.Count-1 do begin
 
-         source.LoadFromFile(FTests[i]);
+   FTests:=TStringList.Create;
 
-         prog:=FCompiler.Compile(source.Text);
+   CollectFiles(ExtractFilePath(ParamStr(0))+'Algorithms'+PathDelim, '*.pas', FTests);
 
-         CheckEquals('', prog.Msgs.AsInfo, FTests[i]);
-         exec:=prog.Execute;
-         output:=exec.Result.ToString;
-         if exec.Msgs.Count>0 then
-            output:=output+#13#10+'>>> Runtime Error: '+exec.Msgs.AsInfo;
-         resultsFileName:=ChangeFileExt(FTests[i], '.txt');
-         if FileExists(resultsFileName) then begin
-            expectedResult.LoadFromFile(resultsFileName);
-            CheckEquals(expectedResult.Text, output, FTests[i]);
-         end else CheckEquals('', output, FTests[i]);
-         CheckEquals('', exec.Msgs.AsInfo, FTests[i]);
+end;
 
-      end;
-
-   finally
-      expectedResult.Free;
-      source.Free;
-   end;
+procedure TAlgorithmsThreadedTests.TearDown;
+begin
+   FTests.Free;
+   inherited TearDown;
 end;
 
 // ------------------------------------------------------------------
@@ -293,7 +225,8 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
-
-   RegisterTest('AlgorithmsTests', TAlgorithmsTests);
+   RegisterTest('Algorithms', TAlgorithmsTests.Suite('Files', 'Algorithms'));
+   //RegisterTest('AlgorithmsTests', TAlgorithmsTests);
+   RegisterTest('Algorithms', TAlgorithmsThreadedTests);
 
 end.

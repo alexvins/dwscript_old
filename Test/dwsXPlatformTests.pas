@@ -30,6 +30,10 @@ uses
    {$else}
    fpcunit, testutils, testregistry
    {$endif}
+
+   {$IFDEF FPC}
+    ,LazUtils, FileUtil,lazutf8classes
+   {$ENDIF}
    ;
 
 type
@@ -51,6 +55,8 @@ type
    {$endif}
 
 procedure RegisterTest(const testName : UnicodeString; aTest : TTestCaseClass);
+function LoadScriptSource(const FileName: UnicodeString):UnicodeString;
+
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -69,6 +75,32 @@ begin
    {$else}
    TestFrameWork.RegisterTest(testName, aTest.Suite);
    {$endif}
+end;
+
+function LoadScriptSource(const FileName: UnicodeString): UnicodeString;
+{$IFDEF FPC}
+var
+  source : TStringListUTF8;
+begin
+   source := TStringListUTF8.Create;
+   try
+      source.LoadFromFile(UTF8Encode(FileName));
+      Result := UTF8Decode(source.Text);
+   finally
+      source.Free;
+   end;
+{$ELSE}
+var
+   source : TStringList;
+begin
+   source := TStringList.Create;
+   try
+      source.LoadFromFile(FileName);
+      Result := sourse.Text;
+   finally
+      source.Free;
+   end;
+{$ENDIF}
 end;
 
 { TTestCase }

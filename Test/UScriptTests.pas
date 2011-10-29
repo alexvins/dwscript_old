@@ -98,51 +98,40 @@ end;
 //
 procedure TScriptTests.Compilation;
 var
-   source : TStringList;
    i : Integer;
    prog : IdwsProgram;
 begin
-   source:=TStringList.Create;
-   try
 
-      for i:=0 to FTests.Count-1 do begin
+   for i:=0 to FTests.Count-1 do begin
 
-         source.LoadFromFile(FTests[i]);
+      prog:=FCompiler.Compile(LoadScriptSource(FTests[i]));
 
-         prog:=FCompiler.Compile(source.Text);
+      CheckEquals(False, prog.Msgs.HasErrors, FTests[i]+#13#10+prog.Msgs.AsInfo);
 
-         CheckEquals(False, prog.Msgs.HasErrors, FTests[i]+#13#10+prog.Msgs.AsInfo);
+      (prog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
+      (prog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
 
-         (prog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
-         (prog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
-
-      end;
-
-   finally
-      source.Free;
    end;
+
 end;
 
 // Execution
 //
 procedure TScriptTests.Execution;
 var
-   source, expectedResult : TStringList;
+   expectedResult : TStringList;
    i : Integer;
    prog : IdwsProgram;
    resultsFileName : UnicodeString;
    output : UnicodeString;
    exec : IdwsProgramExecution;
 begin
-   source:=TStringList.Create;
    expectedResult:=TStringList.Create;
    try
 
       for i:=0 to FTests.Count-1 do begin
 
-         source.LoadFromFile(FTests[i]);
-
-         prog:=FCompiler.Compile(source.Text);
+         prog:=FCompiler.Compile(LoadScriptSource(FTests[i]));
 
          CheckEquals(False, prog.Msgs.HasErrors, FTests[i]+#13#10+prog.Msgs.AsInfo);
          try
@@ -171,7 +160,6 @@ begin
 
    finally
       expectedResult.Free;
-      source.Free;
    end;
 end;
 
