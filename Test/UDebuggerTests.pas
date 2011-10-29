@@ -2,15 +2,16 @@ unit UDebuggerTests;
 
 interface
 
-uses Windows, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
-   dwsComConnector, Variants, ActiveX, ComObj, dwsXPlatform, dwsUtils,
+uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
+   {dwsComConnector,} Variants, dwsXPlatform, dwsUtils,
+   dws_fpcunit,
    dwsSymbols, dwsDebugger, dwsStrings;
 
 type
 
-   TDebuggerTests = class (TTestCase)
+   TDebuggerTests = class (TDWSTestCaseBase)
       private
-         FCompiler : TDelphiWebScript;
+         //FCompiler : TDelphiWebScript;
          FUnits : TdwsUnit;
          FDebugger : TdwsDebugger;
 
@@ -71,7 +72,7 @@ var
    cst : TdwsConstructor;
    meth : TdwsMethod;
 begin
-   FCompiler:=TDelphiWebScript.Create(nil);
+   inherited;
    FUnits:=TdwsUnit.Create(nil);
    FUnits.UnitName:='TestUnit';
    FUnits.Script:=FCompiler;
@@ -86,7 +87,7 @@ begin
    cst.OnEval:=DoCreateExternal;
 
    meth:=cls.Methods.Add as TdwsMethod;
-   meth.ResultType:='UnicodeString';
+   meth.ResultType:='String';
    meth.Name:='GetValue';
    meth.OnEval:=DoGetValue;
 end;
@@ -95,9 +96,10 @@ end;
 //
 procedure TDebuggerTests.TearDown;
 begin
+   inherited; //TODO: remove workaround, debugger or units must be freed after program
    FDebugger.Free;
    FUnits.Free;
-   FCompiler.Free;
+
 end;
 
 // DoCreateExternal
@@ -132,15 +134,17 @@ end;
 // EvaluateSimpleTest
 //
 procedure TDebuggerTests.EvaluateSimpleTest;
+const
+  PROGRAM_TEXT = 'var i := 10;';
 var
-   prog : IdwsProgram;
+   //prog : IdwsProgram;
    exec : IdwsProgramExecution;
    expr : IdwsEvaluateExpr;
    buf : UnicodeString;
 begin
-   prog:=FCompiler.Compile('var i := 10;');
-   try
-      exec:=prog.BeginNewExecution;
+   CheckCompile(PROGRAM_TEXT);
+
+      exec:=fprog.BeginNewExecution;
       try
          exec.RunProgram(0);
 
@@ -172,9 +176,7 @@ begin
          exec.EndProgram;
          exec:=nil;
       end;
-   finally
-      prog:=nil;
-   end;
+
 end;
 
 // EvaluateOutsideOfExec
@@ -339,6 +341,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('DebuggerTests', TDebuggerTests.Suite);
+   RegisterTest('DebuggerTests', TDebuggerTests);
 
 end.

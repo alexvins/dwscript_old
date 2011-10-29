@@ -44,7 +44,7 @@
         <PackageName Value="FCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="13">
+    <Units Count="14">
       <Unit0>
         <Filename Value="lang_tests.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -110,6 +110,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="UBuildTests"/>
       </Unit12>
+      <Unit13>
+        <Filename Value="UDebuggerTests.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UDebuggerTests"/>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -143,9 +148,6 @@
       </Debugging>
     </Linking>
     <Other>
-      <Verbosity>
-        <ShowHints Value="False"/>
-      </Verbosity>
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
@@ -153,7 +155,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="18">
+    <Exceptions Count="16">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -164,50 +166,44 @@
         <Name Value="EFOpenError"/>
       </Item3>
       <Item4>
-        <Name Value="EScriptError"/>
+        <Name Value="EConvertError"/>
       </Item4>
       <Item5>
-        <Name Value="EScriptException"/>
+        <Name Value="EHTMLFilterException"/>
       </Item5>
       <Item6>
-        <Name Value="EConvertError"/>
+        <Name Value="EScriptOutOfBounds"/>
       </Item6>
       <Item7>
-        <Name Value="EHTMLFilterException"/>
+        <Name Value="ERangeError"/>
       </Item7>
       <Item8>
-        <Name Value="EScriptOutOfBounds"/>
+        <Name Value="EAssertionFailedError"/>
       </Item8>
       <Item9>
-        <Name Value="ERangeError"/>
+        <Name Value="ECompileError"/>
       </Item9>
       <Item10>
-        <Name Value="EAssertionFailedError"/>
+        <Name Value="EDelphiException"/>
       </Item10>
       <Item11>
-        <Name Value="ECompileError"/>
+        <Name Value="EReraise"/>
       </Item11>
       <Item12>
-        <Name Value="EDelphiException"/>
+        <Name Value="EClassCast"/>
       </Item12>
       <Item13>
-        <Name Value="EReraise"/>
+        <Name Value="EIntOverflow"/>
       </Item13>
       <Item14>
-        <Name Value="EClassCast"/>
+        <Name Value="EHandledGenerationError"/>
       </Item14>
       <Item15>
-        <Name Value="EIntOverflow"/>
+        <Name Value="EGenerationError"/>
       </Item15>
       <Item16>
-        <Name Value="EHandledGenerationError"/>
-      </Item16>
-      <Item17>
-        <Name Value="EGenerationError"/>
-      </Item17>
-      <Item18>
         <Name Value="EScriptStackOverflow"/>
-      </Item18>
+      </Item16>
     </Exceptions>
   </Debugging>
 </CONFIG>

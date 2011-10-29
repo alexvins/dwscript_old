@@ -1,4 +1,4 @@
-unit UTestDispatcher;
+unit UTestDispatcher platform;
 
 interface
 

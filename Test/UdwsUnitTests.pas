@@ -646,7 +646,7 @@ var
    cls : TdwsClassCracker;
 begin
    CheckEquals('function Func1 : Integer;', FuncByName('Func1').GetDisplayName);
-   CheckEquals('function FuncOne : UnicodeString;', FuncByName('FuncOne').GetDisplayName);
+   CheckEquals('function FuncOne : String;', FuncByName('FuncOne').GetDisplayName);
    CheckEquals('function FuncOneDotFive : Float;', FuncByName('FuncOneDotFive').GetDisplayName);
    CheckEquals('function FuncTrue : Boolean;', FuncByName('FuncTrue').GetDisplayName);
    CheckEquals('procedure FuncException;', FuncByName('FuncException').GetDisplayName);
@@ -807,7 +807,7 @@ var
    funcInfo, funcResult : IInfo;
    exec : IdwsProgramExecution;
 begin
-   prog:=FCompiler.Compile( 'function Hello(name : UnicodeString) : UnicodeString;'
+   prog:=FCompiler.Compile( 'function Hello(name : String) : String;'
                            +'begin'
                            +'   Result:=''Hello ''+name;'
                            +'end;');
@@ -848,7 +848,7 @@ var
    exec : IdwsProgramExecution;
    paramString : UnicodeString;
 begin
-   prog:=FCompiler.Compile( 'function Hello(var name : UnicodeString) : UnicodeString;'
+   prog:=FCompiler.Compile( 'function Hello(var name : String) : String;'
                            +'begin'
                            +'   Result:=''was ''+name;'
                            +'   name:=''world'';'
@@ -1005,7 +1005,7 @@ var
    data : TData;
    myData : TData;
 begin
-   prog:=FCompiler.Compile( 'var astr : array of UnicodeString;'#13#10
+   prog:=FCompiler.Compile( 'var astr : array of String;'#13#10
                            +'astr.Add("hello");'#13#10
                            +'astr.Add("world");'#13#10
                            +'procedure MyTest; begin Print(astr.Length); Print(astr[0]); end;'#13#10

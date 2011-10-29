@@ -85,6 +85,13 @@ type
     procedure ExecutionOptimized;
   end;
 
+  { TDWSCustomThreadedTest }
+
+  TDWSCustomThreadedTest = class (TDWSCustomTest)
+  published
+    procedure ExecutionThreaded;
+  end;
+
   { TTestFolderSuite }
 
   TTestFolderSuite = class(TTestSuite)
@@ -103,6 +110,13 @@ type
 
 
 implementation
+
+{ TDWSCustomThreadedTest }
+
+procedure TDWSCustomThreadedTest.ExecutionThreaded;
+begin
+  inherited;
+end;
 
 { TDWSTestCaseBase }
 

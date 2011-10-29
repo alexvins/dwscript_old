@@ -2,7 +2,7 @@ unit UCornerCasesTests;
 
 interface
 
-uses Windows, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
+uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsXPlatform, dwsFileSystem, dwsErrors, dwsUtils, Variants,
    dwsSymbols, dwsPascalTokenizer, dwsStrings, dwsStack;
 
