@@ -3147,7 +3147,7 @@ end;
 
 function TdwsResult.ToString: UnicodeString;
 begin
-  //Result := Inherited ToString;
+  Result := Inherited ToString;
 end;
 
 // ------------------
