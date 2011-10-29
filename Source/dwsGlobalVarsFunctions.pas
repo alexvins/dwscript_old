@@ -482,6 +482,7 @@ begin
       {$IFDEF FPC}
       vaString, vaLString, vaUTF8String:
          Result := UnicodeString(ReadString);  //todo: fix string hadling
+      vaUString: Result := ReadUnicodeString;
       {$ELSE}
       vaString, vaLString, vaUTF8String:
          Result := UnicodeString(ReadString);

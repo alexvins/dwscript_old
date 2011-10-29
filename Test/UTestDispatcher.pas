@@ -171,7 +171,7 @@ Var
  S     : UnicodeString;
 
 Begin
-
+ s := '';
  For Index := Low(AParams) To High(AParams) Do
  Begin
 

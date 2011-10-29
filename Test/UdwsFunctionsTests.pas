@@ -5,7 +5,7 @@ interface
 uses Classes, SysUtils, {dwsXPlatformTests,} dwsComp, dwsCompiler, dwsExprs,
    dwsTokenizer, dwsSymbols, dwsXPlatform, dwsUtils,
    dwsMathFunctions, dwsTimeFunctions, dwsGlobalVarsFunctions, dwsVariantFunctions,
-   dwsMathComplexFunctions,
+   dwsMathComplexFunctions,dwsStringFunctions,
    dws_fpcunit,fpcunit, testregistry;
 
 type

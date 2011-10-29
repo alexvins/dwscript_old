@@ -356,25 +356,27 @@ end;
 
 procedure TDWSCompilerTestCase.CompilationWithMapAndSymbols;
 begin
-  SetOptions([coSymbolDictionary, coContextMap]);
+  SetOptions([coSymbolDictionary, coContextMap, coAssertions]);
   Compilation;
 end;
 
 procedure TDWSCompilerTestCase.ExecutionNonOptimized;
 begin
-  SetOptions([]);
+  SetOptions([coAssertions]);
   Execution;
 end;
 
 procedure TDWSCompilerTestCase.ExecutionOptimized;
 begin
-  SetOptions([coOptimize]);
+  SetOptions([coOptimize, coAssertions]);
   Execution;
 end;
 
 procedure TDWSCompilerTestCase.ExecutionThreaded;
 begin
   //TODO:TDWSCompilerTestCase.ExecutionThreaded
+
+
 end;
 
 end.
