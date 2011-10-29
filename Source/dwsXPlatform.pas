@@ -144,6 +144,8 @@ function GetExceptObject: TObject;
 
 function GetParentTypeInfo(info: TRTTIInfo):TRTTIInfo;
 
+function UnicodeStringOfChar(c: WideChar; i: SizeInt):UnicodeString;
+
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -255,6 +257,12 @@ begin
   {$ELSE}
   Result :=  GetTypeData(info^)^.ParentInfo;
   {$ENDIF}
+end;
+
+function UnicodeStringOfChar(c: WideChar; i: SizeInt): UnicodeString;
+begin
+  SetLength(Result,i);
+  FillWord(Result[1],i,Word(c));
 end;
 
 // SetDecimalSeparator

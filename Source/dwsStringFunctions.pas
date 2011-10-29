@@ -658,9 +658,8 @@ var
    ch : UnicodeString;
 begin
    ch:=args.AsString[0];
-   if Length(ch)<1 then
-      Result:=StringOfChar(' ', args.AsInteger[1]) // default to blank if an empty UnicodeString
-   else Result:=StringOfChar(ch[1], args.AsInteger[1]);
+   if Length(ch)<1 then ch := ' ';// default to blank if an empty UnicodeString
+   Result := UnicodeStringOfChar(ch[1], args.AsInteger[1]);
 end;
 
 { TStringOfStringFunc }
@@ -668,23 +667,22 @@ end;
 // DoEvalAsString
 //
 procedure TStringOfStringFunc.DoEvalAsString(args : TExprBaseList; var Result : UnicodeString);
-
-   function StringOfString(const str : UnicodeString; count : Integer) : UnicodeString;
-   var
-      ls : Integer;
-   begin
-      if (str='') or (count<=0) then Exit('');
-      ls:=Length(str);
-      count:=ls*count;
-      SetLength(Result, count);
-      while count>0 do begin
-         Dec(count, ls);
-         Move(str[1], Result[count+1], ls*SizeOf(WideChar));
-      end;
-   end;
-
+var
+   str : UnicodeString;
+   count : Integer;
+   ls : Integer;
 begin
-   Result:=StringOfString(args.AsString[0], args.AsInteger[1]);
+   str :=args.AsString[0];
+   count := args.AsInteger[1];
+   Result := '';
+   if (str='') or (count<=0) then Exit;
+   ls:=Length(str);
+   count:=ls*count;
+   SetLength(Result, count);
+   while count>0 do begin
+     Dec(count, ls);
+     Move(str[1], Result[count+1], ls*SizeOf(WideChar));
+   end;
 end;
 
 { TStrBeginsWithFunc }
