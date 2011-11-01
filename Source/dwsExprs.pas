@@ -4190,7 +4190,7 @@ end;
 //
 procedure TPushOperator.ExecutePassAddr(exec : TdwsExecution);
 var
-   vpd : IVarParamData;
+   vpd : IVarParamData = nil;
 begin
    TVarParamExpr(FArgExpr).GetVarParamData(exec, vpd);
    exec.Stack.WriteValue(exec.Stack.StackPointer+FStackAddr, vpd);
@@ -4239,6 +4239,7 @@ procedure TPushOperator.ExecuteResult(exec : TdwsExecution);
 var
    buf : Variant;
 begin
+   buf := Unassigned;
    FArgExpr.EvalAsVariant(exec, buf);
    exec.Stack.WriteValue(exec.Stack.StackPointer + FStackAddr, buf);
 end;
@@ -4268,7 +4269,7 @@ end;
 //
 procedure TPushOperator.ExecuteResultString(exec : TdwsExecution);
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    FArgExpr.EvalAsString(exec, buf);
    exec.Stack.WriteStrValue(exec.Stack.StackPointer + FStackAddr, buf);
@@ -4508,7 +4509,7 @@ constructor TFuncPointer.Create(exec : TdwsExecution; funcExpr : TFuncExprBase);
 var
    prog : TdwsMainProgram;
    baseExpr : TDataExpr;
-   scriptObj : IScriptObj;
+   scriptObj : IScriptObj = nil;
    classSym : TClassSymbol;
    magicFuncSym : TMagicFuncSymbol;
    baseTyp : TTypeSymbol;
@@ -4683,6 +4684,7 @@ var
    i : Integer;
    val : Variant;
 begin
+   val := Unassigned;
    FCodeExpr.EvalAsVariant(exec, val);
    funcPointer:=IFuncPointer(IUnknown(val));
    if funcPointer=nil then
@@ -4928,7 +4930,7 @@ end;
 //
 function TStringBinOpExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    EvalAsString(exec, buf);
    Result:=buf;
@@ -4938,7 +4940,7 @@ end;
 //
 function TStringBinOpExpr.Optimize(prog : TdwsProgram; exec : TdwsExecution) : TProgramExpr;
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    if IsConstant then begin
       EvalAsString(exec, buf);
@@ -5140,7 +5142,7 @@ end;
 //
 function TUnaryOpStringExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    EvalAsString(exec, buf);
    Result:=buf;
@@ -5257,7 +5259,7 @@ end;
 //
 function TMethodInterfaceExpr.PreCall(exec : TdwsExecution) : TFuncSymbol;
 var
-   scriptObj : IScriptObj;
+   scriptObj : IScriptObj = nil;
    intfObj : TScriptInterface;
 begin
    FBaseExpr.EvalAsScriptObj(exec, scriptObj);
@@ -7219,8 +7221,9 @@ var
    arg : TTypedExpr;
    argTyp : TTypeSymbol;
    buf : Variant;
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
+   buf := Unassigned;
    if exec.IsDebugging then
       exec.Debugger.EnterFunc(exec, Self);
 
@@ -8659,7 +8662,7 @@ end;
 procedure TSourcePreConditions.RaiseConditionFailed(exec : TdwsExecution;
    funcSym : TFuncSymbol; const scriptPos : TScriptPos; const msg : IStringEvalable);
 var
-   msgStr : UnicodeString;
+   msgStr : UnicodeString = '';
 begin
    msg.EvalAsString(exec, msgStr);
    (exec as TdwsProgramExecution).RaiseAssertionFailedFmt(
@@ -8675,7 +8678,7 @@ end;
 procedure TSourcePostConditions.RaiseConditionFailed(exec : TdwsExecution;
    funcSym : TFuncSymbol; const scriptPos : TScriptPos; const msg : IStringEvalable);
 var
-   msgStr : UnicodeString;
+   msgStr : UnicodeString = '';
 begin
    msg.EvalAsString(exec, msgStr);
    (exec as TdwsProgramExecution).RaiseAssertionFailedFmt(

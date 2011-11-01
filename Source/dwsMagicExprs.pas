@@ -305,7 +305,7 @@ end;
 //
 procedure TMagicStringFuncExpr.EvalNoResult(exec : TdwsExecution);
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    EvalAsString(exec, buf);
 end;
@@ -314,7 +314,7 @@ end;
 //
 function TMagicStringFuncExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    EvalAsString(exec, buf);
    Result:=buf;
@@ -367,6 +367,7 @@ function TMagicFloatFuncExpr.EvalAsFloat(exec : TdwsExecution) : Double;
 var
    execRec : TExprBaseListExec;
 begin
+   Result := 0.0;
    execRec.List:=@FArgs;
    execRec.Exec:=exec;
    try

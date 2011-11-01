@@ -322,6 +322,8 @@ function TRelEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : UnicodeString;
 begin
+   a := '';
+   b := '';
    FLeft.EvalAsString(exec, a);
    FRight.EvalAsString(exec, b);
    Result:=(a=b);
@@ -337,6 +339,8 @@ function TRelNotEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : UnicodeString;
 begin
+   a := '';
+   b := '';
    FLeft.EvalAsString(exec, a);
    FRight.EvalAsString(exec, b);
    Result:=(a<>b);
@@ -352,6 +356,8 @@ function TRelLessStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : UnicodeString;
 begin
+   a := '';
+   b := '';
    FLeft.EvalAsString(exec, a);
    FRight.EvalAsString(exec, b);
    Result:=(a<b);
@@ -367,6 +373,8 @@ function TRelLessEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : UnicodeString;
 begin
+   a := '';
+   b := '';
    FLeft.EvalAsString(exec, a);
    FRight.EvalAsString(exec, b);
    Result:=(a<=b);
@@ -382,6 +390,8 @@ function TRelGreaterStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    a, b : UnicodeString;
 begin
+   a := '';
+   b := '';
    FLeft.EvalAsString(exec, a);
    FRight.EvalAsString(exec, b);
    Result:=(a>b);
@@ -397,6 +407,8 @@ function TRelGreaterEqualStringExpr.EvalAsBoolean(exec : TdwsExecution) : Boolea
 var
    a, b : UnicodeString;
 begin
+   a := '';
+   b := '';
    FLeft.EvalAsString(exec, a);
    FRight.EvalAsString(exec, b);
    Result:=(a>=b);
@@ -412,6 +424,8 @@ function TRelEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=(lv=rv);
@@ -427,6 +441,8 @@ function TRelNotEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=(lv<>rv);
@@ -442,6 +458,8 @@ function TRelLessVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=(lv<rv);
@@ -457,6 +475,8 @@ function TRelLessEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=(lv<=rv);
@@ -472,6 +492,8 @@ function TRelGreaterVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=(lv>rv);
@@ -487,6 +509,8 @@ function TRelGreaterEqualVariantExpr.EvalAsBoolean(exec : TdwsExecution) : Boole
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=(lv>=rv);

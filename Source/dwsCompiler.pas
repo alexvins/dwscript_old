@@ -1038,7 +1038,7 @@ var
    unitTable : TUnitSymbolTable;
    unitMain : TUnitMainSymbol;
    dependencies : TStrings;
-   unitSource : UnicodeString;
+   unitSource : UnicodeString = '';
    srcUnit : TSourceUnit;
 begin
    for i:=0 to FUnitsFromStack.Count-1 do
@@ -1665,7 +1665,7 @@ end;
 //
 function TdwsCompiler.ReadConstDecl(constSymbolClass : TConstSymbolClass) : TConstSymbol;
 var
-   name : UnicodeString;
+   name : UnicodeString = '';
    expr : TTypedExpr;
    typ : TTypeSymbol;
    sas : TStaticArraySymbol;
@@ -1674,6 +1674,7 @@ var
    val : Variant;
    recordData : TData;
 begin
+   val := Unassigned;
    if not FTok.TestDeleteNamePos(name, constPos) then begin
 
       Result:=nil; // warning workaround
@@ -2578,7 +2579,7 @@ end;
 //
 function TdwsCompiler.ReadBlock: TNoResultExpr;
 var
-   tt: TTokenType;
+   tt: TTokenType = ttNone;
 begin
    Result := nil;
    if FTok.TestDelete(ttBEGIN) then begin
@@ -3915,7 +3916,7 @@ var
    expr : TNoResultExpr;
    condList : TCaseConditions;
    condition : TCaseCondition;
-   tt : TTokenType;
+   tt : TTokenType = ttNone;
    x : Integer;
 begin
    condList := TCaseConditions.Create;
@@ -4035,7 +4036,7 @@ end;
 //
 function TdwsCompiler.ReadRepeat : TNoResultExpr;
 var
-   tt : TTokenType;
+   tt : TTokenType = ttNone;
    condExpr : TTypedExpr;
 begin
    Result := TRepeatExpr.Create(FProg, FTok.HotPos);
@@ -4679,7 +4680,7 @@ end;
 //
 function TdwsCompiler.ReadClass(const typeName : UnicodeString) : TClassSymbol;
 var
-   name : UnicodeString;
+   name : UnicodeString = '';
    namePos : TScriptPos;
    sym, typ : TSymbol;
    propSym : TPropertySymbol;
@@ -4915,7 +4916,7 @@ function TdwsCompiler.ReadInterface(const typeName : UnicodeString) : TInterface
 var
    sym : TSymbol;
    ancestor : TInterfaceSymbol;
-   name : UnicodeString;
+   name : UnicodeString = '';
    namePos, hotPos : TScriptPos;
    tt : TTokenType;
    propSym : TPropertySymbol;
@@ -5012,7 +5013,7 @@ end;
 function TdwsCompiler.ReadClassOperatorDecl(ClassSym: TClassSymbol) : TClassOperatorSymbol;
 var
    tt : TTokenType;
-   usesName : UnicodeString;
+   usesName : UnicodeString = '';
    usesPos : TScriptPos;
    sym : TTypeSymbol;
 begin
@@ -5071,7 +5072,7 @@ end;
 function TdwsCompiler.ReadPropertyDecl(structSym : TStructuredTypeSymbol; aVisibility : TdwsVisibility) : TPropertySymbol;
 var
    x : Integer;
-   name : UnicodeString;
+   name : UnicodeString = '';
    sym : TSymbol;
    typ : TTypeSymbol;
    arrayIndices : TSymbolTable;
@@ -5312,7 +5313,7 @@ end;
 function TdwsCompiler.ReadTry: TExceptionExpr;
 var
    tryBlock : TNoResultExpr;
-   tt : TTokenType;
+   tt : TTokenType = ttNone;
    wasExcept : Boolean;
 begin
    wasExcept:=FIsExcept;
@@ -5336,7 +5337,7 @@ end;
 //
 function TdwsCompiler.ReadFinally(tryExpr : TNoResultExpr) : TFinallyExpr;
 var
-   tt : TTokenType;
+   tt : TTokenType = ttNone;
 begin
    Result:=TFinallyExpr.Create(FProg, tryExpr.ScriptPos);
    Result.TryExpr:=tryExpr;
@@ -7040,7 +7041,7 @@ end;
 //
 function TdwsCompiler.ReadEnumeration(const typeName : UnicodeString) : TEnumerationSymbol;
 var
-   name : UnicodeString;
+   name : UnicodeString = '';
    elemSym : TElementSymbol;
    constExpr : TTypedExpr;
    enumInt : Integer;
@@ -7154,7 +7155,7 @@ end;
 //
 procedure TdwsCompiler.ReadUnitHeader;
 var
-   name : UnicodeString;
+   name : UnicodeString = '';
    namePos : TScriptPos;
 begin
    if not FTok.TestDelete(ttUNIT) then
@@ -7427,7 +7428,7 @@ function TdwsCompiler.ReadSpecialFunction(const namePos : TScriptPos; specialKin
 
    function EvaluateDefined(argExpr : TTypedExpr) : Boolean;
    var
-      name : UnicodeString;
+      name : UnicodeString = '';
    begin
       argExpr.EvalAsString(FExec, name);
       Result:=(FMainProg.ConditionalDefines.IndexOf(name)>=0);
@@ -7435,7 +7436,7 @@ function TdwsCompiler.ReadSpecialFunction(const namePos : TScriptPos; specialKin
 
    function EvaluateDeclared(argExpr : TTypedExpr) : Boolean;
    var
-      name : UnicodeString;
+      name : UnicodeString = '';
    begin
       argExpr.EvalAsString(FExec, name);
       Result:=(TDeclaredExpr.FindSymbol(FProg.Root.Table, name)<>nil);

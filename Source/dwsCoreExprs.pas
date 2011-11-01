@@ -1740,6 +1740,7 @@ procedure TVarExpr.AssignExpr(exec : TdwsExecution; Expr: TTypedExpr);
 var
    buf : Variant;
 begin
+   buf := Unassigned;
    Expr.EvalAsVariant(exec, buf);
    exec.Stack.WriteValue(Addr[exec], buf);
 end;
@@ -1897,7 +1898,7 @@ end;
 //
 procedure TStrVarExpr.AssignExpr(exec : TdwsExecution; Expr: TTypedExpr);
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    Expr.EvalAsString(exec, buf);
    exec.Stack.WriteStrValue(exec.Stack.BasePointer + FStackAddr, buf);
@@ -2324,7 +2325,7 @@ var
    {$ELSE}
    n : Cardinal;
    {$ENDIF}
-   added : Boolean;
+   added : Boolean = False;
 begin
    Result:=Self.Create(Prog, Typ, Value);
 
@@ -2544,7 +2545,7 @@ end;
 //
 function TNewArrayExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    EvalAsScriptObj(exec, obj);
    Result:=obj;
@@ -2775,7 +2776,7 @@ end;
 //
 function TDynamicArrayExpr.GetAddr(exec : TdwsExecution) : Integer;
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
 begin
    FBaseExpr.EvalAsScriptObj(exec, base);
    Result:=DynGetAddr(exec, TScriptDynamicArray(base.InternalObject))
@@ -2785,7 +2786,7 @@ end;
 //
 function TDynamicArrayExpr.GetData(exec : TdwsExecution) : TData;
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
 begin
    FBaseExpr.EvalAsScriptObj(exec, base);
    Result:=base.Data
@@ -2814,7 +2815,7 @@ function TDynamicArrayExpr.EvalItem(exec : TdwsExecution) : PVariant;
 var
    dynArray : TScriptDynamicArray;
    addr : Integer;
-   base : IScriptObj;
+   base : IScriptObj = nil;
 begin
    FBaseExpr.EvalAsScriptObj(exec, base);
    dynArray:=TScriptDynamicArray(base.InternalObject);
@@ -2880,7 +2881,7 @@ procedure TDynamicArraySetExpr.EvalNoResult(exec : TdwsExecution);
 var
    dynArray : TScriptDynamicArray;
    index : Integer;
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dataExpr : TDataExpr;
 begin
    FArrayExpr.EvalAsScriptObj(exec, base);
@@ -3089,6 +3090,7 @@ var
    expr : TTypedExpr;
    buf : Variant;
 begin
+   buf := Unassigned;
    Result:=TVarRecArrayContainer.Create;
    for i:=0 to FElementExprs.Count-1 do begin
       expr:=TTypedExpr(FElementExprs.List[i]);
@@ -3288,7 +3290,7 @@ end;
 //
 function TFieldExpr.GetData(exec : TdwsExecution) : TData;
 var
-   obj : IScriptObj;
+   obj : IScriptObj= nil;
 begin
    FObjectExpr.EvalAsScriptObj(exec, obj);
    CheckScriptObject(exec, obj);
@@ -3313,7 +3315,7 @@ end;
 //
 function TFieldExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    FObjectExpr.EvalAsScriptObj(exec, obj);
    CheckScriptObject(exec, obj);
@@ -3324,7 +3326,7 @@ end;
 //
 procedure TFieldExpr.EvalAsString(exec : TdwsExecution; var Result : UnicodeString);
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    FObjectExpr.EvalAsScriptObj(exec, obj);
    CheckScriptObject(exec, obj);
@@ -3335,7 +3337,7 @@ end;
 //
 function TFieldExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    FObjectExpr.EvalAsScriptObj(exec, obj);
    CheckScriptObject(exec, obj);
@@ -3346,7 +3348,7 @@ end;
 //
 procedure TFieldExpr.EvalAsScriptObj(exec : TdwsExecution; var Result : IScriptObj);
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    FObjectExpr.EvalAsScriptObj(exec, obj);
    CheckScriptObject(exec, obj);
@@ -3422,7 +3424,7 @@ end;
 //
 function TArrayLengthExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    FExpr.EvalAsScriptObj(exec, obj);
    Result:=TScriptDynamicArray(obj.InternalObject).Length+FDelta
@@ -3457,7 +3459,7 @@ end;
 procedure TStringArrayOpExpr.EvalAsString(exec : TdwsExecution; var Result : UnicodeString);
 var
    i : Integer;
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    FLeft.EvalAsString(exec, buf);
    i:=FRight.EvalAsInteger(exec);
@@ -3483,7 +3485,7 @@ end;
 //
 function TStringLengthExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    FExpr.EvalAsString(exec, buf);
    Result:=Length(buf);
@@ -3497,7 +3499,7 @@ end;
 //
 function TIsOpExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
-   scriptObj : IScriptObj;
+   scriptObj : IScriptObj = nil;
 begin
    FLeft.EvalAsScriptObj(exec, scriptObj);
    Result:=Assigned(scriptObj) and FRight.Typ.Typ.IsCompatible(scriptObj.ClassSym);
@@ -3521,7 +3523,7 @@ end;
 //
 function TAsCastExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   scriptObj : IScriptObj;
+   scriptObj : IScriptObj = nil;
 begin
    EvalAsScriptObj(exec, scriptObj);
    Result:=scriptObj;
@@ -3612,6 +3614,7 @@ var
    value : Variant;
    cc : TCaseCondition;
 begin
+   value := Unassigned;
    FLeft.EvalAsVariant(exec, value);
    for i:=0 to FCaseConditions.Count-1 do begin
       cc:=TCaseCondition(FCaseConditions.List[i]);
@@ -3819,7 +3822,7 @@ procedure TAssertExpr.EvalNoResult(exec : TdwsExecution);
 
    procedure Triggered;
    var
-      msg : UnicodeString;
+      msg : UnicodeString = '';
    begin
       if FMessage<>nil then begin
          FMessage.EvalAsString(exec, msg);
@@ -3868,7 +3871,7 @@ end;
 //
 function TAssignedInstanceExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    FExpr.EvalAsScriptObj(exec, obj);
    Result:=(obj<>nil);
@@ -3895,6 +3898,7 @@ function TAssignedFuncPtrExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
    v : Variant;
 begin
+   v := Unassigned;
    FExpr.EvalAsVariant(exec, v);
    Result:=(IUnknown(v)<>nil);
 end;
@@ -3910,6 +3914,7 @@ var
    v : Variant;
    s : UnicodeString;
 begin
+   v := Unassigned;
    Result:=0;
    FExpr.EvalAsVariant(exec, v);
    case VarType(v) of
@@ -3955,7 +3960,7 @@ end;
 //
 function TOrdStrExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
 var
-   s : UnicodeString;
+   s : UnicodeString = '';
 begin
    FExpr.EvalAsString(exec, s);
    if s<>'' then
@@ -3971,7 +3976,8 @@ end;
 //
 function TObjCmpExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
-   iLeft, iRight : IScriptObj;
+   iLeft: IScriptObj = nil;
+   iRight: IScriptObj = nil;
 begin
    FLeft.EvalAsScriptObj(exec, iLeft);
    FRight.EvalAsScriptObj(exec, iRight);
@@ -3986,7 +3992,8 @@ end;
 //
 function TIntfCmpExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
-   iLeft, iRight : IScriptObj;
+   iLeft: IScriptObj = nil;
+   iRight: IScriptObj = nil;
 begin
    FLeft.EvalAsScriptObj(exec, iLeft);
    FRight.EvalAsScriptObj(exec, iRight);
@@ -4037,6 +4044,8 @@ procedure TAddVariantExpr.EvalAsVariant(exec : TdwsExecution; var Result : Varia
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=lv+rv;
@@ -4050,7 +4059,7 @@ end;
 //
 procedure TAddStrExpr.EvalAsString(exec : TdwsExecution; var Result : UnicodeString);
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    FLeft.EvalAsString(exec, Result);
    FRight.EvalAsString(exec, buf);
@@ -4096,6 +4105,8 @@ procedure TSubVariantExpr.EvalAsVariant(exec : TdwsExecution; var Result : Varia
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=lv-rv;
@@ -4140,6 +4151,8 @@ procedure TMultVariantExpr.EvalAsVariant(exec : TdwsExecution; var Result : Vari
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    Result:=lv*rv;
@@ -4469,7 +4482,7 @@ end;
 //
 function TAssignExpr.OptimizeConstAssignment(prog : TdwsProgram; exec : TdwsExecution) : TNoResultExpr;
 var
-   stringBuf : UnicodeString;
+   stringBuf : UnicodeString = '';
 begin
    Result:=Self;
    if FRight.IsOfType(prog.TypInteger) then begin
@@ -4530,6 +4543,7 @@ var
    v : Variant;
    obj : IScriptObj;
 begin
+   v := Unassigned;
    FRight.EvalAsVariant(exec, v);
    if VarIsOrdinal(v) then
       FLeft.AssignValue(exec, v)
@@ -4597,7 +4611,7 @@ end;
 
 procedure TAssignArrayConstantExpr.EvalNoResult(exec : TdwsExecution);
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
    dyn : TScriptDynamicArray;
    srcData : TData;
 begin
@@ -4790,6 +4804,8 @@ procedure TPlusAssignExpr.EvalNoResult(exec : TdwsExecution);
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    FLeft.AssignValue(exec, lv+rv);
@@ -4838,7 +4854,8 @@ end;
 //
 procedure TPlusAssignStrExpr.EvalNoResult(exec : TdwsExecution);
 var
-   v1, v2 : UnicodeString;
+   v1 : UnicodeString = '';
+   v2 : UnicodeString = '';
 begin
    FLeft.EvalAsString(exec, v1);
    FRight.EvalAsString(exec, v2);
@@ -4868,6 +4885,8 @@ procedure TMinusAssignExpr.EvalNoResult(exec : TdwsExecution);
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    FLeft.AssignValue(exec, lv-rv);
@@ -4918,6 +4937,8 @@ procedure TMultAssignExpr.EvalNoResult(exec : TdwsExecution);
 var
    lv, rv : Variant;
 begin
+   lv := Unassigned;
+   rv := Unassigned;
    FLeft.EvalAsVariant(exec, lv);
    FRight.EvalAsVariant(exec, rv);
    FLeft.AssignValue(exec, lv*rv);
@@ -5021,7 +5042,7 @@ end;
 //
 procedure TAppendStringVarExpr.EvalNoResult(exec : TdwsExecution);
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    FRight.EvalAsString(exec, buf);
    TStrVarExpr(FLeft).Append(exec, buf);
@@ -5360,6 +5381,7 @@ var
    value: Variant;
    cc : TCaseCondition;
 begin
+  value := Unassigned;
    FValueExpr.EvalAsVariant(exec, value);
    for x := 0 to FCaseConditions.Count - 1 do begin
       cc:=TCaseCondition(FCaseConditions.List[x]);
@@ -5487,6 +5509,7 @@ function TCompareCaseCondition.IsTrue(exec : TdwsExecution; const value : Varian
 var
    buf : Variant;
 begin
+   buf := Unassigned;
    FCompareExpr.EvalAsVariant(exec, buf);
    Result:=(buf=Value);
 end;
@@ -5555,6 +5578,7 @@ function TRangeCaseCondition.IsTrue(exec : TdwsExecution; const value : Variant)
 var
    v : Variant;
 begin
+   v := Unassigned;
    FFromExpr.EvalAsVariant(exec, v);
    if value>=v then begin
       FToExpr.EvalAsVariant(exec, v);
@@ -6257,6 +6281,7 @@ var
    exceptVal : Variant;
    exceptMessage : UnicodeString;
 begin
+   exceptVal := Unassigned;
    FExceptionExpr.EvalAsVariant(exec, exceptVal);
    exceptMessage:=VarToStr(IScriptObj(IUnknown(exceptVal)).GetData[0]);
    if exceptMessage<>'' then
@@ -6355,7 +6380,8 @@ end;
 procedure TStringArraySetExpr.EvalNoResult(exec : TdwsExecution);
 var
    i : Integer;
-   s, buf : UnicodeString;
+   s: UnicodeString = '';
+   buf: UnicodeString = '';
 begin
    FStringExpr.EvalAsString(exec, s);
    i:=FIndexExpr.EvalAsInteger(exec);
@@ -6399,7 +6425,7 @@ procedure TVarStringArraySetExpr.EvalNoResult(exec : TdwsExecution);
 var
    i : Integer;
    c : WideChar;
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    i:=FIndexExpr.EvalAsInteger(exec);
    if i<1 then
@@ -6433,7 +6459,7 @@ end;
 //
 function TDefinedExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
-   name : UnicodeString;
+   name : UnicodeString = '';
 begin
    Expr.EvalAsString(exec, name);
    Result:=((exec as TdwsProgramExecution).Prog.ConditionalDefines.IndexOf(name)>=0);
@@ -6447,7 +6473,7 @@ end;
 //
 function TDeclaredExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 var
-   name : UnicodeString;
+   name : UnicodeString = '';
 begin
    Expr.EvalAsString(exec, name);
    Result:=(FindSymbol((exec as TdwsProgramExecution).Prog.Table, name)<>nil);
@@ -6565,7 +6591,7 @@ end;
 //
 procedure TArraySetLengthExpr.EvalNoResult(exec : TdwsExecution);
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
    n : Integer;
 begin
    BaseExpr.EvalAsScriptObj(exec, obj);
@@ -6602,7 +6628,7 @@ end;
 //
 procedure TArraySwapExpr.EvalNoResult(exec : TdwsExecution);
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dyn : TScriptDynamicArray;
    i1, i2 : Integer;
 begin
@@ -6642,7 +6668,7 @@ end;
 //
 procedure TArrayReverseExpr.EvalNoResult(exec : TdwsExecution);
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dyn : TScriptDynamicArray;
 begin
    BaseExpr.EvalAsScriptObj(exec, base);
@@ -6675,7 +6701,7 @@ end;
 //
 procedure TArrayAddExpr.EvalNoResult(exec : TdwsExecution);
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dyn : TScriptDynamicArray;
    n : Integer;
 begin
@@ -6732,7 +6758,7 @@ end;
 //
 procedure TArrayDeleteExpr.EvalNoResult(exec : TdwsExecution);
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dyn : TScriptDynamicArray;
    index, count : Integer;
 begin
@@ -6800,7 +6826,7 @@ end;
 //
 function TArrayCopyExpr.Eval(exec : TdwsExecution) : Variant;
 var
-   obj : IScriptObj;
+   obj : IScriptObj = nil;
 begin
    EvalAsScriptObj(exec, obj);
    Result:=obj;
@@ -6810,7 +6836,7 @@ end;
 //
 procedure TArrayCopyExpr.EvalAsScriptObj(exec : TdwsExecution; var Result : IScriptObj);
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dyn, newDyn : TScriptDynamicArray;
    index, count : Integer;
 begin
@@ -6889,7 +6915,7 @@ end;
 //
 function TArrayIndexOfExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
 var
-   base : IScriptObj;
+   base : IScriptObj = nil;
    dyn : TScriptDynamicArray;
    fromIndex : Integer;
 begin

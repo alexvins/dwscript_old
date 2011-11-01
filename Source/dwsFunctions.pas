@@ -504,7 +504,7 @@ end;
 //
 function TInternalMagicFloatFunction.DoEval(args : TExprBaseList) : Variant;
 var
-   buf : Double;
+   buf : Double = 0.0;
 begin
    DoEvalAsFloat(args, buf);
    Result:=buf;
@@ -518,7 +518,7 @@ end;
 //
 function TInternalMagicStringFunction.DoEval(args : TExprBaseList) : Variant;
 var
-   buf : UnicodeString;
+   buf : UnicodeString = '';
 begin
    DoEvalAsString(args, buf);
    Result:=buf;

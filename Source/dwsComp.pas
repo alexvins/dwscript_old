@@ -1698,6 +1698,7 @@ var
   param: TParamSymbol;
   setValue: Variant;
 begin
+  setValue := Unassigned;
   { NOTE: Special handling is required for Boolean types. At least with Delphi 5 }
   if (Info.FuncSym is TMethodSymbol) and Assigned(ExtObject) then
   begin
@@ -2130,7 +2131,7 @@ end;
 procedure TInstantiateFunc.Execute(info : TProgramInfo);
 var
   scriptObj: TScriptObj;
-  extObj: TObject;
+  extObj: TObject = nil;
 begin
   if Assigned(FScriptObj) then
     // Instance was already created
@@ -3299,7 +3300,7 @@ procedure TReadVarEventFunc.Execute(info : TProgramInfo);
 var
   Value: Variant;
 begin
-  VarClear(Value);
+  Value := Unassigned;
   if Assigned(FOnReadVar) then
     FOnReadVar(info, Value);
   Info.ResultAsVariant := Value;
