@@ -368,7 +368,7 @@ begin
 {$ELSE}
 {$IFDEF VER200} // Delphi 2009
 var
-   tempPath, tempFileName : array [0..MAX_PATH] of Char; // Buf sizes are MAX_PATH+1
+   tempPath, tempFileName : array [0..MAX_PATH] of WideChar; // Buf sizes are MAX_PATH+1
 begin
    if Windows.GetTempPath(MAX_PATH, @tempPath[0])=0 then
       tempPath:='.'; // Current directory

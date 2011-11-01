@@ -1,6 +1,6 @@
 object DwsIdeForm: TDwsIdeForm
-  Left = 0
-  Top = 0
+  Left = 234
+  Top = 85
   Caption = 'Dws Ide'
   ClientHeight = 867
   ClientWidth = 901
@@ -35,20 +35,6 @@ object DwsIdeForm: TDwsIdeForm
     BevelOuter = bvNone
     BorderWidth = 5
     TabOrder = 0
-    object pcEditor: TRzPageControl
-      Left = 5
-      Top = 5
-      Width = 627
-      Height = 838
-      Align = alClient
-      ShowShadow = False
-      TabHints = True
-      TabOrder = 0
-      OnMouseDown = pcEditorMouseDown
-      OnTabClick = pcEditorTabClick
-      ExplicitLeft = 4
-      FixedDimension = 0
-    end
     object StatusBar: TStatusBar
       Left = 5
       Top = 843
@@ -70,6 +56,31 @@ object DwsIdeForm: TDwsIdeForm
         item
           Width = 50
         end>
+    end
+    object pnlPageControl: TPanel
+      Left = 5
+      Top = 5
+      Width = 627
+      Height = 838
+      Align = alClient
+      BevelOuter = bvNone
+      DoubleBuffered = True
+      ParentDoubleBuffered = False
+      TabOrder = 1
+      OnResize = pnlPageControlResize
+      ExplicitLeft = 4
+      ExplicitTop = -1
+      object imgTabs: TImage
+        Left = 0
+        Top = 0
+        Width = 627
+        Height = 22
+        Align = alTop
+        OnMouseDown = pcEditorMouseDown
+        OnMouseLeave = imgTabsMouseLeave
+        OnMouseMove = imgTabsMouseMove
+        ExplicitLeft = 2
+      end
     end
   end
   object Panel2: TPanel
@@ -553,7 +564,7 @@ object DwsIdeForm: TDwsIdeForm
     Left = 176
     Top = 256
     Bitmap = {
-      494C01011A008000F80110001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01011A008000040210001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

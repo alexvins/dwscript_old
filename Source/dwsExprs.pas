@@ -1986,7 +1986,7 @@ begin
    if s='' then Exit('');
    n:=Length(s);
    SetLength(Result, n);
-   pSrc:=PWideChar(NativeUInt(s));
+   pSrc:=PWideChar(Pointer(s));
    pDest:=PByteArray(NativeUInt(Result));
    for i:=0 to n-1 do
       pDest[i]:=PByte(@pSrc[i])^;

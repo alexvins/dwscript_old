@@ -137,9 +137,9 @@ type
    end;
 
    TCheckTransition = class(TTransition);
-   TSeekTransition = class(TCheckTransition); // Transition, next char
+   TSeekTransition = class(TCheckTransition); // Transition, next WideChar
    TConsumeTransition = class(TSeekTransition);
-   // Transition, consume char, next char
+   // Transition, consume WideChar, next WideChar
 
    TSwitchHandler = function(const SwitchName: UnicodeString): Boolean of object;
 

@@ -681,7 +681,7 @@ begin
    SetLength(Result, count);
    while count>0 do begin
      Dec(count, ls);
-     Move(str[1], Result[count+1], ls*SizeOf(WideChar));
+         Move(str[1], Result[count+1], ls*SizeOf(WideChar));
    end;
 end;
 
@@ -696,7 +696,7 @@ begin
    if Length(str)<Length(beginStr) then
       Result:=False
    else begin
-      Result:=CompareMem(PWideChar(str), PWideChar(beginStr),
+      Result:=CompareMem(PWideChar(Pointer(str)), PWideChar(Pointer(beginStr)),
                          Length(beginStr)*SizeOf(WideChar));
    end;
 end;
@@ -712,7 +712,7 @@ begin
    if Length(str)<Length(endStr) then
       Result:=False
    else begin
-      Result:=CompareMem(@str[Length(str)-Length(endStr)+1], PWideChar(endStr),
+      Result:=CompareMem(@str[Length(str)-Length(endStr)+1], PWideChar(Pointer(endStr)),
                          Length(endStr)*SizeOf(WideChar));
    end;
 end;

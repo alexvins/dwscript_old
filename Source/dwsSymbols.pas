@@ -1860,8 +1860,8 @@ begin
    if ustr='' then Exit('');
    n:=Length(ustr);
    SetLength(Result, n);
-   pSrc:=PWideChar(NativeUInt(ustr));
-   pDest:=PByteArray(NativeUInt(Result));
+   pSrc:=PWideChar(Pointer(ustr));
+   pDest:=PByteArray(Pointer(Result));
    for i:=0 to n-1 do
       pDest[i]:=PByte(@pSrc[i])^;
 end;
