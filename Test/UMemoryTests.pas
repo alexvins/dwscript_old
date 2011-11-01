@@ -2,7 +2,7 @@ unit UMemoryTests;
 
 interface
 
-uses Windows, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
+uses {$IFNDEF FPC} Windows, {$ENDIF} Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
    {dwsComConnector,} Variants, {ActiveX, ComObj,} dwsXPlatform, dwsUtils,
    dwsSymbols;
 

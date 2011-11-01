@@ -2,11 +2,11 @@ unit UdwsFunctionsTests;
 
 interface
 
-uses Classes, SysUtils, {dwsXPlatformTests,} dwsComp, dwsCompiler, dwsExprs,
-   dwsTokenizer, dwsSymbols, dwsXPlatform, dwsUtils,
+uses Classes, SysUtils, dwsXPlatformTests, dwsCompiler,
+   dwsTokenizer, dwsSymbols, dwsUtils,
    dwsMathFunctions, dwsTimeFunctions, dwsGlobalVarsFunctions, dwsVariantFunctions,
    dwsMathComplexFunctions,dwsStringFunctions,
-   dws_fpcunit,fpcunit, testregistry;
+   dws_fpcunit;
 
 type
 

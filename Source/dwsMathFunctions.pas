@@ -23,7 +23,7 @@ unit dwsMathFunctions;
 
 interface
 
-uses Classes, Math, dwsFunctions, dwsExprs, dwsSymbols;
+uses Classes, Math, dwsFunctions, dwsSymbols;
 
 type
 
@@ -214,8 +214,6 @@ implementation
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
-
-uses dwsCoreExprs;
 
 const // type constants
   cFloat = 'Float';

@@ -556,7 +556,7 @@ end;
 //
 procedure TdwsUnitTests.MethodGetArrayIntEval(Info: TProgramInfo; ExtObject: TObject);
 begin
-   Info.ResultAsInteger:=StrToInt(Info.ValueAsString['v'])*2;
+   Info.ResultAsInteger:=StrToInt64(Info.ValueAsString['v'])*2;
 end;
 
 // FuncExceptionEval

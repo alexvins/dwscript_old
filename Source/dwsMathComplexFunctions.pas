@@ -20,7 +20,7 @@ unit dwsMathComplexFunctions;
 
 interface
 
-uses dwsFunctions, dwsSymbols, dwsExprs, dwsStrings, dwsOperators, dwsStack,
+uses dwsFunctions, dwsSymbols, dwsExprs, dwsStrings, dwsOperators,
    dwsTokenizer, SysUtils, dwsXPlatform;
 
 type

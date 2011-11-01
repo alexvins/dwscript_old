@@ -27,8 +27,8 @@ uses
   SysUtils, Classes, TypInfo, dwsErrors, dwsStrings, dwsXPlatform, dwsUtils
   {$IFDEF FPC}
   {$IF FPC_FULLVERSION >= 20700}
-  ,
-  Character
+  //,
+  //Character
   {$ENDIF}
   {$ELSE}
   ,
@@ -330,7 +330,7 @@ begin
       result:=''
    else begin
       SetLength(result, Len);
-      Move(Buffer[0], Pointer(NativeInt(result))^, Len*SizeOf(WideChar));
+      Move(Buffer[0], Pointer(result)^, Len*SizeOf(WideChar));
    end;
 end;
 
@@ -343,7 +343,7 @@ begin
    if Len>0 then begin
       n:=Length(result);
       SetLength(result, n+Len);
-      Move(Buffer[0], PWideChar(NativeInt(result))[n], Len*SizeOf(WideChar));
+      Move(Buffer[0], PWideChar(Pointer(result))[n], Len*SizeOf(WideChar));
    end;
 end;
 

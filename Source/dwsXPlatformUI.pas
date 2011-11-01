@@ -31,7 +31,7 @@ unit dwsXPlatformUI;
 
 interface
 
-uses Windows, Forms, Classes, SysUtils;
+uses {$IFNDEF FPC} Windows, {$ENDIF} Forms, Classes, SysUtils;
 
 procedure ProcessApplicationMessages(sleepMilliSeconds : Integer);
 

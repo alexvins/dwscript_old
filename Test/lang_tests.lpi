@@ -146,15 +146,13 @@
     <Linking>
       <Debugging>
         <GenerateDebugInfo Value="True"/>
-        <DebugInfoType Value="dsStabs"/>
+        <DebugInfoType Value="dsAuto"/>
         <UseHeaptrc Value="True"/>
       </Debugging>
     </Linking>
     <Other>
-      <Verbosity>
-        <ShowHints Value="False"/>
-      </Verbosity>
       <CompilerMessages>
+        <IgnoredMessages idx5024="True"/>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>

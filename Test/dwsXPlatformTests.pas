@@ -54,9 +54,12 @@ type
    TTestCase = TestFrameWork.TTestCase;
    {$endif}
 
-procedure RegisterTest(const testName : UnicodeString; aTest : TTestCaseClass);
+procedure RegisterTest(const testName : UnicodeString; aTest : TTestCaseClass); overload;
 function LoadScriptSource(const FileName: UnicodeString):UnicodeString;
 
+{$IFDEF FPC}
+procedure RegisterTest(ASuitePath: String; ATest: TTest); overload;
+{$ENDIF}
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -102,6 +105,13 @@ begin
    end;
 {$ENDIF}
 end;
+
+{$IFDEF FPC}
+procedure RegisterTest(ASuitePath: String; ATest: TTest);
+begin
+  testregistry.RegisterTest(ASuitePath, ATest);
+end;
+{$ENDIF}
 
 { TTestCase }
 

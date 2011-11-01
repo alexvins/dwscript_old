@@ -6,17 +6,21 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform, dwsXPlatformTests, FileUtil, lazutf8classes;
+  dwsComp, dwsCompiler, dwsExprs, dwsXPlatform, dwsXPlatformTests, FileUtil;
 
 type
 
   { TDWSTestCaseBase }
 
   TDWSTestCaseBase = class(TTestCase)
+  strict private
+    FOldDS: Char;
   strict protected
     FCompiler: TDelphiWebScript;
     FProg:     IdwsProgram;
     FExec:     IdwsProgramExecution;
+    procedure OverrideDecimalSeparator;
+    procedure RestoreDecimalSeparator;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -43,8 +47,6 @@ type
   { TDWSCompilerTestCase }
 
   TDWSCompilerTestCase = class(TDWSTestCaseBase)
-  private
-    FOldDS: Char;
   strict protected
     FTestFilename: UnicodeString;
     FSource: UnicodeString;
@@ -163,6 +165,17 @@ procedure TDWSTestCaseBase.ExecuteWTimeout(TimeOut: Integer);
 begin
   FProg.TimeoutMilliseconds := TimeOut;
   Execute;
+end;
+
+procedure TDWSTestCaseBase.RestoreDecimalSeparator;
+begin
+  SetDecimalSeparator(FOldDS);
+end;
+
+procedure TDWSTestCaseBase.OverrideDecimalSeparator;
+begin
+  FOldDS := GetDecimalSeparator;
+  SetDecimalSeparator('.');
 end;
 
 procedure TDWSTestCaseBase.CheckEqualsInfo(Expected: UnicodeString; msg: UnicodeString);
@@ -286,8 +299,7 @@ procedure TDWSCompilerTestCase.SetUp;
 
 begin
   inherited;
-  FOldDS := GetDecimalSeparator;
-  SetDecimalSeparator('.');
+  OverrideDecimalSeparator;
 
   FSource := UTF8Decode(ReadFileToString(UTF8Encode(FTestFilename)));
 
@@ -304,7 +316,7 @@ end;
 
 procedure TDWSCompilerTestCase.TearDown;
 begin
-  SetDecimalSeparator(FOldDS);
+  RestoreDecimalSeparator;
   inherited;
 end;
 

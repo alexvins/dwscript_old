@@ -25,7 +25,7 @@ interface
 
 uses
   Variants, Classes, SysUtils, TypInfo, dwsCompiler, dwsExprs, dwsSymbols,
-  dwsStack, dwsFunctions, dwsStrings, dwsFileSystem, dwsLanguageExtension,
+  dwsStack, dwsFunctions, dwsStrings, dwsLanguageExtension,
   dwsTokenizer, dwsUtils, dwsOperators,
   // Built-In functions
 {$IFNDEF DWS_NO_BUILTIN_FUNCTIONS}

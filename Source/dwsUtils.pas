@@ -492,11 +492,11 @@ begin
          n2:=Length(s2);
          dn:=n1-n2;
          if dn<0 then begin
-            Result:=UnicodeCompareLen(PWideChar(NativeUint(s1)), PWideChar(NativeUint(s2)), n1);
+            Result:=UnicodeCompareLen(PWideChar(Pointer(s1)), PWideChar(Pointer(s2)), n1);
             if Result=0 then
                Result:=-1;
          end else begin
-            Result:=UnicodeCompareLen(PWideChar(NativeUint(S1)), PWideChar(NativeUint(s2)), n2);
+            Result:=UnicodeCompareLen(PWideChar(Pointer(S1)), PWideChar(Pointer(s2)), n2);
             if (Result=0) and (dn>0) then
                Result:=1;
          end;
@@ -1318,11 +1318,11 @@ end;
 //
 procedure TWriteOnlyBlockStream.WriteString(const utf16String : UnicodeString);
 var
-   stringCracker : NativeInt;
+   stringCracker : Pointer;
 begin
    if utf16String<>'' then begin
-      stringCracker:=NativeInt(utf16String);
-      Write(Pointer(stringCracker)^, PInteger(stringCracker-SizeOf(Integer))^*SizeOf(WideChar));
+      stringCracker:=Pointer(utf16String);
+      Write(stringCracker^, PInteger(stringCracker-SizeOf(Integer))^*SizeOf(WideChar));
    end;
 end;
 

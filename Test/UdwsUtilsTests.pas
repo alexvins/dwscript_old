@@ -4,7 +4,7 @@ unit UdwsUtilsTests;
 
 interface
 
-uses Windows, Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils, dwsJSON;
+uses {$IFNDEF FPC} Windows, {$ENDIF} Classes, SysUtils, dwsXPlatform, dwsXPlatformTests, dwsUtils, dwsJSON;
 
 type
    TSimpleStackInt = TSimpleStack<Integer>;

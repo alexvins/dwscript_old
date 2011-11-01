@@ -2,8 +2,8 @@ unit UAlgorithmsTests;
 
 interface
 
-uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
-   dwsXPlatform, dwsUtils, dwsSymbols,dws_fpcunit,testregistry;
+uses Classes, SysUtils, dwsXPlatformTests, dwsCompiler, dwsExprs,
+   dwsXPlatform, dwsUtils, dwsSymbols,dws_fpcunit;
 
 type
 
@@ -204,7 +204,7 @@ end;
 procedure TAlgorithmsThreadedTests.SetUp;
 begin
    inherited SetUp;
-
+   OverrideDecimalSeparator;
 
    FTests:=TStringList.Create;
 
@@ -214,6 +214,7 @@ end;
 
 procedure TAlgorithmsThreadedTests.TearDown;
 begin
+   RestoreDecimalSeparator;
    FTests.Free;
    inherited TearDown;
 end;
