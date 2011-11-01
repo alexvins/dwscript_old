@@ -4,6 +4,7 @@
     <PathDelim Value="\"/>
     <Name Value="dwscript"/>
     <Author Value="See &quot;Contributors.txt&quot; "/>
+    <AutoUpdate Value="OnRebuildingAll"/>
     <CompilerOptions>
       <Version Value="10"/>
       <PathDelim Value="\"/>

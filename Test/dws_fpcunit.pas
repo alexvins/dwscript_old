@@ -301,7 +301,7 @@ begin
   inherited;
   OverrideDecimalSeparator;
 
-  FSource := UTF8Decode(ReadFileToString(UTF8Encode(FTestFilename)));
+  FSource := LoadScriptSource(FTestFilename);
 
   FResultFileName := ChangeFileExt(FTestFilename, '.txt');
 

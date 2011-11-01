@@ -20,7 +20,7 @@ unit dwsCodeGen;
 interface
 
 uses Classes, SysUtils, dwsUtils, dwsSymbols, dwsExprs, dwsCoreExprs, dwsJSON,
-   dwsStrings;
+   dwsStrings, dwsXPlatform;
 
    // experimental codegen support classes for DWScipt
 

@@ -83,15 +83,15 @@ end;
 function LoadScriptSource(const FileName: UnicodeString): UnicodeString;
 {$IFDEF FPC}
 var
-  source : TStringListUTF8;
+   source : TStringList;
 begin
-   source := TStringListUTF8.Create;
+   source := TStringList.Create;
    try
-      source.LoadFromFile(UTF8Encode(FileName));
+      source.LoadFromFile(FileName);
       Result := UTF8Decode(source.Text);
    finally
       source.Free;
-   end;
+   end
 {$ELSE}
 var
    source : TStringList;
@@ -99,7 +99,7 @@ begin
    source := TStringList.Create;
    try
       source.LoadFromFile(FileName);
-      Result := sourse.Text;
+      Result := source.Text;
    finally
       source.Free;
    end;

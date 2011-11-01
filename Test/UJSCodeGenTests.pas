@@ -2,7 +2,7 @@ unit UJSCodeGenTests;
 
 interface
 
-uses Forms, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs, dwsUtils,
+uses Forms, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs, dwsUtils,
    dwsXPlatform, dwsCodeGen, dwsJSCodeGen, cefvcl, ceflib, dwsJSLibModule, dwsFunctions;
 
 type
@@ -402,6 +402,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFramework.RegisterTest('JSCodeGenTests', TJSCodeGenTests.Suite);
+   TestFramework.RegisterTest('JSCodeGenTests', TJSCodeGenTests);
 
 end.

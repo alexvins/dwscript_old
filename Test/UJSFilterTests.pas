@@ -3,7 +3,7 @@ unit UJSFilterTests;
 interface
 
 uses
-  Forms, Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
+  Forms, Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,
   dwsJSFilter, dwsHtmlFilter, dwsXPlatform, dwsUtils, cefvcl, ceflib, dwsJSLibModule,
   StrUtils, dwsFunctions;
 
@@ -242,6 +242,6 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   TestFrameWork.RegisterTest('JSFilterTests', TJSFilterTests.Suite);
+   TestFrameWork.RegisterTest('JSFilterTests', TJSFilterTests);
 
 end.
