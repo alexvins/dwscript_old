@@ -22,9 +22,6 @@
       <CodeGeneration>
         <Checks>
           <IOChecks Value="True"/>
-          <RangeChecks Value="True"/>
-          <OverflowChecks Value="True"/>
-          <StackChecks Value="True"/>
         </Checks>
       </CodeGeneration>
       <Linking>
@@ -42,7 +39,6 @@
           <IgnoredMessages idx5023="True" idx5024="True"/>
           <UseMsgFile Value="True"/>
         </CompilerMessages>
-        <CustomOptions Value="-dDEBUG"/>
         <CompilerPath Value="$(CompPath)"/>
         <CreateMakefileOnBuild Value="True"/>
       </Other>

@@ -64,6 +64,7 @@ type
 
     class function GetTestFileMask: UnicodeString; virtual;
 
+
   public
     constructor CreateWith(const ATestName: UnicodeString; const ATestSuiteName: UnicodeString;
       const ATestFile: UnicodeString); reintroduce; virtual;

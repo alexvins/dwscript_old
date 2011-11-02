@@ -143,8 +143,6 @@
     <CodeGeneration>
       <Checks>
         <IOChecks Value="True"/>
-        <RangeChecks Value="True"/>
-        <OverflowChecks Value="True"/>
       </Checks>
     </CodeGeneration>
     <Linking>

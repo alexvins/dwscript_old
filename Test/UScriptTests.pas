@@ -3,7 +3,7 @@ unit UScriptTests;
 interface
 
 uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs, dwsUtils,
-   dwsXPlatform, dwsSymbols;
+   dwsXPlatform, dwsSymbols, dws_fpcunit;
 
 type
 
@@ -33,6 +33,20 @@ type
          procedure FailuresOptimized;
    end;
 
+   { TScriptFailureTests }
+
+   TScriptFailureTests = class(TDWSCompilerTestCase)
+   public
+      procedure SetUp; override;
+      procedure TearDown; override;
+
+      procedure CompilationFailure(Optimized: boolean);
+      procedure DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
+   published
+      procedure Simple;
+      procedure Optimized;
+   end;
+
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -44,6 +58,73 @@ implementation
 procedure EmptyCallBack(parent, expr : TExprBase; var abort : Boolean);
 begin
    // just used for detecting crashes in subexpr tree navigation
+end;
+
+{ TScriptFailureTests }
+
+procedure TScriptFailureTests.CompilationFailure(Optimized: boolean);
+var
+   Options: TCompilerOptions;
+   ResultExtension: AnsiString;
+   ResultFN: AnsiString;
+begin
+   Options := cDefaultCompilerOptions;
+   if Optimized then
+   begin
+     Options := Options + [coOptimize] - [coAssertions];
+     ResultExtension := '.optimized.txt';
+     ResultFN := ChangeFileExt(FTestFilename, ResultExtension);
+     if FileExists(ResultFN) then
+     begin
+       FResultFileName := ResultFN;
+       FExpectedResult := LoadScriptSource(ResultFN);
+     end;
+   end
+   else begin
+     Options := Options -[coOptimize]+[coSymbolDictionary, coContextMap];
+   end;
+   SetOptions(Options);
+
+   Compile(FSource);
+
+   if FileExists(FResultFileName) then
+   begin
+      CheckEqualsInfo(FExpectedResult, 'Error messages');
+   end
+   else
+   begin
+     Check(fprog.Msgs.AsInfo <> '', 'undetected error');
+   end;
+
+   (Fprog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
+   (Fprog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
+end;
+
+procedure TScriptFailureTests.DoInclude(const scriptName: UnicodeString;
+   var scriptSource: UnicodeString);
+begin
+   scriptSource := LoadScriptSource('SimpleScripts\'+scriptName);
+end;
+
+procedure TScriptFailureTests.Optimized;
+begin
+  CompilationFailure(True);
+end;
+
+procedure TScriptFailureTests.SetUp;
+begin
+   inherited SetUp;
+   FCompiler.OnInclude := DoInclude;
+end;
+
+procedure TScriptFailureTests.Simple;
+begin
+  CompilationFailure(False);
+end;
+
+procedure TScriptFailureTests.TearDown;
+begin
+   inherited TearDown;
 end;
 
 // ------------------
@@ -195,64 +276,6 @@ begin
    Execution;
 end;
 
-// FailuresNonOptimized
-//
-procedure TScriptTests.FailuresNonOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=cDefaultCompilerOptions-[coOptimize]+[coSymbolDictionary, coContextMap];
-   CompilationFailure;
-end;
-
-// FailuresOptimized
-//
-procedure TScriptTests.FailuresOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=cDefaultCompilerOptions+[coOptimize]-[coAssertions];
-   CompilationFailure;
-end;
-
-// CompilationFailure
-//
-procedure TScriptTests.CompilationFailure;
-var
-   source : TStringList;
-   i : Integer;
-   prog : IdwsProgram;
-   expectedError : TStringList;
-   expectedErrorsFileName : UnicodeString;
-begin
-   source:=TStringList.Create;
-   expectedError:=TStringList.Create;
-   try
-
-      for i:=0 to FFailures.Count-1 do begin
-
-         source.LoadFromFile(FFailures[i]);
-
-         prog:=FCompiler.Compile(source.Text);
-
-         if coOptimize in FCompiler.Config.CompilerOptions then begin
-            expectedErrorsFileName:=ChangeFileExt(FFailures[i], '.optimized.txt');
-            if not FileExists(expectedErrorsFileName) then
-               expectedErrorsFileName:=ChangeFileExt(FFailures[i], '.txt');
-         end else expectedErrorsFileName:=ChangeFileExt(FFailures[i], '.txt');
-
-         if FileExists(expectedErrorsFileName) then begin
-            expectedError.LoadFromFile(expectedErrorsFileName);
-            CheckEquals(expectedError.Text, prog.Msgs.AsInfo, FFailures[i]);
-         end else Check(prog.Msgs.AsInfo<>'', FFailures[i]+': undetected error');
-
-         (prog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
-         (prog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
-
-      end;
-
-   finally
-      expectedError.Free;
-      source.Free;
-   end;
-end;
-
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -262,5 +285,6 @@ initialization
 // ------------------------------------------------------------------
 
    RegisterTest('ScriptTests', TScriptTests);
+   RegisterTest('', TScriptFailureTests.Suite('FailureScripts', 'FailureScripts'));
 
 end.
