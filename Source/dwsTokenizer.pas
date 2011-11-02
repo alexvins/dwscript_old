@@ -107,9 +107,13 @@ type
    TTransition = class;
 
    TState = class
+      private
      FOwnedTransitions : TTightList;
      FTransitions : array [0..127] of TTransition;
+
+      public
      destructor Destroy; override;
+
      function FindTransition(c : WideChar) : TTransition;
      procedure AddTransition(const chrs : TCharsType; o : TTransition);
      procedure SetElse(o : TTransition);
@@ -120,10 +124,13 @@ type
    TTransitionOptions = set of (toStart, toFinal);
 
    TTransition = class
+      private
      NextState: TState;
      Start: Boolean; // Marks the begin of a Token
      Final: Boolean; // Marks the end of a Token
      Action: TConvertAction;
+
+      public
      constructor Create(nstate: TState; opts: TTransitionOptions; actn: TConvertAction);
    end;
 
@@ -132,7 +139,10 @@ type
    end;
 
    TErrorTransition = class(TTransition)
+      private
      ErrorMessage: UnicodeString;
+
+      public
      constructor Create(const msg: UnicodeString);
    end;
 

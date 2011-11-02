@@ -619,10 +619,15 @@ type
    end;
 
    TdwsExceptionContext = class
-      CallStack : TdwsExprLocationArray;
+      private
+         FCallStack : TdwsExprLocationArray;
+
+      public
       constructor Create(const aCallStack : TdwsExprLocationArray);
       procedure Skip(n : Integer);
       procedure ReplaceTop(expr : TExprBase);
+
+         property CallStack : TdwsExprLocationArray read FCallStack;
    end;
 
    // Base class of all expressions attached to a program
@@ -3101,7 +3106,7 @@ end;
 //
 constructor TdwsExceptionContext.Create(const aCallStack : TdwsExprLocationArray);
 begin
-   CallStack:=aCallStack
+   FCallStack:=aCallStack
 end;
 
 // Skip
@@ -3110,16 +3115,16 @@ procedure TdwsExceptionContext.Skip(n : Integer);
 var
    i : Integer;
 begin
-   for i:=0 to High(CallStack)-n do
-      CallStack[i]:=CallStack[i+n];
-   SetLength(CallStack, Length(CallStack)-n);
+   for i:=0 to High(FCallStack)-n do
+      FCallStack[i]:=FCallStack[i+n];
+   SetLength(FCallStack, Length(CallStack)-n);
 end;
 
 // ReplaceTop
 //
 procedure TdwsExceptionContext.ReplaceTop(expr : TExprBase);
 begin
-   CallStack[0].Expr:=expr;
+   FCallStack[0].Expr:=expr;
 end;
 
 // ------------------

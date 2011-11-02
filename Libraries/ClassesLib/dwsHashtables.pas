@@ -39,7 +39,10 @@ type
   end;
 
   TStringHashItem = class(THashItem)
+      private
     Key: string;
+
+      public
     function HashCode: Integer; override;
     function Equals(Item: THashItem): Boolean; override;
   end;
@@ -57,7 +60,10 @@ type
   end;
 
   TIntegerHashItem = class(THashItem)
+      private
     Key: Integer;
+
+      public
     function HashCode: Integer; override;
     function Equals(Item: THashItem): Boolean; override;
   end;

@@ -680,7 +680,7 @@ begin
       if (ufImplicitUse in curUnit.GetUnitFlags) or not (coExplicitUnitUses in FOptions) then begin
          deps := curUnit.GetDependencies;
          for y := 0 to deps.Count - 1 do begin
-            if FUnits.IndexOf(deps[y]) < 0 then
+            if FUnits.IndexOfName(deps[y]) < 0 then
                FMsgs.AddCompilerStopFmt(cNullPos, CPE_UnitNotFound, [deps[y], curUnit.GetUnitName]);
          end;
          refCount[x] := deps.Count;
@@ -999,7 +999,7 @@ begin
    f:=FFilter;
    while Assigned(f) do begin
       for dep in f.Dependencies do begin
-         if confUnits.IndexOf(dep)<0 then
+         if confUnits.IndexOfName(dep)<0 then
             FMsgs.AddCompilerErrorFmt(cNullPos, CPE_FilterDependsOnUnit,
                                       [f.ClassName, dep]);
       end;
@@ -1051,7 +1051,7 @@ begin
       Exit;
    end;
 
-   i:=FUnits.IndexOf(unitName);
+   i:=FUnits.IndexOfName(unitName);
    if i<0 then begin
       if Assigned(FOnNeedUnit) then begin
          unitResolved:=FOnNeedUnit(unitName, unitSource);
