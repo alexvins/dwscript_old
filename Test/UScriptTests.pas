@@ -7,30 +7,15 @@ uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs, dwsUt
 
 type
 
-   TScriptTests = class (TTestCase)
-      private
-         FTests : TStringList;
-         FFailures : TStringList;
-         FCompiler : TDelphiWebScript;
-
+   TScriptTests = class (TDWSCustomTest)
       public
          procedure SetUp; override;
          procedure TearDown; override;
 
          procedure DoInclude(const scriptName: UnicodeString; var scriptSource: UnicodeString);
 
-         procedure Compilation;
-         procedure Execution;
-         procedure CompilationFailure;
-
-      published
-
-         procedure CompilationNormal;
-         procedure CompilationWithMapAndSymbols;
-         procedure ExecutionNonOptimized;
-         procedure ExecutionOptimized;
-         procedure FailuresNonOptimized;
-         procedure FailuresOptimized;
+         procedure Compilation; override;
+         procedure Execution; override;
    end;
 
    { TScriptFailureTests }
@@ -135,18 +120,7 @@ end;
 //
 procedure TScriptTests.SetUp;
 begin
-   SetDecimalSeparator('.');
-
-   FTests:=TStringList.Create;
-   FFailures:=TStringList.Create;
-
-   CollectFiles(ExtractFilePath(ParamStr(0))+'SimpleScripts'+PathDelim, '*.pas', FTests);
-   CollectFiles(ExtractFilePath(ParamStr(0))+'InterfacesPass'+PathDelim, '*.pas', FTests);
-
-   CollectFiles(ExtractFilePath(ParamStr(0))+'FailureScripts'+PathDelim, '*.pas', FFailures);
-   CollectFiles(ExtractFilePath(ParamStr(0))+'InterfacesFail'+PathDelim, '*.pas', FFailures);
-
-   FCompiler:=TDelphiWebScript.Create(nil);
+   inherited;
    FCompiler.OnInclude:=DoInclude;
 end;
 
@@ -154,10 +128,7 @@ end;
 //
 procedure TScriptTests.TearDown;
 begin
-   FCompiler.Free;
-
-   FTests.Free;
-   FFailures.Free;
+   inherited;
 end;
 
 // DoInclude
@@ -178,103 +149,39 @@ end;
 // Compilation
 //
 procedure TScriptTests.Compilation;
-var
-   i : Integer;
-   prog : IdwsProgram;
 begin
+   Compile(FSource);
+   CheckEquals(False, fprog.Msgs.HasErrors, fprog.Msgs.AsInfo);
 
-   for i:=0 to FTests.Count-1 do begin
-
-      prog:=FCompiler.Compile(LoadScriptSource(FTests[i]));
-
-      CheckEquals(False, prog.Msgs.HasErrors, FTests[i]+#13#10+prog.Msgs.AsInfo);
-
-      (prog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
-      (prog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
-
-   end;
-
+   (fprog as TdwsProgram).InitExpr.RecursiveEnumerateSubExprs(EmptyCallBack);
+   (fprog as TdwsProgram).Expr.RecursiveEnumerateSubExprs(EmptyCallBack);
 end;
 
 // Execution
 //
 procedure TScriptTests.Execution;
 var
-   expectedResult : TStringList;
-   i : Integer;
-   prog : IdwsProgram;
-   resultsFileName : UnicodeString;
    output : UnicodeString;
-   exec : IdwsProgramExecution;
 begin
-   expectedResult:=TStringList.Create;
-   try
+   Compile(FSource);
+   CheckEquals(False, fprog.Msgs.HasErrors, fprog.Msgs.AsInfo);
+   Execute;
 
-      for i:=0 to FTests.Count-1 do begin
-
-         prog:=FCompiler.Compile(LoadScriptSource(FTests[i]));
-
-         CheckEquals(False, prog.Msgs.HasErrors, FTests[i]+#13#10+prog.Msgs.AsInfo);
-         try
-            exec:=prog.Execute;
-         except
-            on E: Exception do begin
-               CheckEquals('', E.Message, FTests[i]);
-            end;
-         end;
-         if prog.Msgs.Count+exec.Msgs.Count=0 then
-            output:=exec.Result.ToString
-         else begin
-            output:= 'Errors >>>>'#13#10
-                    +prog.Msgs.AsInfo
-                    +exec.Msgs.AsInfo
-                    +'Result >>>>'#13#10
-                    +exec.Result.ToString;
-         end;
-         resultsFileName:=ChangeFileExt(FTests[i], '.txt');
-         if FileExists(resultsFileName) then begin
-            expectedResult.LoadFromFile(resultsFileName);
-            CheckEquals(expectedResult.Text, output, FTests[i]);
-         end else CheckEquals('', output, FTests[i]);
-
-      end;
-
-   finally
-      expectedResult.Free;
+   if fprog.Msgs.Count+fexec.Msgs.Count=0 then
+      output:=fexec.Result.ToString
+   else begin
+      output:= 'Errors >>>>'#13#10
+              +fprog.Msgs.AsInfo
+              +fexec.Msgs.AsInfo
+              +'Result >>>>'#13#10
+              +fexec.Result.ToString;
    end;
+
+   CheckEquals(FExpectedResult, output, 'Result');
 end;
 
-// CompilationNormal
-//
-procedure TScriptTests.CompilationNormal;
-begin
-   FCompiler.Config.CompilerOptions:=[coOptimize];
-   Compilation;
-end;
 
-// CompilationWithMapAndSymbols
-//
-procedure TScriptTests.CompilationWithMapAndSymbols;
-begin
-   FCompiler.Config.CompilerOptions:=cDefaultCompilerOptions+[coSymbolDictionary, coContextMap];
-   Compilation;
-end;
 
-// ExecutionNonOptimized
-//
-procedure TScriptTests.ExecutionNonOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=cDefaultCompilerOptions-[coOptimize];
-   Execution;
-end;
-
-// ExecutionOptimized
-//
-procedure TScriptTests.ExecutionOptimized;
-begin
-   FCompiler.Config.CompilerOptions:=cDefaultCompilerOptions+[coOptimize];
-   Execution;
-end;
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -284,7 +191,7 @@ initialization
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-   RegisterTest('ScriptTests', TScriptTests);
+   RegisterTest('', TScriptTests.Suite('Scripts', 'SimpleScripts'));
    RegisterTest('', TScriptFailureTests.Suite('FailureScripts', 'FailureScripts'));
 
 end.
