@@ -306,7 +306,13 @@ var
    v : PVariant;
 begin
    sp:=FStackPointer;
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    v:=@Data[sp];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    sp:=sp-delta;
    for x:=1 to delta do begin
       Dec(v);
@@ -333,7 +339,13 @@ end;
 procedure TStackMixIn.SetBasePointer(newBp : Integer);
 begin
    FBasePointer:=newBp;
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    FBaseData:=@Data[FBasePointer];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
 end;
 
 // Push
@@ -445,7 +457,13 @@ function TStackMixIn.ReadIntValue_BaseRelative(SourceAddr: Integer): Int64;
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[SourceAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    if varData.VType=varInt64 then
       Result:=varData.VInt64
    else Result:=PVariant(varData)^;
@@ -457,7 +475,13 @@ function TStackMixIn.ReadIntAsFloatValue_BaseRelative(SourceAddr: Integer) : Dou
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[SourceAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    Assert(varData.VType=varInt64);
    Result:=varData.VInt64;
 end;
@@ -479,7 +503,13 @@ function TStackMixIn.ReadFloatValue_BaseRelative(SourceAddr: Integer) : Double;
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[SourceAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    Assert(varData.VType=varDouble);
    Result:=varData.VDouble;
 end;
@@ -537,7 +567,13 @@ function TStackMixIn.PointerToFloatValue_BaseRelative(addr : Integer) : PDouble;
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[addr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    Assert(varData.VType=varDouble);
    Result:=@varData.VDouble;
 end;
@@ -559,7 +595,13 @@ procedure TStackMixIn.IncIntValue_BaseRelative(destAddr: Integer; const value: I
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[destAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    Assert(varData.VType=varInt64);
    varData.VInt64:=varData.VInt64+value
 end;
@@ -576,7 +618,13 @@ procedure TStackMixIn.AppendStringValue_BaseRelative(destAddr : Integer; const v
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[destAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    if varData.VType=varUString then
       {$IFDEF FPC}
       UnicodeString(varData.vstring):=UnicodeString(varData.vstring)+value
@@ -623,7 +671,13 @@ procedure TStackMixIn.WriteIntValue_BaseRelative(DestAddr: Integer; const Value:
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[DestAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    if varData.VType=varInt64 then
       varData.VInt64:=Value
    else PVariant(varData)^:=Value;
@@ -635,7 +689,13 @@ procedure TStackMixIn.WriteIntValue_BaseRelative(DestAddr: Integer; const pValue
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[DestAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    if varData.VType=varInt64 then
       varData.VInt64:=pValue^
    else PVariant(varData)^:=pValue^;
@@ -659,7 +719,13 @@ procedure TStackMixIn.WriteFloatValue_BaseRelative(DestAddr: Integer; const valu
 var
    varData : PVarData;
 begin
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    varData:=@FBaseData[DestAddr];
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    if varData.VType=varDouble then
       varData.VDouble:=Value
    else PVariant(varData)^:=Value;

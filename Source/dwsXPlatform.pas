@@ -266,7 +266,13 @@ end;
 function UnicodeStringOfChar(c: WideChar; i: SizeInt): UnicodeString;
 begin
   SetLength(Result,i);
+  {$IFDEF FPC}
+  {$PUSH}{$R-}
+  {$ENDIF}
   FillWord(Result[1],i,Word(c));
+  {$IFDEF FPC}
+  {$POP}
+  {$ENDIF}
 end;
 
 function dwsFormat(const Fmt: UnicodeString;

@@ -953,11 +953,17 @@ var
 begin
    Assert(child.Owner=Self);
    for i:=0 to FCount-1 do begin
+      {$IFDEF FPC}
+      {$PUSH}{$R-}
+      {$ENDIF}
       if FElements[i]=child then begin
          child.Detach;
          Move(FElements[i+1], FElements[i], (FCount-1-i)*SizeOf(Pointer));
          Dec(FCount);
       end;
+      {$IFDEF FPC}
+      {$POP}
+      {$ENDIF}
    end;
 end;
 
@@ -976,7 +982,13 @@ var
    v : TdwsJSONValue;
 begin
    for i:=0 to FCount-1 do begin
+      {$IFDEF FPC}
+      {$PUSH}{$R-}
+      {$ENDIF}
       v:=FElements[i];
+      {$IFDEF FPC}
+      {$POP}
+      {$ENDIF}
       v.FOwner:=nil;
       v.Free;
    end;
@@ -992,7 +1004,13 @@ begin
    Assert(value.Owner=nil);
    value.FOwner:=Self;
    if FCount=FCapacity then Grow;
+   {$IFDEF FPC}
+   {$PUSH}{$R-}
+   {$ENDIF}
    FElements[FCount]:=value;
+   {$IFDEF FPC}
+   {$POP}
+   {$ENDIF}
    Inc(FCount);
 end;
 
@@ -1034,7 +1052,13 @@ end;
 function TdwsJSONArray.DoGetElement(index : Integer) : TdwsJSONValue;
 begin
    if Cardinal(index)<Cardinal(FCount) then
+      {$IFDEF FPC}
+      {$PUSH}{$R-}
+      {$ENDIF}
       Result:=TdwsJSONValue(FElements[index])
+      {$IFDEF FPC}
+      {$POP}
+      {$ENDIF}
    else Result:=nil;
 end;
 

@@ -417,7 +417,7 @@ begin
          if i<0 then
             i:=sl.Add(fromStr);
          {$IFDEF FPC}
-         {$PUSH}
+         {$PUSH} {$OBJECTCHECKS OFF}
          {$ENDIF}
          {$WARNINGS OFF}
          toStr:=TStringListCracker(sl).FList[i].FString;

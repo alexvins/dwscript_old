@@ -130,8 +130,7 @@
       <Filename Value=".\lang_tests"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\Source"/>
+      <IncludeFiles Value="$(ProjOutDir);..\Source"/>
       <UnitOutputDirectory Value="units\$(TargetCPU)-$(TargetOS)\$(LazTarget)"/>
     </SearchPaths>
     <Parsing>
@@ -144,12 +143,14 @@
     <CodeGeneration>
       <Checks>
         <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
       </Checks>
     </CodeGeneration>
     <Linking>
       <Debugging>
         <GenerateDebugInfo Value="True"/>
-        <DebugInfoType Value="dsAuto"/>
+        <DebugInfoType Value="dsStabs"/>
         <UseHeaptrc Value="True"/>
       </Debugging>
     </Linking>
@@ -162,7 +163,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="17">
+    <Exceptions Count="22">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -214,6 +215,21 @@
       <Item17>
         <Name Value="EScriptError"/>
       </Item17>
+      <Item18>
+        <Name Value="EScriptStopped"/>
+      </Item18>
+      <Item19>
+        <Name Value="EScriptStackException"/>
+      </Item19>
+      <Item20>
+        <Name Value="EScriptAssertionFailed"/>
+      </Item20>
+      <Item21>
+        <Name Value="ETightListOutOfBound"/>
+      </Item21>
+      <Item22>
+        <Name Value="EScriptException"/>
+      </Item22>
     </Exceptions>
   </Debugging>
 </CONFIG>

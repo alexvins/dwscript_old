@@ -44,12 +44,12 @@
 {$ELSE}
   {$IFDEF DWS_FPC}
      {$MODE OBJFPC}
-     {.$MODESWITCH ADVANCEDRECORDS}
   {$ELSE}
     {$MODE DELPHI}
   {$ENDIF}
   {$modeswitch nestedprocvars}
   {$DEFINE PUREPASCAL} //temp workaround
+  {$INLINE OFF} //temp workaround
 {$ENDIF}
 
 {.$DEFINE PUREPASCAL}
