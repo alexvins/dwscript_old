@@ -4,7 +4,6 @@
     <PathDelim Value="\"/>
     <Name Value="dwscript"/>
     <Author Value="See &quot;Contributors.txt&quot; "/>
-    <AutoUpdate Value="OnRebuildingAll"/>
     <CompilerOptions>
       <Version Value="10"/>
       <PathDelim Value="\"/>
@@ -23,25 +22,21 @@
       <CodeGeneration>
         <Checks>
           <IOChecks Value="True"/>
-          <RangeChecks Value="True"/>
-          <OverflowChecks Value="True"/>
         </Checks>
       </CodeGeneration>
       <Linking>
         <Debugging>
           <GenerateDebugInfo Value="True"/>
-          <DebugInfoType Value="dsAuto"/>
+          <DebugInfoType Value="dsStabs"/>
           <UseHeaptrc Value="True"/>
         </Debugging>
       </Linking>
       <Other>
-        <Verbosity>
-          <ShowHints Value="False"/>
-        </Verbosity>
         <ConfigFile>
           <StopAfterErrCount Value="50"/>
         </ConfigFile>
         <CompilerMessages>
+          <IgnoredMessages idx5023="True" idx5024="True"/>
           <UseMsgFile Value="True"/>
         </CompilerMessages>
         <CustomOptions Value="-dDEBUG"/>

@@ -492,10 +492,7 @@ var
 begin
    varData:=@Data[SourceAddr];
    if varData.VType=varUString then
-{$IFDEF FPC}
-      Result:=UnicodeString(varData.vstring)
-{$ELSE}
-      Result:=UnicodeString(varData.VUString)   {$ENDIF}
+      Result := VarDataToUniStr(varData)
    else Result:=PVariant(varData)^;
 end;
 
