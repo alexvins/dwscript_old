@@ -510,7 +510,7 @@ type
     property Name : UnicodeString read FName write FName;
   end;
 
-   TdwsTypeSymbols = class(TOwnedCollection)
+   TdwsTypeSymbols = class(TDwsOwnedCollection)
       public
          constructor Create(AOwner: TPersistent);
          function Add : TdwsTypeSymbol;

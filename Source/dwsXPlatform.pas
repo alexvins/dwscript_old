@@ -176,12 +176,20 @@ type
 
    { TStringsUnicodeHelper }
 
-   TStringsUnicodeHelper = class //helper for TStrings
+   TStringsUnicodeHelper = class helper for TStrings
    private
       function GetStrings(Index: Integer): UnicodeString;
       procedure SetStrings(Index: Integer; AValue: UnicodeString);
    public
       property Strings[Index: Integer]: UnicodeString read GetStrings write SetStrings; default;
+      function AddObject(const S: UnicodeString; AObject: TObject): Integer; overload;
+      function Add(const S: UnicodeString): Integer; overload;
+      function IndexOf(const S: UnicodeString): Integer; overload;
+
+   end;
+
+   TStringListUnicodeHelper = class helper (TStringsUnicodeHelper) for TStringList
+
    end;
 
    {$ELSE}
@@ -452,9 +460,25 @@ end;
 
 { TStringsUnicodeHelper }
 
+function TStringsUnicodeHelper.Add(const S: UnicodeString): Integer;
+begin
+   Result := Add(UTF8Encode(s));
+end;
+
+function TStringsUnicodeHelper.AddObject(const S: UnicodeString;
+   AObject: TObject): Integer;
+begin
+   Result := AddObject(UTF8Encode(s), AObject);
+end;
+
 function TStringsUnicodeHelper.GetStrings(Index: Integer): UnicodeString;
 begin
    Result := UTF8Decode(Get(Index));
+end;
+
+function TStringsUnicodeHelper.IndexOf(const S: UnicodeString): Integer;
+begin
+   Result := IndexOf(UTF8Encode(s));
 end;
 
 procedure TStringsUnicodeHelper.SetStrings(Index: Integer; AValue: UnicodeString

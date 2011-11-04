@@ -846,7 +846,7 @@ end;
 procedure TdwsCodeGen.Indent;
 begin
    Inc(FIndent);
-   FIndentString:=StringOfChar(' ', FIndent*FIndentSize);
+   FIndentString:=dwsStringOfChar(' ', FIndent*FIndentSize);
    FNeedIndent:=True;
 end;
 
@@ -855,7 +855,7 @@ end;
 procedure TdwsCodeGen.UnIndent;
 begin
    Dec(FIndent);
-   FIndentString:=StringOfChar(' ', FIndent*FIndentSize);
+   FIndentString:=dwsStringOfChar(' ', FIndent*FIndentSize);
    FNeedIndent:=True;
 end;
 
