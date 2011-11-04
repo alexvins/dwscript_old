@@ -124,12 +124,33 @@ type
    end;
    {$ENDIF}
 
+   {$IFDEF FPC}
+
+   { EdwsException }
+
+   EdwsException = class(Exception)
+   private
+      FMessage: UnicodeString;
+      procedure SetMessage(AValue: UnicodeString);
+   public
+     constructor Create(const msg : UnicodeString);
+     constructor CreateFmt(const msg : UnicodeString; const args : array of const);
+     property Message: UnicodeString read FMessage write SetMessage;
+   end;
+   {$ELSE}
+   EdwsException = Exception
+   {$ENDIF}
+
 function GetSystemMilliseconds : Cardinal;
 function UTCDateTime : TDateTime;
 
 function AnsiCompareText(const S1, S2 : UnicodeString) : Integer;
 function AnsiCompareStr(const S1, S2 : UnicodeString) : Integer;
 function UnicodeComparePChars(p1 : PWideChar; n1 : Integer; p2 : PWideChar; n2 : Integer) : Integer;
+
+function dwsSameText(const s1,s2: UnicodeString): boolean;
+function dwsCompareText(const S1, S2 : UnicodeString) : Integer;
+function dwsCompareStr(const S1, S2 : UnicodeString) : Integer;
 
 function TextToFloatU(Buffer: PWideChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
@@ -186,14 +207,22 @@ end;
 //
 function AnsiCompareText(const S1, S2: UnicodeString) : Integer;
 begin
+   {$IFDEF FPC}
+   Result:=SysUtils.UnicodeCompareText(S1, S2);
+   {$ELSE}
    Result:=SysUtils.AnsiCompareText(S1, S2);
+   {$ENDIF}
 end;
 
 // AnsiCompareStr
 //
 function AnsiCompareStr(const S1, S2: UnicodeString) : Integer;
 begin
+   {$IFDEF FPC}
+   Result:=SysUtils.UnicodeCompareStr(S1, S2);
+   {$ELSE}
    Result:=SysUtils.AnsiCompareStr(S1, S2);
+   {$ENDIF}
 end;
 
 // UnicodeComparePChars
@@ -206,6 +235,33 @@ begin
 end;
 
 {$IFDEF FPC}
+
+function dwsSameText(const s1, s2: UnicodeString): boolean;
+begin
+   {$IFDEF FPC}
+   Result := UnicodeSameText(s1,s2);
+   {$ELSE}
+   Result := SameText(s1,s2);
+   {$ENDIF}
+end;
+
+function dwsCompareText(const S1, S2: UnicodeString): Integer;
+begin
+   {$IFDEF FPC}
+   Result := UnicodeCompareText(s1,s2);
+   {$ELSE}
+   Result := CompareText(s1,s2);
+   {$ENDIF}
+end;
+
+function dwsCompareStr(const S1, S2: UnicodeString): Integer;
+begin
+   {$IFDEF FPC}
+   Result := UnicodeCompareStr(s1,s2);
+   {$ELSE}
+   Result := CompareStr(s1,s2);
+   {$ENDIF}
+end;
 
 function TextToFloatU(Buffer: PWideChar; out Value; ValueType: TFloatValue;
   const FormatSettings: TFormatSettings): Boolean;
@@ -341,6 +397,29 @@ begin
    end;
    FindClose(searchRec);
 end;
+
+{$IFDEF FPC}
+{ EdwsException }
+
+constructor EdwsException.Create(const msg: UnicodeString);
+begin
+   FMessage := msg;
+   inherited Create(UTF8Encode(msg));
+end;
+
+constructor EdwsException.CreateFmt(const msg: UnicodeString;
+   const args: array of const);
+begin
+   Create(UnicodeFormat(msg,args));
+end;
+
+procedure EdwsException.SetMessage(AValue: UnicodeString);
+begin
+   if FMessage = AValue then Exit;
+   FMessage := AValue;
+   inherited Message := UTF8Encode(AValue);
+end;
+{$ENDIF}
 
 {$IFDEF FPC}
 { TStringBuilder }

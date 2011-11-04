@@ -335,11 +335,11 @@ type
          procedure StoreData(destStream : TStream); overload;
    end;
 
-   TFastCompareStringList = class (TStringList)
+   TFastCompareStringList = class (TStringList) //TODO:!!!
       function CompareStrings(const S1, S2: UnicodeString): Integer; {$IFNDEF FPC} override;  {$ENDIF}
    end;
 
-   TFastCompareTextList = class (TStringList)
+   TFastCompareTextList = class (TStringList) //TODO:!!!
       function CompareStrings(const S1, S2: UnicodeString): Integer; {$IFNDEF FPC} override;  {$ENDIF}
    end;
 
@@ -396,7 +396,7 @@ var
 //
 function TFastCompareStringList.CompareStrings(const S1, S2: UnicodeString): Integer;
 begin
-   Result:=CompareStr(S1, S2);
+   Result:=dwsCompareStr(S1, S2);
 end;
 
 // UnifyAssignString

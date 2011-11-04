@@ -202,7 +202,7 @@ type
    EClassPropertyIncompleteError = class(EClassIncompleteError);
 
    // The compilation has to be stopped because of an error
-   ECompileError = class(Exception)
+   ECompileError = class(EdwsException)
       private
          FScriptPos : TScriptPos;
 
@@ -212,7 +212,7 @@ type
          property Pos : TScriptPos read FScriptPos write FScriptPos;
    end;
 
-   EReraise = class(Exception);
+   EReraise = class(EdwsException);
 
 const
    cNullPos: TScriptPos = (FLineCol: 0; SourceFile: nil);

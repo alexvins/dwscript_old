@@ -1563,7 +1563,7 @@ type
    end;
 
    // The script has to be stopped because of an error
-   EScriptError = class(Exception)
+   EScriptError = class(EdwsException)
       private
          FScriptPos : TScriptPos;
          FScriptCallStack : TdwsExprLocationArray;
@@ -1579,7 +1579,7 @@ type
    EScriptErrorClass = class of EScriptError;
 
    // Is thrown by "raise" statements in script code
-   EScriptException = class(Exception)
+   EScriptException = class(EdwsException)
       private
          FTyp: TSymbol;
          FValue: Variant;

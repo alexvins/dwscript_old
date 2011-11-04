@@ -552,14 +552,14 @@ end;
 
 function TSameTextFunc.DoEvalAsBoolean(args : TExprBaseList) : Boolean;
 begin
-   Result:=SameText(args.AsString[0], args.AsString[1]);
+   Result:=dwsSameText(args.AsString[0], args.AsString[1]);
 end;
 
 { TCompareTextFunc }
 
 function TCompareTextFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
-   Result:=CompareText(args.AsString[0], args.AsString[1]);
+   Result:=UnicodeCompareText(args.AsString[0], args.AsString[1]);
 end;
 
 { TAnsiCompareTextFunc }

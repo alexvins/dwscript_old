@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, dwsExprs, dwsSymbols, dwsStack, dwsStrings, dwsTokenizer,
-  dwsOperators, dwsUtils;
+  dwsOperators, dwsUtils, dwsXPlatform;
 
 type
 
@@ -759,7 +759,7 @@ end;
 function TIdwsUnitList.IndexOfName(const unitName : UnicodeString) : Integer;
 begin
    for Result:=0 to Count-1 do
-      if SameText(Items[Result].GetUnitName, unitName) then
+      if dwsSameText(Items[Result].GetUnitName, unitName) then
          Exit;
    Result:=-1;
 end;
