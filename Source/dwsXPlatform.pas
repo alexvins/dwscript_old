@@ -21,6 +21,8 @@ unit dwsXPlatform;
 
 {$I dws.inc}
 
+{$DEFINE USE_HELPER} //workaround for CodeTools bug
+
 //
 // This unit should concentrate all non-UI cross-platform aspects,
 // cross-Delphi versions, ifdefs and other conditionals
@@ -35,7 +37,7 @@ unit dwsXPlatform;
 
 interface
 
-uses Windows, Classes, SysUtils, typinfo
+uses Windows, Classes, SysUtils, Variants, typinfo
    {$IFNDEF VER200}, IOUtils{$ENDIF}
    ;
 
@@ -130,12 +132,12 @@ type
 
    EdwsException = class(Exception)
    private
-      FMessage: UnicodeString;
+      function GetMessage: UnicodeString;
       procedure SetMessage(AValue: UnicodeString);
    public
      constructor Create(const msg : UnicodeString);
      constructor CreateFmt(const msg : UnicodeString; const args : array of const);
-     property Message: UnicodeString read FMessage write SetMessage;
+     property Message: UnicodeString read GetMessage write SetMessage;
    end;
    {$ELSE}
    EdwsException = Exception;
@@ -176,7 +178,7 @@ type
 
    { TStringsUnicodeHelper }
 
-   TStringsUnicodeHelper = class helper for TStrings
+   TStringsUnicodeHelper = class {$IFDEF USE_HELPER} helper for TStrings {$ENDIF}
    private
       function GetStrings(Index: Integer): UnicodeString;
       procedure SetStrings(Index: Integer; AValue: UnicodeString);
@@ -188,8 +190,18 @@ type
 
    end;
 
-   TStringListUnicodeHelper = class helper (TStringsUnicodeHelper) for TStringList
+   TStringListUnicodeHelper = class {$IFDEF USE_HELPER} helper (TStringsUnicodeHelper) for TStringList  {$ENDIF}
 
+   end;
+
+   { TExceptionUnicodeHepler }
+
+   TExceptionUnicodeHepler = class {$IFDEF USE_HELPER} helper for Exception  {$ENDIF}
+   private
+      function GetMessage: UnicodeString;
+      procedure SetMessage(AValue: UnicodeString);
+   public
+     property Message: UnicodeString read GetMessage write SetMessage;
    end;
 
    {$ELSE}
@@ -217,6 +229,9 @@ function TextToFloatU(Buffer: PWideChar; Out Value; ValueType: TFloatValue; Cons
 {$IFDEF FPC}
    procedure VarCopy(var ADest: Variant; const ASource: Variant);
 {$ENDIF}
+
+function dwsVarToStr(const V: Variant): UnicodeString;
+function dwsVarToStrDef(const V: Variant; const ADefault: string): UnicodeString;
 
 function VarDataToUniStr(vardata: PVarData): UnicodeString; inline;
 procedure UniStrToVarData(vardata: PVarData; AValue: UnicodeString); inline;
@@ -342,6 +357,24 @@ begin
 end;
 {$ENDIF}
 
+function dwsVarToStr(const V: Variant): UnicodeString;
+begin
+   {$IFDEF FPC}
+   Result := VarToUnicodeStr(V);
+   {$ELSE}
+   Result := VarToStr(V);
+   {$ENDIF}
+end;
+
+function dwsVarToStrDef(const V: Variant; const ADefault: string
+   ): UnicodeString;
+begin
+   {$IFDEF FPC}
+   Result := VarToUnicodeStrDef(V, ADefault);
+   {$ELSE}
+   Result := VarToStrDef(V, ADefault);
+   {$ENDIF}
+end;
 
 function VarDataToUniStr(vardata: PVarData): UnicodeString;
 begin
@@ -458,6 +491,18 @@ begin
    FindClose(searchRec);
 end;
 
+{ TExceptionUnicodeHepler }
+
+function TExceptionUnicodeHepler.GetMessage: UnicodeString;
+begin
+   Result := UTF8Decode(inherited message);
+end;
+
+procedure TExceptionUnicodeHepler.SetMessage(AValue: UnicodeString);
+begin
+  inherited message := UTF8Encode(AValue);
+end;
+
 { TStringsUnicodeHelper }
 
 function TStringsUnicodeHelper.Add(const S: UnicodeString): Integer;
@@ -542,8 +587,7 @@ end;
 
 constructor EdwsException.Create(const msg: UnicodeString);
 begin
-   FMessage := msg;
-   inherited Create(UTF8Encode(msg));
+  inherited Create(UTF8Encode(msg));
 end;
 
 constructor EdwsException.CreateFmt(const msg: UnicodeString;
@@ -552,12 +596,16 @@ begin
    Create(UnicodeFormat(msg,args));
 end;
 
+function EdwsException.GetMessage: UnicodeString;
+begin
+  Result := UTF8Decode(inherited Message);
+end;
+
 procedure EdwsException.SetMessage(AValue: UnicodeString);
 begin
-   if FMessage = AValue then Exit;
-   FMessage := AValue;
-   inherited Message := UTF8Encode(AValue);
+  inherited Message := UTF8Encode(AValue);
 end;
+
 {$ENDIF}
 
 {$IFDEF FPC}

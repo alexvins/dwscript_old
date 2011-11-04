@@ -6283,7 +6283,7 @@ var
 begin
    exceptVal := Unassigned;
    FExceptionExpr.EvalAsVariant(exec, exceptVal);
-   exceptMessage:=VarToStr(IScriptObj(IUnknown(exceptVal)).GetData[0]);
+   exceptMessage:=dwsVarToStr(IScriptObj(IUnknown(exceptVal)).GetData[0]);
    if exceptMessage<>'' then
       raise EScriptException.Create(dwsFormat(RTE_UserDefinedException_Msg, [exceptMessage]),
                                     exceptVal, FExceptionExpr.Typ, FScriptPos)

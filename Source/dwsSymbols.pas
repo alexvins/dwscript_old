@@ -3121,7 +3121,7 @@ begin
    Result := dwsFormat('property %s%s: %s', [Name, GetArrayIndicesDescription, Typ.Name]);
 
    if Assigned(FIndexSym) then
-      Result:=Result+' index '+VarToStr(FIndexValue[0]);
+      Result:=Result+' index '+dwsVarToStr(FIndexValue[0]);
 
    if Assigned(FReadSym) then
       Result := Result + ' read ' + FReadSym.Name;
@@ -3972,7 +3972,7 @@ begin
   if VarType(FData[0]) = varError then
     Result := 'const ' + inherited GetDescription + ' = [varError]'
   else
-    Result := 'const ' + inherited GetDescription + ' = ' + VarToStr(FData[0]);
+    Result := 'const ' + inherited GetDescription + ' = ' + dwsVarToStr(FData[0]);
 end;
 
 procedure TConstSymbol.Initialize(const msgs : TdwsCompileMessageList);
@@ -4011,8 +4011,8 @@ begin
    // Has a default parameter. Format display of param to show it.
    if Length(FDefaultValue) > 0 then begin
       if (Typ is TBaseStringSymbol) then
-         Result := Result + ' = ''' + VarToStr(FDefaultValue[0]) + ''''  // put quotes around value
-       else Result := Result + ' = ' + VarToStr(FDefaultValue[0]);
+         Result := Result + ' = ''' + dwsVarToStr(FDefaultValue[0]) + ''''  // put quotes around value
+       else Result := Result + ' = ' + dwsVarToStr(FDefaultValue[0]);
    end;
 end;
 

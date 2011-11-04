@@ -23,7 +23,7 @@ unit dwsVariantFunctions;
 
 interface
 
-uses Classes, Variants, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsUtils;
+uses Classes, Variants, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsUtils, dwsXPlatform;
 
 type
   TVarClearFunc = class(TInternalFunction)
@@ -118,7 +118,7 @@ var
 begin
    v := Unassigned;
    args.ExprBase[0].EvalAsVariant(args.Exec, v);
-   Result:=VarToStr(v);
+   Result:=dwsVarToStr(v);
 end;
 
 { InitVariants }

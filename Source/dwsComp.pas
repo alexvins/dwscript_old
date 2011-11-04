@@ -1062,11 +1062,11 @@ begin
       varNull :
          Result := 'Null';
       varString, varUString, varOleStr, varStrArg :
-         Result := dwsFormat('''%s''', [VarToStr(value)]);
+         Result := dwsFormat('''%s''', [dwsVarToStr(value)]);
       varDate :
          Result := dwsFormat('DateTime(%f)', [TVarData(value).VDate]);
    else
-      Result := VarToStr(value);
+      Result := dwsVarToStr(value);
    end;
 end;
 
@@ -1994,11 +1994,7 @@ function TdwsConstant.GetDisplayName: UnicodeString;
 var
    valAsString : UnicodeString;
 begin
-   {$IFDEF FPC}
-   valAsString:=VarToUnicodeStr(Value);
-   {$ELSE}
-   valAsString:=VarToStr(Value);
-   {$ENDIF}
+   valAsString:=dwsVarToStr(Value);
    if dwsSameText(DataType, SYS_STRING) then  // just for show
       valAsString:=''''+valAsString+'''';
    Result := dwsFormat('const %s: %s = %s;', [Name, DataType, valAsString]);

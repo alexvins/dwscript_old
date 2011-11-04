@@ -30,7 +30,7 @@ unit dwsStringResult;
 interface
 
 uses
-  Variants, Classes, SysUtils, dwsExprs, dwsSymbols, dwsComp, dwsUtils;
+  Variants, Classes, SysUtils, dwsExprs, dwsSymbols, dwsComp, dwsUtils,dwsXPlatform;
 
 type
   TdwsStringResult = class(TdwsResult)
@@ -229,7 +229,7 @@ end;
 
 procedure TWriteAllFunction.Execute(info : TProgramInfo);
 begin
-  (Info.Execution.Result as TdwsStringResult).SetStr(VarToStr(Info.ValueAsVariant['Str']));
+  (Info.Execution.Result as TdwsStringResult).SetStr(dwsVarToStr(Info.ValueAsVariant['Str']));
 end;
 
 { TReadCharFunction }

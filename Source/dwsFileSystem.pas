@@ -23,7 +23,7 @@ unit dwsFileSystem;
 
 interface
 
-uses Classes, SysUtils, dwsUtils;
+uses Classes, SysUtils, dwsUtils, dwsXPlatform;
 
 type
 
@@ -35,7 +35,7 @@ type
       fomCreate      // opens file for read-write, always empty
       );
 
-   EdwsFileSystemException = class (Exception)
+   EdwsFileSystemException = class (EdwsException)
    end;
 
    EdwsFSInvalidFileName = class (EdwsFileSystemException)
