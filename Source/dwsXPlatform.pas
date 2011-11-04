@@ -224,6 +224,8 @@ function dwsSameText(const s1,s2: UnicodeString): boolean;
 function dwsCompareText(const S1, S2 : UnicodeString) : Integer;
 function dwsCompareStr(const S1, S2 : UnicodeString) : Integer;
 
+
+
 function TextToFloatU(Buffer: PWideChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
 {$IFDEF FPC}

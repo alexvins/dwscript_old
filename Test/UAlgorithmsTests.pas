@@ -165,7 +165,7 @@ begin
                runner:=TThreadedRunner.Create(True);
                runner.FreeOnTerminate:=False;
                runner.Count:=cRunsPerThread;
-               runner.Script:=Format('%s [%d]', [ExtractFileName(FTests[i]), j]);
+               runner.Script:=dwsFormat('%s [%d]', [ExtractFileName(FTests[i]), j]);
                runner.Exec:=prog.CreateNewExecution;
                runner.ExpectedResult:=expectedResult.Text;
                threads[k*cThreadsPerScript+j]:=runner;

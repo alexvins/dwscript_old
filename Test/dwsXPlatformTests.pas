@@ -48,6 +48,12 @@ type
    public
      //this method is unimplemented in fpcunit
      procedure CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; msg :string = '');
+     //overload for UnicodeString
+     procedure CheckEquals(expected, actual: UnicodeString; msg: AnsiString = '');overload;
+     procedure CheckEquals(expected, actual: UnicodeString; msg: UnicodeString);overload;
+
+     procedure CheckEquals(expected: AnsiString; actual: UnicodeString; msg: AnsiString = '');overload;
+     procedure CheckEquals(expected: AnsiString; actual: UnicodeString; msg: UnicodeString);overload;
    end;
 
    {$else}
@@ -83,9 +89,9 @@ end;
 function LoadScriptSource(const FileName: UnicodeString): UnicodeString;
 {$IFDEF FPC}
 var
-   source : TStringList;
+   source : TStringListUTF8;
 begin
-   source := TStringList.Create;
+   source := TStringListUTF8.Create;
    try
       source.LoadFromFile(FileName);
       Result := UTF8Decode(source.Text);
@@ -113,13 +119,41 @@ begin
 end;
 {$ENDIF}
 
+{$ifndef DWS_USE_DUNIT}
+
 { TTestCase }
+
+procedure TTestCase.CheckEquals(expected, actual: UnicodeString;
+   msg: AnsiString);
+begin
+  inherited CheckEquals(UTF8Encode(expected),UTF8Encode(actual),msg);
+end;
+
+procedure TTestCase.CheckEquals(expected, actual: UnicodeString;
+   msg: UnicodeString);
+begin
+  inherited CheckEquals(UTF8Encode(expected),UTF8Encode(actual),UTF8Encode(msg));
+end;
+
+procedure TTestCase.CheckEquals(expected: AnsiString; actual: UnicodeString;
+   msg: AnsiString);
+begin
+  inherited CheckEquals(expected,UTF8Encode(actual),msg);
+end;
+
+procedure TTestCase.CheckEquals(expected: AnsiString; actual: UnicodeString;
+   msg: UnicodeString);
+begin
+  inherited CheckEquals(expected,UTF8Encode(actual),UTF8Encode(msg));
+end;
 
 procedure TTestCase.CheckException(AMethod: TRunMethod;
   AExceptionClass: ExceptClass; msg: string);
 begin
   inherited AssertException(msg, AExceptionClass, AMethod);
 end;
+
+{$endif}
 
 end.
 
