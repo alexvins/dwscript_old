@@ -26,7 +26,7 @@ interface
 uses
   Variants, Classes, SysUtils, dwsExprs, dwsSymbols, dwsTokenizer, dwsErrors,
   dwsStrings, dwsFunctions, dwsStack, dwsCoreExprs, dwsFileSystem, dwsUtils,
-  dwsMagicExprs, dwsRelExprs, dwsOperators, dwsPascalTokenizer;
+  dwsMagicExprs, dwsRelExprs, dwsOperators, dwsPascalTokenizer, dwsXPlatform;
 
 type
    TCompilerOption = ( coOptimize, coSymbolDictionary, coContextMap, coAssertions,
@@ -1042,7 +1042,7 @@ var
    srcUnit : TSourceUnit;
 begin
    for i:=0 to FUnitsFromStack.Count-1 do
-      if SameText(FUnitsFromStack.Items[i], unitName) then
+      if dwsSameText(FUnitsFromStack.Items[i], unitName) then
          FMsgs.AddCompilerStop(FTok.HotPos, CPE_UnitCircularReference);
 
    Result:=TUnitSymbol(FProg.Table.FindSymbol(unitName, cvMagic, TUnitSymbol));
@@ -3788,7 +3788,7 @@ var
    iterBlockExpr : TBlockExpr;
 begin
    try
-      if FTok.Test(ttNAME) and SameText(FTok.GetToken.FString, 'step') then begin
+      if FTok.Test(ttNAME) and dwsSameText(FTok.GetToken.FString, 'step') then begin
          FTok.KillToken;
          FTok.Test(ttNone);
          stepPos:=FTok.HotPos;
@@ -4411,9 +4411,9 @@ begin
    try
       arraySym:=baseExpr.Typ as TArraySymbol;
 
-      if SameText(name, 'add') or SameText(name, 'push') then
+      if dwsSameText(name, 'add') or dwsSameText(name, 'push') then
          argList.DefaultExpected:=TParamSymbol.Create('', arraySym.Typ)
-      else if SameText(name, 'indexof') then begin
+      else if dwsSameText(name, 'indexof') then begin
          argSymTable:=TUnSortedSymbolTable.Create;
          argSymTable.AddSymbol(TParamSymbol.Create('', arraySym.Typ));
          argList.Table:=argSymTable;
@@ -4422,16 +4422,16 @@ begin
       ReadArguments(argList.AddExpr, ttBLEFT, ttBRIGHT, argPosArray, argList.ExpectedArg);
 
       try
-         if SameText(name, 'low') then begin
+         if dwsSameText(name, 'low') then begin
             CheckArguments(0, 0);
             Result:=CreateArrayLow(baseExpr, arraySym, True);
-         end else if SameText(name, 'high') then begin
+         end else if dwsSameText(name, 'high') then begin
             CheckArguments(0, 0);
             Result:=CreateArrayHigh(baseExpr, arraySym, True);
-         end else if SameText(name, 'length') then begin
+         end else if dwsSameText(name, 'length') then begin
             CheckArguments(0, 0);
             Result:=CreateArrayLength(baseExpr, arraySym);
-         end else if SameText(name, 'add') or SameText(name, 'push') then begin
+         end else if dwsSameText(name, 'add') or dwsSameText(name, 'push') then begin
             CheckRestricted;
             if CheckArguments(1, 1) then begin
                if (argList[0].Typ=nil) or not arraySym.Typ.IsCompatible(argList[0].Typ) then
@@ -4440,7 +4440,7 @@ begin
                Result:=TArrayAddExpr.Create(FProg, namePos, baseExpr, argList[0] as TDataExpr);
                argList.Clear;
             end else Result:=TArrayAddExpr.Create(FProg, namePos, baseExpr, nil);
-         end else if SameText(name, 'delete') then begin
+         end else if dwsSameText(name, 'delete') then begin
             CheckRestricted;
             if CheckArguments(1, 2) then begin
                if (argList[0].Typ=nil) or not argList[0].Typ.IsOfType(FProg.TypInteger) then
@@ -4454,7 +4454,7 @@ begin
                                                         argList[0], nil);
                argList.Clear;
             end else Result:=TArrayDeleteExpr.Create(FProg, namePos, baseExpr, nil, nil);
-         end else if SameText(name, 'indexof') then begin
+         end else if dwsSameText(name, 'indexof') then begin
             CheckRestricted;
             if CheckArguments(1, 2) then begin
                if (argList[0].Typ=nil) or not arraySym.Typ.IsCompatible(argList[0].Typ) then
@@ -4469,7 +4469,7 @@ begin
                                                          argList[0] as TDataExpr, nil);
                argList.Clear;
             end else Result:=TArrayIndexOfExpr.Create(FProg, namePos, baseExpr, nil, nil);
-         end else if SameText(name, 'setlength') then begin
+         end else if dwsSameText(name, 'setlength') then begin
             CheckRestricted;
             if CheckArguments(1, 1) then begin
                if (argList[0].Typ=nil) or not argList[0].Typ.IsOfType(FProg.TypInteger) then
@@ -4477,7 +4477,7 @@ begin
                Result:=TArraySetLengthExpr.Create(FProg, namePos, baseExpr, argList[0]);
                argList.Clear;
             end else Result:=TArraySetLengthExpr.Create(FProg, namePos, baseExpr, nil);
-         end else if SameText(name, 'swap') then begin
+         end else if dwsSameText(name, 'swap') then begin
             CheckRestricted;
             if CheckArguments(2, 2) then begin
                if (argList[0].Typ=nil) or not argList[0].Typ.IsOfType(FProg.TypInteger) then
@@ -4488,7 +4488,7 @@ begin
                                              argList[0], argList[1]);
                argList.Clear;
             end else Result:=TArraySwapExpr.Create(FProg, namePos, baseExpr, nil, nil);
-         end else if SameText(name, 'copy') then begin
+         end else if dwsSameText(name, 'copy') then begin
             CheckRestricted;
             if CheckArguments(0, 2) then begin
                if argList.Count>0 then begin
@@ -4504,7 +4504,7 @@ begin
                end else Result:=TArrayCopyExpr.Create(FProg, namePos, baseExpr, nil, nil);
                argList.Clear;
             end else Result:=TArrayCopyExpr.Create(FProg, namePos, baseExpr, nil, nil);
-         end else if SameText(name, 'reverse') then begin
+         end else if dwsSameText(name, 'reverse') then begin
             CheckRestricted;
             CheckArguments(0, 0);
             Result:=TArrayReverseExpr.Create(FProg, namePos, baseExpr);
@@ -6499,8 +6499,8 @@ begin
       siHints, siWarnings : begin
          if not FTok.TestDeleteNamePos(name, condPos) then
             name:='';
-         conditionalTrue:=SameText(name, 'ON');
-         if conditionalTrue or SameText(name, 'OFF') then begin
+         conditionalTrue:=dwsSameText(name, 'ON');
+         if conditionalTrue or dwsSameText(name, 'OFF') then begin
             if switch=siHints then
                FMsgs.HintsDisabled:=not conditionalTrue
             else FMsgs.WarningsDisabled:=not conditionalTrue;
@@ -6549,15 +6549,15 @@ begin
          value:='';
          if name='' then
             FMsgs.AddCompilerError(hotPos, CPE_IncludeItemExpected)
-         else if SameText(name, 'FILE') then
+         else if dwsSameText(name, 'FILE') then
             value:=hotPos.SourceFile.Name
-         else if SameText(name, 'LINE') then
+         else if dwsSameText(name, 'LINE') then
             value:=IntToStr(hotPos.Line)
-         else if SameText(name, 'DATE') then
+         else if dwsSameText(name, 'DATE') then
             value:=FormatDateTime('yyyy-mm-dd', Date)
-         else if SameText(name, 'TIME') then
+         else if dwsSameText(name, 'TIME') then
             value:=FormatDateTime('hh:nn:ss', Time)
-         else if SameText(name, 'FUNCTION') then begin
+         else if dwsSameText(name, 'FUNCTION') then begin
             if FProg is TdwsProcedure then begin
                funcSym:=TdwsProcedure(FProg).Func;
                if funcSym is TMethodSymbol then
@@ -6669,29 +6669,29 @@ begin
    n:=Length(name);
    case n of
       3 : case name[1] of
-         'a', 'A' : if SameText(name, 'abs') then Exit(skAbs);
-         'd', 'D' : if SameText(name, 'dec') then Exit(skDec);
-         'i', 'I' : if SameText(name, 'inc') then Exit(skInc);
-         'l', 'L' : if SameText(name, 'low') then Exit(skLow);
-         'o', 'O' : if SameText(name, 'ord') then Exit(skOrd);
-         's', 'S' : if SameText(name, 'sqr') then Exit(skSqr);
+         'a', 'A' : if dwsSameText(name, 'abs') then Exit(skAbs);
+         'd', 'D' : if dwsSameText(name, 'dec') then Exit(skDec);
+         'i', 'I' : if dwsSameText(name, 'inc') then Exit(skInc);
+         'l', 'L' : if dwsSameText(name, 'low') then Exit(skLow);
+         'o', 'O' : if dwsSameText(name, 'ord') then Exit(skOrd);
+         's', 'S' : if dwsSameText(name, 'sqr') then Exit(skSqr);
       end;
       4 : case name[1] of
-         'h', 'H' : if SameText(name, 'high') then Exit(skHigh);
-         'p', 'P' : if SameText(name, 'pred') then Exit(skPred);
-         's', 'S' : if SameText(name, 'succ') then Exit(skSucc);
+         'h', 'H' : if dwsSameText(name, 'high') then Exit(skHigh);
+         'p', 'P' : if dwsSameText(name, 'pred') then Exit(skPred);
+         's', 'S' : if dwsSameText(name, 'succ') then Exit(skSucc);
       end;
       6 : case name[1] of
-         'a', 'A' : if SameText(name, 'assert') then Exit(skAssert);
-         'l', 'L' : if SameText(name, 'length') then Exit(skLength);
-         's', 'S' : if SameText(name, 'sizeof') then Exit(skSizeOf);
+         'a', 'A' : if dwsSameText(name, 'assert') then Exit(skAssert);
+         'l', 'L' : if dwsSameText(name, 'length') then Exit(skLength);
+         's', 'S' : if dwsSameText(name, 'sizeof') then Exit(skSizeOf);
       end;
       7 : case name[1] of
-         'd', 'D' : if SameText(name, 'defined') then Exit(skDefined);
+         'd', 'D' : if dwsSameText(name, 'defined') then Exit(skDefined);
       end;
       8 : case name[1] of
-         'a', 'A' : if SameText(name, 'assigned') then Exit(skAssigned);
-         'd', 'D' : if SameText(name, 'declared') then Exit(skDeclared);
+         'a', 'A' : if dwsSameText(name, 'assigned') then Exit(skAssigned);
+         'd', 'D' : if dwsSameText(name, 'declared') then Exit(skDeclared);
       end;
    end;
    Result:=skNone;
@@ -7174,7 +7174,7 @@ begin
       FMsgs.AddCompilerStop(FTok.HotPos, CPE_UnitExpected);
    if not FTok.TestDeleteNamePos(name, namePos) then
       FMsgs.AddCompilerStop(FTok.HotPos, CPE_NameExpected);
-   if not SameText(name, namePos.SourceFile.Name) then
+   if not dwsSameText(name, namePos.SourceFile.Name) then
       FMsgs.AddCompilerWarning(namePos, CPE_UnitNameDoesntMatch);
    if not FTok.TestDelete(ttSEMI) then
       FMsgs.AddCompilerStop(FTok.HotPos, CPE_SemiExpected);

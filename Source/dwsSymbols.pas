@@ -2046,7 +2046,7 @@ begin
       if sym is TMethodSymbol then begin
          meth:=TMethodSymbol(sym);
          if     (meth.Visibility>=visibility)
-            and SameText(meth.Name, methSym.Name)
+            and dwsSameText(meth.Name, methSym.Name)
             and meth.IsCompatible(methSym) then
                Exit(meth);
       end;
@@ -5496,7 +5496,7 @@ var
 begin
    for i:=0 to Count-1 do begin
       Result:=Items[i];
-      if SameText(Result.Name, unitName) then
+      if dwsSameText(Result.Name, unitName) then
          Exit(Result);
    end;
    Result:=nil;

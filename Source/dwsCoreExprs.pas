@@ -6042,8 +6042,8 @@ begin
       // a raise-statement created an Exception object
       Result:=EScriptException(mainException).Value
    end else if mainException is EScriptError then begin
-      msg:=mainException.Message;
       err:=EScriptError(mainException);
+      msg:=err.Message;
       if Length(err.ScriptCallStack)>0 then
          msg:=msg+' in '+(err.ScriptCallStack[High(err.ScriptCallStack)].Expr as TFuncExpr).FuncSym.QualifiedName;
       if EScriptError(mainException).Pos.Defined then

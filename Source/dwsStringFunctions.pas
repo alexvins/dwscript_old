@@ -573,7 +573,7 @@ end;
 
 function TCompareStrFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
-   Result:=CompareStr(args.AsString[0], args.AsString[1]);
+   Result:=dwsCompareStr(args.AsString[0], args.AsString[1]);
 end;
 
 { TAnsiCompareStrFunc }
@@ -659,7 +659,7 @@ var
 begin
    ch:=args.AsString[0];
    if Length(ch)<1 then ch := ' ';// default to blank if an empty UnicodeString
-   Result := UnicodeStringOfChar(ch[1], args.AsInteger[1]);
+   Result := dwsStringOfChar(ch[1], args.AsInteger[1]);
 end;
 
 { TStringOfStringFunc }

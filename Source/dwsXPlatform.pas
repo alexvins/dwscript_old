@@ -165,7 +165,7 @@ function GetExceptObject: TObject;
 
 function GetParentTypeInfo(info: TRTTIInfo):TRTTIInfo;
 
-function UnicodeStringOfChar(c: WideChar; i: SizeInt):UnicodeString;
+function dwsStringOfChar(c: WideChar; i: SizeInt):UnicodeString;
 
 Function dwsFormat (Const Fmt : UnicodeString; const Args : Array of const) : UnicodeString; overload; {$IFNDEF FPC} inline; {$ENDIF}
 Function dwsFormat (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString; overload;{$IFNDEF FPC} inline; {$ENDIF}
@@ -319,7 +319,7 @@ begin
   {$ENDIF}
 end;
 
-function UnicodeStringOfChar(c: WideChar; i: SizeInt): UnicodeString;
+function dwsStringOfChar(c: WideChar; i: SizeInt): UnicodeString;
 begin
   SetLength(Result,i);
   {$IFDEF FPC}
@@ -449,7 +449,7 @@ end;
 class function TPath.GetTempFileName : UnicodeString;
 {$IFDEF FPC}
 begin
-   Result:=SysUtils.GetTempFileName(GetTempDir(False),'DWS');
+   Result:=UnicodeString(SysUtils.GetTempFileName(GetTempDir(False),'DWS'));
 {$ELSE}
 {$IFDEF VER200} // Delphi 2009
 var
@@ -470,7 +470,7 @@ end;
 class function TPath.GetTemporaryFilesPath: UnicodeString;
 begin
   {$IFDEF FPC}
-  Result := SysUtils.GetTempDir(False);
+  Result := UnicodeString(SysUtils.GetTempDir(False));
   {$ELSE}
   {$ERROR NOT IMPLEMENTED}
   {$ENDIF}

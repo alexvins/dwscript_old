@@ -5,7 +5,7 @@
     <Name Value="dwscript"/>
     <Author Value="See &quot;Contributors.txt&quot; "/>
     <CompilerOptions>
-      <Version Value="10"/>
+      <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="Source"/>
@@ -26,7 +26,6 @@
       </CodeGeneration>
       <Linking>
         <Debugging>
-          <GenerateDebugInfo Value="True"/>
           <DebugInfoType Value="dsStabs"/>
           <UseHeaptrc Value="True"/>
         </Debugging>
@@ -36,7 +35,7 @@
           <StopAfterErrCount Value="50"/>
         </ConfigFile>
         <CompilerMessages>
-          <IgnoredMessages idx5023="True" idx5024="True"/>
+          <IgnoredMessages idx3124="True" idx5023="True" idx5024="True"/>
           <UseMsgFile Value="True"/>
         </CompilerMessages>
         <CompilerPath Value="$(CompPath)"/>

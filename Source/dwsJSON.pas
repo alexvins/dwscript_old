@@ -255,7 +255,7 @@ type
          procedure WriteName(const aName : UnicodeString); override;
    end;
 
-   EdwsJSONException = class (Exception);
+   EdwsJSONException = class (EdwsException);
    EdwsJSONParseError = class (EdwsJSONException);
 
 procedure WriteJavaScriptString(destStream : TWriteOnlyBlockStream; const str : UnicodeString);
@@ -1386,7 +1386,7 @@ end;
 //
 procedure TdwsJSONBeautifiedWriter.WriteIndents;
 begin
-   FStream.WriteString(StringOfChar(#9, FTabs));
+   FStream.WriteString(dwsStringOfChar(#9, FTabs));
 end;
 
 // EnterIndent

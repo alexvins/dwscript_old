@@ -7051,14 +7051,14 @@ var
 begin
   h := TStaticArraySymbol(FTypeSym).HighBound;
   l := TStaticArraySymbol(FTypeSym).LowBound;
-  if SameText('length', s) then
+  if dwsSameText('length', s) then
     Result := TInfoConst.Create(FProgramInfo, FProgramInfo.Execution.Prog.TypInteger, h - l + 1)
-  else if SameText('low', s) then
+  else if dwsSameText('low', s) then
     Result := TInfoConst.Create(FProgramInfo, FProgramInfo.Execution.Prog.TypInteger, l)
-  else if SameText('high', s) then
+  else if dwsSameText('high', s) then
     Result := TInfoConst.Create(FProgramInfo, FProgramInfo.Execution.Prog.TypInteger, h)
   else
-    raise Exception.CreateFmt(RTE_NoMemberOfClass, [s, FTypeSym.Caption]);
+    raise EdwsException.CreateFmt(RTE_NoMemberOfClass, [s, FTypeSym.Caption]);
 end;
 
 // GetValueAsString
@@ -7127,13 +7127,13 @@ var
    dynArray : TScriptDynamicArray;
 begin
    dynArray:=SelfDynArray;
-   if SameText('length', s) then
+   if dwsSameText('length', s) then
       Result := TInfoConst.Create(FProgramInfo, FProgramInfo.Execution.Prog.TypInteger, dynArray.Length)
-   else if SameText('low', s) then
+   else if dwsSameText('low', s) then
       Result := TInfoConst.Create(FProgramInfo, FProgramInfo.Execution.Prog.TypInteger, 0)
-   else if SameText('high', s) then
+   else if dwsSameText('high', s) then
       Result := TInfoConst.Create(FProgramInfo, FProgramInfo.Execution.Prog.TypInteger, dynArray.Length - 1)
-   else raise Exception.CreateFmt(RTE_NoMemberOfClass, [s, FTypeSym.Caption]);
+   else raise EdwsException.CreateFmt(RTE_NoMemberOfClass, [s, FTypeSym.Caption]);
 end;
 
 // GetValueAsString
