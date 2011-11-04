@@ -30,7 +30,6 @@ type
     procedure SetMaxRecursionDepth(AValue: Integer);
     procedure SetMaxDataSize(AValue: Integer);
     procedure Compile(const ASource: UnicodeString);
-    //procedure Compile(const ASource: TStrings);
     procedure Execute;
     procedure ExecuteWTimeout(TimeOut: Integer);
 
@@ -39,7 +38,6 @@ type
     //default result as text
     procedure CheckEqualsResult(Expected: UnicodeString; msg: UnicodeString = '');
     procedure CheckCompile(const ASource: UnicodeString);
-    //procedure CheckCompile(const ASource: TStrings);
     procedure CheckEqualsOutput(Expected: UnicodeString; msg: UnicodeString = '');
 
   end;
