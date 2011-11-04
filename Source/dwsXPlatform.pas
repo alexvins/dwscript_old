@@ -233,7 +233,7 @@ function TextToFloatU(Buffer: PWideChar; Out Value; ValueType: TFloatValue; Cons
 {$ENDIF}
 
 function dwsVarToStr(const V: Variant): UnicodeString;
-function dwsVarToStrDef(const V: Variant; const ADefault: string): UnicodeString;
+function dwsVarToStrDef(const V: Variant; const ADefault: UnicodeString): UnicodeString;
 
 function VarDataToUniStr(vardata: PVarData): UnicodeString; inline;
 procedure UniStrToVarData(vardata: PVarData; AValue: UnicodeString); inline;
@@ -368,7 +368,7 @@ begin
    {$ENDIF}
 end;
 
-function dwsVarToStrDef(const V: Variant; const ADefault: string
+function dwsVarToStrDef(const V: Variant; const ADefault: UnicodeString
    ): UnicodeString;
 begin
    {$IFDEF FPC}
@@ -600,12 +600,12 @@ end;
 
 function EdwsException.GetMessage: UnicodeString;
 begin
-  Result := UTF8Decode(inherited Message);
+  Result := inherited Message;
 end;
 
 procedure EdwsException.SetMessage(AValue: UnicodeString);
 begin
-  inherited Message := UTF8Encode(AValue);
+  inherited Message := AValue;
 end;
 
 {$ENDIF}
