@@ -141,19 +141,57 @@ type
    EdwsException = Exception;
    {$ENDIF}
 
+   {$IFDEF FPC}
+   TDwsCollectionItem = class;
+   TdwsCollectionItemClass = class of TDwsCollectionItem;
+
+   { TDwsOwnedCollection }
+
+   TDwsOwnedCollection = class (TOwnedCollection)
+   private
+      function GetItems(Index: Integer): TDwsCollectionItem;
+      procedure SetItems(Index: Integer; AValue: TDwsCollectionItem);
+   public
+      Constructor Create(AOwner: TPersistent;AItemClass: TdwsCollectionItemClass);
+      property Items[Index: Integer]: TDwsCollectionItem read GetItems write SetItems;
+   end;
+
+
+
    { TDwsCollectionItem }
 
    TDwsCollectionItem = class (TCollectionItem)
    private
       FDisplayName: UnicodeString;
+      function GetCollection: TDwsOwnedCollection;
+      procedure SetCollection(AValue: TDwsOwnedCollection);reintroduce;
    protected
       function GetDisplayName: UnicodeString; reintroduce; virtual;
       procedure SetDisplayName(AValue: UnicodeString);reintroduce; virtual;
    public
       function GetNamePath: UnicodeString; reintroduce; virtual;
-   published
+      property Collection: TDwsOwnedCollection read GetCollection write SetCollection;
       property DisplayName:UnicodeString read GetDisplayName write SetDisplayName;
    end;
+
+   { TStringsUnicodeHelper }
+
+   TStringsUnicodeHelper = class //helper for TStrings
+   private
+      function GetStrings(Index: Integer): UnicodeString;
+      procedure SetStrings(Index: Integer; AValue: UnicodeString);
+   public
+      property Strings[Index: Integer]: UnicodeString read GetStrings write SetStrings; default;
+   end;
+
+   {$ELSE}
+   { TDwsCollectionItem }
+
+   TDwsCollectionItem = TCollectionItem;
+   TDwsOwnedCollection = TOwnedCollection;
+   {$ENDIF}
+
+
 
 function GetSystemMilliseconds : Cardinal;
 function UTCDateTime : TDateTime;
@@ -412,7 +450,46 @@ begin
    FindClose(searchRec);
 end;
 
+{ TStringsUnicodeHelper }
+
+function TStringsUnicodeHelper.GetStrings(Index: Integer): UnicodeString;
+begin
+   Result := UTF8Decode(Get(Index));
+end;
+
+procedure TStringsUnicodeHelper.SetStrings(Index: Integer; AValue: UnicodeString
+   );
+begin
+  Put(Index, UTF8Encode(AValue));
+end;
+
+
+{$IFDEF FPC}
+
+constructor TDwsOwnedCollection.Create(AOwner: TPersistent;
+   AItemClass: TdwsCollectionItemClass);
+begin
+   inherited Create(AOwner, AItemClass);
+end;
+
+function TDwsOwnedCollection.GetItems(Index: Integer): TDwsCollectionItem;
+begin
+  Result := TDwsCollectionItem( inherited Items[Index]);
+end;
+
+procedure TDwsOwnedCollection.SetItems(Index: Integer; AValue: TDwsCollectionItem);
+begin
+  inherited Items[Index] := AValue;
+end;
+
+
+
 { TDwsCollectionItem }
+
+function TDwsCollectionItem.GetCollection: TDwsOwnedCollection;
+begin
+   Result := TDwsOwnedCollection(inherited  Collection)
+end;
 
 function TDwsCollectionItem.GetDisplayName: UnicodeString;
 begin
@@ -424,11 +501,17 @@ begin
    Result := inherited GetNamePath;
 end;
 
+procedure TDwsCollectionItem.SetCollection(AValue: TDwsOwnedCollection);
+begin
+   inherited Collection := AValue;
+end;
+
 procedure TDwsCollectionItem.SetDisplayName(AValue: UnicodeString);
 begin
    FDisplayName := AValue;
    inherited SetDisplayName(UTF8Encode(AValue));
 end;
+{$ENDIF}
 
 {$IFDEF FPC}
 { EdwsException }

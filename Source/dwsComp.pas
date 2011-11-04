@@ -205,7 +205,7 @@ type
 
   TdwsSymbolClass = class of TdwsSymbol;
 
-  TdwsCollection = class(TOwnedCollection)
+  TdwsCollection = class(TDwsOwnedCollection)
   private
     FUnit: TdwsUnit;
     FSortedSymbols: TdwsSymbolArray;
@@ -1711,7 +1711,7 @@ begin
         if Info.FuncSym.Typ is TClassSymbol then   // don't free the object instance returned
           Info.ResultAsVariant := Info.RegisterExternalObject(GetObjectProp(ExtObject, propName), False, False)  // wrap as best we can (find a match)
         // Boolean
-        else if SameText(Info.FuncSym.Typ.Name, SYS_BOOLEAN) then
+        else if dwsSameText(Info.FuncSym.Typ.Name, SYS_BOOLEAN) then
           Info.ResultAsBoolean := Boolean(GetOrdProp(ExtObject, propName))
         // All others
         else
@@ -1994,8 +1994,12 @@ function TdwsConstant.GetDisplayName: UnicodeString;
 var
    valAsString : UnicodeString;
 begin
+   {$IFDEF FPC}
+   valAsString:=VarToUnicodeStr(Value);
+   {$ELSE}
    valAsString:=VarToStr(Value);
-   if SameText(DataType, SYS_STRING) then  // just for show
+   {$ENDIF}
+   if dwsSameText(DataType, SYS_STRING) then  // just for show
       valAsString:=''''+valAsString+'''';
    Result := dwsFormat('const %s: %s = %s;', [Name, DataType, valAsString]);
 end;
