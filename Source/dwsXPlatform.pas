@@ -138,8 +138,22 @@ type
      property Message: UnicodeString read FMessage write SetMessage;
    end;
    {$ELSE}
-   EdwsException = Exception
+   EdwsException = Exception;
    {$ENDIF}
+
+   { TDwsCollectionItem }
+
+   TDwsCollectionItem = class (TCollectionItem)
+   private
+      FDisplayName: UnicodeString;
+   protected
+      function GetDisplayName: UnicodeString; reintroduce; virtual;
+      procedure SetDisplayName(AValue: UnicodeString);reintroduce; virtual;
+   public
+      function GetNamePath: UnicodeString; reintroduce; virtual;
+   published
+      property DisplayName:UnicodeString read GetDisplayName write SetDisplayName;
+   end;
 
 function GetSystemMilliseconds : Cardinal;
 function UTCDateTime : TDateTime;
@@ -396,6 +410,24 @@ begin
       found:=FindNext(searchRec);
    end;
    FindClose(searchRec);
+end;
+
+{ TDwsCollectionItem }
+
+function TDwsCollectionItem.GetDisplayName: UnicodeString;
+begin
+   Result := FDisplayName;
+end;
+
+function TDwsCollectionItem.GetNamePath: UnicodeString;
+begin
+   Result := inherited GetNamePath;
+end;
+
+procedure TDwsCollectionItem.SetDisplayName(AValue: UnicodeString);
+begin
+   FDisplayName := AValue;
+   inherited SetDisplayName(UTF8Encode(AValue));
 end;
 
 {$IFDEF FPC}

@@ -179,14 +179,11 @@ type
 
   { TdwsSymbol }
 
-  TdwsSymbol = class(TCollectionItem)
+  TdwsSymbol = class(TDwsCollectionItem)
   private
     FIsGenerating: Boolean;
     FUnit: TdwsUnit;
     FName: UnicodeString;
-    FDisplayName: UnicodeString;
-    function GetDisplayName: UnicodeString; reintroduce; virtual;
-    procedure SetDisplayName(AValue: UnicodeString);reintroduce; virtual;
   protected
     procedure AssignTo(Dest: TPersistent); override;
     procedure CheckName(Table: TSymbolTable; Name: UnicodeString);
@@ -198,11 +195,10 @@ type
     procedure Assign(Source: TPersistent); override;
     function Generate(table: TSymbolTable; parentSym: TSymbol = nil): TSymbol;
     function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol; virtual; abstract;
-    function GetNamePath: AnsiString; override;
+    function GetNamePath: UnicodeString; override;
     function GetUnit: TdwsUnit;
   published
     property Name: UnicodeString read FName write FName;
-    property DisplayName:UnicodeString read GetDisplayName write SetDisplayName;
   end;
 
   TdwsSymbolArray = array of TdwsSymbol;
@@ -503,11 +499,11 @@ type
 
   { TdwsTypeSymbol }
 
-  TdwsTypeSymbol = class(TCollectionItem)
+  TdwsTypeSymbol = class(TDwsCollectionItem)
   private
     FName: UnicodeString;
   protected
-    function GetDisplayName: AnsiString; override;
+    function GetDisplayName: UnicodeString; override;
   public
     procedure Assign(Source: TPersistent); override;
   published
@@ -3223,13 +3219,7 @@ begin
   FIsGenerating := False;
 end;
 
-procedure TdwsSymbol.SetDisplayName(AValue: UnicodeString);
-begin
-   FDisplayName := AValue;
-   inherited SetDisplayName(AValue);
-end;
-
-function TdwsSymbol.GetNamePath: AnsiString;
+function TdwsSymbol.GetNamePath: UnicodeString;
 begin
   if FName <> '' then
     Result := Collection.GetNamePath + FName
@@ -3258,11 +3248,6 @@ begin
   if not (sym is TTypeSymbol) then
     raise Exception.CreateFmt(UNT_DatatypeUnknown, [Name]);
   Result := TTypeSymbol(sym);
-end;
-
-function TdwsSymbol.GetDisplayName: UnicodeString;
-begin
-  Result := FDisplayName;
 end;
 
 procedure TdwsSymbol.CheckName(Table: TSymbolTable;
@@ -4123,7 +4108,7 @@ end;
 
 // GetDisplayName
 //
-function TdwsTypeSymbol.GetDisplayName: AnsiString;
+function TdwsTypeSymbol.GetDisplayName: UnicodeString;
 begin
    Result:=FName;
 end;
