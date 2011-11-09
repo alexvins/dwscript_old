@@ -3993,14 +3993,14 @@ begin
       Initialize(prog);
       try
          if (Typ=nil) or (Typ.Size<=1) then
-            Result:=TConstExpr.CreateTyped(prog, typ, Eval(exec))
+            Result:=TConstExpr.CreateTypedVariantValue(prog, typ, Eval(exec))
          else begin
-            exec.Stack.Push(typ.Size);
+            exec.Stack.Push(prog.DataSize);
             try
                Eval(exec);
-               Result:=TConstExpr.CreateTyped(prog, typ, exec.Stack.Data);
+               Result:=TConstExpr.CreateTyped(prog, typ, exec.Stack.Data, FResultAddr);
             finally
-               exec.Stack.Pop(typ.Size);
+               exec.Stack.Pop(prog.DataSize);
             end;
          end;
       except
