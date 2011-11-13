@@ -406,6 +406,9 @@ var
    i : Integer;
    sl : TStringList;
 begin
+   //todo: remove workaround
+   toStr := fromStr;
+   exit;
    if fromStr='' then
       toStr:=''
    else begin

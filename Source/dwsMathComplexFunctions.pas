@@ -34,19 +34,29 @@ type
          procedure DoEvalAsString(args : TExprBaseList; var Result : UnicodeString); override;
    end;
 
-   TComplexBinOpExpr = class(TInternalMagicDataFunction);
+   TComplexOpExpr = class(TInternalMagicDataFunction);
 
-   TComplexAddOpExpr = class(TComplexBinOpExpr)
+   TComplexNegOpExpr = class(TComplexOpExpr)
       public
          procedure DoEval(args : TExprBaseList; var result : TDataPtr); override;
    end;
 
-   TComplexSubOpExpr = class(TComplexBinOpExpr)
+   TComplexAddOpExpr = class(TComplexOpExpr)
       public
          procedure DoEval(args : TExprBaseList; var result : TDataPtr); override;
    end;
 
-   TComplexMultOpExpr = class(TComplexBinOpExpr)
+   TComplexSubOpExpr = class(TComplexOpExpr)
+      public
+         procedure DoEval(args : TExprBaseList; var result : TDataPtr); override;
+   end;
+
+   TComplexMultOpExpr = class(TComplexOpExpr)
+      public
+         procedure DoEval(args : TExprBaseList; var result : TDataPtr); override;
+   end;
+
+   TComplexDivOpExpr = class(TComplexOpExpr)
       public
          procedure DoEval(args : TExprBaseList; var result : TDataPtr); override;
    end;
@@ -62,38 +72,23 @@ implementation
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 
-//type
-//   TComplexProgram = class helper for TdwsProgram
-//      function TypComplex : TRecordSymbol;
-//   end;
-//
-//// TypComplex
-////
-//function TComplexProgram.TypComplex : TRecordSymbol;
-//begin
-//   Result:=SystemTable.FindTypeSymbol(SYS_COMPLEX, cvMagic) as TRecordSymbol;
-//end;
-
 // RegisterComplexType
 //
-procedure RegisterComplexType(systemTable : TSymbolTable; unitSyms : TUnitMainSymbols;
+procedure RegisterComplexType(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
                               unitTable : TSymbolTable; operators : TOperators);
 var
    typComplex : TRecordSymbol;
-   typFloat : TBaseFloatSymbol;
 begin
-   typFloat:=SystemTable.FindSymbol(SYS_FLOAT, cvMagic) as TBaseFloatSymbol;
-
    typComplex:=TRecordSymbol.Create(SYS_COMPLEX, nil);
-   typComplex.AddField(TFieldSymbol.Create('Re', typFloat, cvPublic));
-   typComplex.AddField(TFieldSymbol.Create('Im', typFloat, cvPublic));
+   typComplex.AddField(TFieldSymbol.Create('Re', systemTable.TypFloat, cvPublic));
+   typComplex.AddField(TFieldSymbol.Create('Im', systemTable.TypFloat, cvPublic));
 
    systemTable.AddSymbol(typComplex);
 end;
 
 // RegisterComplexOperators
 //
-procedure RegisterComplexOperators(systemTable : TSymbolTable; unitSyms : TUnitMainSymbols;
+procedure RegisterComplexOperators(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
                                    unitTable : TSymbolTable; operators : TOperators);
 var
    typComplex : TRecordSymbol;
@@ -103,6 +98,7 @@ begin
    operators.RegisterOperator(ttPLUS, unitTable.FindSymbol('ComplexAdd', cvMagic) as TFuncSymbol, typComplex, typComplex);
    operators.RegisterOperator(ttMINUS, unitTable.FindSymbol('ComplexSub', cvMagic) as TFuncSymbol, typComplex, typComplex);
    operators.RegisterOperator(ttTIMES, unitTable.FindSymbol('ComplexMult', cvMagic) as TFuncSymbol, typComplex, typComplex);
+   operators.RegisterOperator(ttDIVIDE, unitTable.FindSymbol('ComplexDiv', cvMagic) as TFuncSymbol, typComplex, typComplex);
 end;
 
 // ------------------
@@ -136,6 +132,22 @@ begin
    else if i<0 then
       Result:=dwsFormat('%f - %fi', [r, Abs(i)])
    else Result:=dwsFormat('%f', [r]);
+end;
+
+// ------------------
+// ------------------ TComplexNegOpExpr ------------------
+// ------------------
+
+// DoEval
+//
+procedure TComplexNegOpExpr.DoEval(args : TExprBaseList; var result : TDataPtr);
+var
+   v : TDataPtr;
+begin
+   v:=TDataExpr(args.ExprBase[0]).DataPtr[args.Exec];
+
+   result[0]:=-v[0];
+   result[1]:=-v[1];
 end;
 
 // ------------------
@@ -189,6 +201,25 @@ begin
    result[1]:=leftData[1]*rightData[0]+leftData[0]*rightData[1];
 end;
 
+// ------------------
+// ------------------ TComplexDivOpExpr ------------------
+// ------------------
+
+// DoEval
+//
+procedure TComplexDivOpExpr.DoEval(args : TExprBaseList; var result : TDataPtr);
+var
+   leftData, rightData : TDataPtr;
+   d : Double;
+begin
+   leftData:=TDataExpr(args.ExprBase[0]).DataPtr[args.Exec];
+   rightData:=TDataExpr(args.ExprBase[1]).DataPtr[args.Exec];
+
+   d:=Sqr(rightData[0])+Sqr(rightData[1]);
+   result[0]:=(leftData[0]*rightData[0]+leftData[1]*rightData[1])/d;
+   result[1]:=(leftData[1]*rightData[0]-leftData[0]*rightData[1])/d;
+end;
+
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -203,8 +234,10 @@ initialization
    RegisterInternalFunction(TComplexMakeExpr, 'Complex', ['real', SYS_FLOAT, 'imaginary', SYS_FLOAT], SYS_COMPLEX, True);
    RegisterInternalStringFunction(TComplexToStrExpr, 'ComplexToStr', ['c', SYS_COMPLEX], True);
 
+   RegisterInternalFunction(TComplexNegOpExpr,  'ComplexNeg',  ['v', SYS_COMPLEX], SYS_COMPLEX, True);
    RegisterInternalFunction(TComplexAddOpExpr, 'ComplexAdd', ['left', SYS_COMPLEX, 'right', SYS_COMPLEX], SYS_COMPLEX, True);
    RegisterInternalFunction(TComplexSubOpExpr, 'ComplexSub', ['left', SYS_COMPLEX, 'right', SYS_COMPLEX], SYS_COMPLEX, True);
    RegisterInternalFunction(TComplexMultOpExpr, 'ComplexMult', ['left', SYS_COMPLEX, 'right', SYS_COMPLEX], SYS_COMPLEX, True);
+   RegisterInternalFunction(TComplexDivOpExpr,  'ComplexDiv',  ['left', SYS_COMPLEX, 'right', SYS_COMPLEX], SYS_COMPLEX, True);
 
 end.

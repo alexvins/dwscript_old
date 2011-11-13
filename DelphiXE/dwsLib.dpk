@@ -25,6 +25,7 @@ package dwsLib;
 {$DESCRIPTION 'DelphiWebScript'}
 {$DESIGNONLY}
 {$IMPLICITBUILD ON}
+{$LIBSUFFIX 'XE'}
 
 requires
   designide,

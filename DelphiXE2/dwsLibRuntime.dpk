@@ -28,6 +28,7 @@ package dwsLibRuntime;
 {$DESCRIPTION 'DelphiWebScript Runtime'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
+{$LIBSUFFIX 'XE2'}
 
 requires
   vcl,

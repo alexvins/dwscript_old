@@ -43,7 +43,7 @@ type
   TdwsOnNeedUnitEvent = function(const unitName : UnicodeString; var unitSource : UnicodeString) : IdwsUnit of object;
 
   TdwsCompiler = class;
-  TCompilerCreateBaseVariantSymbol = function (table : TSymbolTable) : TBaseVariantSymbol of object;
+  TCompilerCreateBaseVariantSymbol = function (table : TSystemSymbolTable) : TBaseVariantSymbol of object;
   TCompilerReadInstrEvent = function (compiler : TdwsCompiler) : TNoResultExpr of object;
   TCompilerSectionChangedEvent = procedure (compiler : TdwsCompiler) of object;
   TCompilerReadScriptEvent = procedure (compiler : TdwsCompiler; sourceFile : TSourceFile; scriptType : TScriptSourceType) of object;
@@ -67,7 +67,7 @@ type
     FScriptPaths: TStrings;
     FConditionals: TStringList;
     FStackChunkSize: Integer;
-    FSystemTable : TStaticSymbolTable;
+    FSystemTable : TSystemSymbolTable;
     FTimeoutMilliseconds: Integer;
     FUnits : TIdwsUnitList;
     FCompileFileSystem : TdwsCustomFileSystem;
@@ -82,7 +82,7 @@ type
     procedure SetRuntimeFileSystem(const val : TdwsCustomFileSystem);
     procedure SetScriptPaths(const values : TStrings);
     procedure SetConditionals(const val : TStringList);
-    function GetSystemTable : TStaticSymbolTable;
+    function GetSystemTable : TSystemSymbolTable;
 
   public
     constructor Create(Owner: TComponent);
@@ -91,7 +91,7 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation);
 
     property Connectors : TStrings read FConnectors write FConnectors;
-    property SystemTable : TStaticSymbolTable read GetSystemTable;
+    property SystemTable : TSystemSymbolTable read GetSystemTable;
     property Units : TIdwsUnitList read FUnits;
 
   published
@@ -283,7 +283,7 @@ type
          FOnInclude : TIncludeEvent;
          FOnNeedUnit : TdwsOnNeedUnitEvent;
          FUnits : TIdwsUnitList;
-         FSystemTable : TSymbolTable;
+         FSystemTable : TSystemSymbolTable;
          FScriptPaths : TStrings;
          FFilter : TdwsFilter;
          FIsExcept : Boolean;
@@ -408,7 +408,7 @@ type
          procedure ReadArrayParams(ArrayIndices: TSymbolTable);
          // Don't want to add param symbols to dictionary when a method implementation (they get thrown away)
          procedure ReadParams(const addParamMeth : TParamSymbolMethod; paramsToDictionary : Boolean = True);
-         function ReadProcDecl(funcKind : TFuncKind; isClassMethod : Boolean = False;
+         function ReadProcDecl(funcToken : TTokenType; isClassMethod : Boolean = False;
                             isType : Boolean = False) : TFuncSymbol;
          procedure ReadProcBody(funcSymbol : TFuncSymbol);
          procedure ReadConditions(funcSymbol : TFuncSymbol; conditions : TSourceConditions;
@@ -467,7 +467,7 @@ type
          procedure MemberSymbolWithNameAlreadyExists(sym : TSymbol);
          procedure IncompatibleTypes(const scriptPos : TScriptPos; const fmt : UnicodeString; typ1, typ2 : TTypeSymbol);
 
-         function CreateProgram(systemTable : TStaticSymbolTable;
+         function CreateProgram(systemTable : TSystemSymbolTable;
                                 resultType : TdwsResultType;
                                 const stackParams : TStackParameters) : TdwsMainProgram;
          function CreateProcedure(Parent : TdwsProgram) : TdwsProcedure;
@@ -952,7 +952,7 @@ begin
 
    FProg:=FMainProg;
 
-   FOperators:=TOperators.Create(FProg.Table);
+   FOperators:=TOperators.Create(FProg.SystemTable, FProg.Table);
    FMainProg.Operators:=FOperators;
    FOperators.FunctionOperatorConstructor:=CreateOperatorFunction;
 
@@ -1367,12 +1367,12 @@ begin
             action:=rsaNoSemiColon;
          end else ReadTypeDecl;
       ttPROCEDURE, ttFUNCTION, ttCONSTRUCTOR, ttDESTRUCTOR, ttMETHOD :
-         ReadProcBody(ReadProcDecl(cTokenToFuncKind[token]));
+         ReadProcBody(ReadProcDecl(token));
       ttCLASS : begin
          token:=FTok.TestDeleteAny([ttPROCEDURE, ttFUNCTION, ttMETHOD]);
          case token of
             ttPROCEDURE, ttFUNCTION, ttMETHOD :
-               ReadProcBody(ReadProcDecl(cTokenToFuncKind[token], True));
+               ReadProcBody(ReadProcDecl(token, True));
          else
             FMsgs.AddCompilerStop(FTok.HotPos, CPE_ProcOrFuncExpected);
          end;
@@ -1383,6 +1383,10 @@ begin
                                       [cTokenStrings[token]]);
             action:=rsaNoSemiColon;
          end else begin
+            if coContextMap in FOptions then begin
+               FContextMap.CloseContext(FTok.HotPos);
+               FContextMap.OpenContext(FTok.HotPos, nil, ttIMPLEMENTATION);
+            end;
             FUnitSection:=secImplementation;
             DoSectionChanged;
             action:=rsaImplementation;
@@ -1781,7 +1785,7 @@ begin
 
    // Wrap whole type declarations in a context.
    if coContextMap in FOptions then
-      FContextMap.OpenContext(typePos, typNew);
+      FContextMap.OpenContext(typePos, typNew, ttNAME);
 
    try
       if typNew.Name<>'' then begin
@@ -1811,15 +1815,17 @@ end;
 
 // ReadProcDecl
 //
-function TdwsCompiler.ReadProcDecl(funcKind : TFuncKind;
+function TdwsCompiler.ReadProcDecl(funcToken : TTokenType;
               isClassMethod : Boolean = False; isType : Boolean = False) : TFuncSymbol;
 var
+   funcKind : TFuncKind;
    name : UnicodeString;
    sym : TSymbol;
    funcPos : TScriptPos;
    forwardedSym : TFuncSymbol;
    forwardedSymPos : TSymbolPosition;
 begin
+   funcKind:=cTokenToFuncKind[funcToken];
    if not isType then begin
       // Find Symbol for Functionname
       if not FTok.TestDeleteNamePos(name, funcPos) then begin
@@ -1832,7 +1838,7 @@ begin
 
       // Open context for procedure declaration. Closed in ReadProcBody.
       if coContextMap in FOptions then
-         FContextMap.OpenContext(funcPos, sym);
+         FContextMap.OpenContext(funcPos, sym, funcToken);
    end else begin
       sym := nil;
       name := '';
@@ -1999,6 +2005,7 @@ var
    methPos: TScriptPos;
    qualifier : TTokenType;
    funcResult : TSourceMethodSymbol;
+   bodyToken : TTokenType;
 begin
    // Find Symbol for Functionname
    if not FTok.TestDeleteNamePos(name, methPos) then begin
@@ -2120,10 +2127,11 @@ begin
       structSym.AddMethod(funcResult);
    end;
 
-   if FTok.TestAny([ttBEGIN, ttREQUIRE])<>ttNone then begin
+   bodyToken:=FTok.TestAny([ttBEGIN, ttREQUIRE]);
+   if bodyToken<>ttNone then begin
       // inline declaration
       if coContextMap in FOptions then
-         FContextMap.OpenContext(FTok.HotPos, funcResult);
+         FContextMap.OpenContext(FTok.HotPos, funcResult, bodyToken);
       ReadProcBody(funcResult);
       ReadSemiColon;
    end;
@@ -2239,7 +2247,7 @@ begin
 
    // Open context of full procedure body (may include a 'var' section)
    if coContextMap in FOptions then
-      FContextMap.OpenContext(FTok.CurrentPos, funcSymbol);   // attach to symbol that it belongs to (perhaps a class)
+      FContextMap.OpenContext(FTok.CurrentPos, funcSymbol, ttBEGIN);   // attach to symbol that it belongs to (perhaps a class)
 
    funcSymbol.SourcePosition:=FTok.HotPos;
 
@@ -2293,7 +2301,7 @@ begin
          end;
 
          if coContextMap in FOptions then
-            FContextMap.OpenContext(FTok.CurrentPos, nil);
+            FContextMap.OpenContext(FTok.CurrentPos, nil, ttBEGIN);
          try
             // Read procedure body
             if not FTok.TestDelete(ttBEGIN) then begin
@@ -2353,6 +2361,7 @@ var
    testLength : Integer;
    msg : UnicodeString;
    srcCond : TSourceCondition;
+   endToken : TTokenType;
 begin
    repeat
 
@@ -2396,8 +2405,9 @@ begin
          raise;
       end;
 
-   until FTok.TestAny([ttVAR, ttCONST, ttBEGIN, ttEND, ttENSURE, ttREQUIRE,
-                       ttFUNCTION, ttPROCEDURE, ttTYPE])<>ttNone;
+      endToken:=FTok.TestAny([ttVAR, ttCONST, ttBEGIN, ttEND, ttENSURE, ttREQUIRE,
+                              ttFUNCTION, ttPROCEDURE, ttTYPE])
+   until endToken<>ttNone;
 end;
 
 // ReadPostConditions
@@ -2519,7 +2529,7 @@ begin
    blockExpr:=TBlockExpr.Create(FProg, FTok.HotPos);
    try
       if coContextMap in FOptions then begin
-         FContextMap.OpenContext(FTok.CurrentPos, nil);
+         FContextMap.OpenContext(FTok.CurrentPos, nil, ttBEGIN);
          closePos:=FTok.CurrentPos;     // default to close context where it opened (used on errors)
       end;
 
@@ -5533,7 +5543,7 @@ begin
          Result:=ReadEnumeration(typeName);
 
       ttPROCEDURE, ttFUNCTION : begin
-         Result:=ReadProcDecl(cTokenToFuncKind[tt], False, True);
+         Result:=ReadProcDecl(tt, False, True);
          Result.SetName(typeName);
          (Result as TFuncSymbol).SetIsType;
       end;
@@ -6149,7 +6159,7 @@ begin
          else if memberSym<>nil then begin
             constExpr:=TConstExpr(expr);
             if constExpr.Typ.IsOfType(FProg.TypInteger) and memberSym.Typ.IsOfType(FProg.TypFloat) then
-               Result[memberSym.Offset]:=constExpr.EvalAsInteger(FExec)
+               Result[memberSym.Offset]:=constExpr.EvalAsFloat(FExec)
             else if not constExpr.Typ.IsCompatible(memberSym.Typ) then
                FMsgs.AddCompilerErrorFmt(FTok.HotPos, CPE_InvalidConstType, [constExpr.Typ.Caption])
             else DWSCopyData(constExpr.Data[FExec], constExpr.Addr[FExec],
@@ -7042,7 +7052,7 @@ end;
 
 // CreateProgram
 //
-function TdwsCompiler.CreateProgram(systemTable : TStaticSymbolTable;
+function TdwsCompiler.CreateProgram(systemTable : TSystemSymbolTable;
                                     resultType : TdwsResultType;
                                     const stackParams : TStackParameters) : TdwsMainProgram;
 begin
@@ -7126,7 +7136,14 @@ var
 begin
    names:=TStringList.Create;
    try
+      if coContextMap in FOptions then
+         FContextMap.OpenContext(FTok.HotPos, nil, ttUSES);
+
       ReadNameList(names, posArray);
+
+      if coContextMap in FOptions then
+         FContextMap.CloseContext(FTok.HotPos);
+
       u:=0;
       if FUnitSymbol<>nil then
          if UnitSection=secImplementation then begin
@@ -7178,9 +7195,11 @@ begin
       FMsgs.AddCompilerWarning(namePos, CPE_UnitNameDoesntMatch);
    if not FTok.TestDelete(ttSEMI) then
       FMsgs.AddCompilerStop(FTok.HotPos, CPE_SemiExpected);
-   if FTok.TestDelete(ttINTERFACE) then
-      FUnitSection:=secInterface
-   else FUnitSection:=secMixed;
+   if FTok.TestDelete(ttINTERFACE) then begin
+      FUnitSection:=secInterface;
+      if coContextMap in FOptions then
+         FContextMap.OpenContext(FTok.HotPos, nil, ttINTERFACE);
+   end else FUnitSection:=secMixed;
    DoSectionChanged;
 end;
 
@@ -7783,7 +7802,7 @@ constructor TdwsConfiguration.Create(owner : TComponent);
 begin
    inherited Create;
    FOwner := Owner;
-   FSystemTable := TStaticSymbolTable.Create;
+   FSystemTable := TSystemSymbolTable.Create;
    FConnectors := TStringList.Create;
    FScriptPaths := TStringList.Create;
    FConditionals := TStringList.Create;
@@ -7822,88 +7841,92 @@ begin
     inherited;
 end;
 
+// InitSystemTable
+//
 procedure TdwsConfiguration.InitSystemTable;
 var
-   clsObject, clsException, clsDelphiException, clsAssertionFailed : TClassSymbol;
-   clsMeta : TClassOfSymbol;
+   clsDelphiException, clsAssertionFailed : TClassSymbol;
    meth : TMethodSymbol;
-   varSym : TBaseSymbol;
    fldSym : TFieldSymbol;
    propSym : TPropertySymbol;
-   typInteger, typString : TBaseSymbol;
 begin
    // Create base data types
-   SystemTable.AddSymbol(TBaseBooleanSymbol.Create);
-   SystemTable.AddSymbol(TBaseFloatSymbol.Create);
-   typInteger:=TBaseIntegerSymbol.Create;
-   SystemTable.AddSymbol(typInteger);
-   typString:=TBaseStringSymbol.Create;
-   SystemTable.AddSymbol(typString);
+   SystemTable.TypBoolean:=TBaseBooleanSymbol.Create;
+   SystemTable.AddSymbol(SystemTable.TypBoolean);
 
-   varSym:=TBaseVariantSymbol(SystemTable.FindLocal(SYS_VARIANT, TBaseVariantSymbol));
-   if varSym<>nil then begin
-      SystemTable.AddSymbol(TConstSymbol.Create('Null', varSym, Null));
-      SystemTable.AddSymbol(TConstSymbol.Create('Unassigned', varSym, Unassigned));
+   SystemTable.TypFloat:=TBaseFloatSymbol.Create;
+   SystemTable.AddSymbol(SystemTable.TypFloat);
 
-      SystemTable.AddSymbol(TOpenArraySymbol.Create('array of const', varSym, typInteger));
+   SystemTable.TypInteger:=TBaseIntegerSymbol.Create;
+   SystemTable.AddSymbol(SystemTable.TypInteger);
+
+   SystemTable.TypString:=TBaseStringSymbol.Create;
+   SystemTable.AddSymbol(SystemTable.TypString);
+
+   if SystemTable.TypVariant<>nil then begin
+      SystemTable.AddSymbol(TConstSymbol.Create('Null', SystemTable.TypVariant, Null));
+      SystemTable.AddSymbol(TConstSymbol.Create('Unassigned', SystemTable.TypVariant, Unassigned));
+
+      SystemTable.AddSymbol(TOpenArraySymbol.Create('array of const', SystemTable.TypVariant, SystemTable.TypInteger));
    end;
 
-   SystemTable.AddSymbol(TInterfaceSymbol.Create(SYS_IINTERFACE, nil));
+   SystemTable.TypInterface:=TInterfaceSymbol.Create(SYS_IINTERFACE, nil);
+   SystemTable.AddSymbol(SystemTable.TypInterface);
 
    // Create "root" class TObject
-   clsObject:=TClassSymbol.Create(SYS_TOBJECT, nil);
+   SystemTable.TypObject:=TClassSymbol.Create(SYS_TOBJECT, nil);
+   SystemTable.AddSymbol(SystemTable.TypObject);
    // Add constructor Create
-   meth:=TMethodSymbol.Create(SYS_TOBJECT_CREATE, fkConstructor, clsObject, cvPublic, False);
+   meth:=TMethodSymbol.Create(SYS_TOBJECT_CREATE, fkConstructor, SystemTable.TypObject, cvPublic, False);
    meth.Executable:=ICallable(TEmptyFunc.Create);
    meth.IsDefault:=True;
-   clsObject.AddMethod(meth);
+   SystemTable.TypObject.AddMethod(meth);
    // Add destructor Destroy
    TObjectDestroyMethod.Create(mkDestructor, [maVirtual], SYS_TOBJECT_DESTROY,
-                               [], '', clsObject, cvPublic, SystemTable);
+                               [], '', SystemTable.TypObject, cvPublic, SystemTable);
    // Add procedure Free
    TObjectFreeMethod.Create(mkProcedure, [], SYS_TOBJECT_FREE,
-                            [], '', clsObject, cvPublic, SystemTable);
+                            [], '', SystemTable.TypObject, cvPublic, SystemTable);
    // Add ClassName method
    TObjectClassNameMethod.Create(mkClassFunction, [], SYS_TOBJECT_CLASSNAME,
-                                 [], SYS_STRING, clsObject, cvPublic, SystemTable);
-   SystemTable.AddSymbol(clsObject);
+                                 [], SYS_STRING, SystemTable.TypObject, cvPublic, SystemTable);
 
    // Create "root" metaclass TClass
-   clsMeta:=TClassOfSymbol.Create(SYS_TCLASS, clsObject);
-   SystemTable.AddSymbol(clsMeta);
+   SystemTable.TypClass:=TClassOfSymbol.Create(SYS_TCLASS, SystemTable.TypObject);
+   SystemTable.AddSymbol(SystemTable.TypClass);
 
    // Add ClassType method
    TObjectClassTypeMethod.Create(mkClassFunction, [], SYS_TOBJECT_CLASSTYPE,
-                                 [], SYS_TCLASS, clsObject, cvPublic, SystemTable);
+                                 [], SYS_TCLASS, SystemTable.TypObject, cvPublic, SystemTable);
 
    // Create class Exception
-   clsException := TClassSymbol.Create(SYS_EXCEPTION, nil);
-   clsException.InheritFrom(clsObject);
-   fldSym:=TFieldSymbol.Create(SYS_EXCEPTION_MESSAGE_FIELD, typString, cvProtected);
-   clsException.AddField(fldSym);
-   propSym:=TPropertySymbol.Create(SYS_EXCEPTION_MESSAGE, typString, cvPublic);
+   SystemTable.TypException := TClassSymbol.Create(SYS_EXCEPTION, nil);
+   SystemTable.TypException.InheritFrom(SystemTable.TypObject);
+   fldSym:=TFieldSymbol.Create(SYS_EXCEPTION_MESSAGE_FIELD, SystemTable.TypString, cvProtected);
+   SystemTable.TypException.AddField(fldSym);
+   propSym:=TPropertySymbol.Create(SYS_EXCEPTION_MESSAGE, SystemTable.TypString, cvPublic);
    propSym.ReadSym:=fldSym;
    propSym.WriteSym:=fldSym;
-   clsException.AddProperty(propSym);
+   SystemTable.TypException.AddProperty(propSym);
    TExceptionCreateMethod.Create(mkConstructor, [], SYS_TOBJECT_CREATE,
-                                 ['Msg', SYS_STRING], '', clsException, cvPublic, SystemTable);
+                                 ['Msg', SYS_STRING], '', SystemTable.TypException, cvPublic, SystemTable);
    TExceptionDestroyMethod.Create(mkDestructor, [maOverride], SYS_TOBJECT_DESTROY,
-                                 [], '', clsException, cvPublic, SystemTable);
+                                 [], '', SystemTable.TypException, cvPublic, SystemTable);
    TExceptionStackTraceMethod.Create(mkFunction, [], SYS_EXCEPTION_STACKTRACE,
-                                 [], SYS_STRING, clsException, cvPublic, SystemTable);
-   SystemTable.AddSymbol(clsException);
+                                 [], SYS_STRING, SystemTable.TypException, cvPublic, SystemTable);
+   SystemTable.AddSymbol(SystemTable.TypException);
 
    // Create class EAssertionFailed
    clsAssertionFailed := TClassSymbol.Create(SYS_EASSERTIONFAILED, nil);
-   clsAssertionFailed.InheritFrom(clsException);
+   clsAssertionFailed.InheritFrom(SystemTable.TypException);
    SystemTable.AddSymbol(clsAssertionFailed);
 
    // Create class EDelphi
    clsDelphiException := TClassSymbol.Create(SYS_EDELPHI, nil);
-   clsDelphiException.InheritFrom(clsException);
-   fldSym:=TFieldSymbol.Create(SYS_EDELPHI_EXCEPTIONCLASS_FIELD, typString, cvProtected);
+   clsDelphiException.InheritFrom(SystemTable.TypException);
+   fldSym:=TFieldSymbol.Create(SYS_EDELPHI_EXCEPTIONCLASS_FIELD, SystemTable.TypString, cvProtected);
    clsDelphiException.AddField(fldSym);
-   propSym:=TPropertySymbol.Create(SYS_EDELPHI_EXCEPTIONCLASS, typString, cvPublic);
+   propSym:=TPropertySymbol.Create(SYS_EDELPHI_EXCEPTIONCLASS, SystemTable.TypString, cvPublic);
    propSym.ReadSym:=fldSym;
    propSym.WriteSym:=fldSym;
    clsDelphiException.AddProperty(propSym);
@@ -7916,7 +7939,7 @@ begin
    TExceptObjFunc.Create(SystemTable, 'ExceptObject', [], SYS_EXCEPTION, False);
 
    // Runtime parameters
-   if varSym<>nil then
+   if SystemTable.TypVariant<>nil then
       TParamFunc.Create(SystemTable, 'Param', ['Index', SYS_INTEGER], SYS_VARIANT, False);
    TParamStrFunc.Create(SystemTable, 'ParamStr', ['Index', SYS_INTEGER], SYS_STRING, False);
    TParamCountFunc.Create(SystemTable, 'ParamCount', [], SYS_INTEGER, False);
@@ -8014,12 +8037,15 @@ end;
 
 // GetSystemTable
 //
-function TdwsConfiguration.GetSystemTable : TStaticSymbolTable;
+function TdwsConfiguration.GetSystemTable : TSystemSymbolTable;
 begin
    if FSystemTable.Count=0 then begin
       if Assigned(FOnCreateBaseVariantSymbol) then
          FOnCreateBaseVariantSymbol(FSystemTable)
-      else FSystemTable.AddSymbol(TBaseVariantSymbol.Create);
+      else begin
+         FSystemTable.TypVariant:=TBaseVariantSymbol.Create;
+         FSystemTable.AddSymbol(FSystemTable.TypVariant);
+      end;
       InitSystemTable;
    end;
    Result:=FSystemTable;
