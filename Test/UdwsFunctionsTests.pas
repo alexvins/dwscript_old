@@ -33,7 +33,7 @@ initialization
 
   RegisterTest('Functions', TdwsFunctionsTests.Suite('Math', 'FunctionsMath'));
   RegisterTest('Functions', TdwsFunctionsTests.Suite('MathComplex', 'FunctionsMathComplex'));
-  RegisterTest('Functions', TdwsFunctionsTests.Suite('MathComplex3D', 'FunctionsMath3D'));
+  RegisterTest('Functions', TdwsFunctionsTests.Suite('Math3D', 'FunctionsMath3D'));
   RegisterTest('Functions', TdwsFunctionsTests.Suite('Time', 'FunctionsTime'));
   RegisterTest('Functions', TdwsFunctionsTests.Suite('String', 'FunctionsString'));
   RegisterTest('Functions', TdwsFunctionsTests.Suite('Variant', 'FunctionsVariant'));
