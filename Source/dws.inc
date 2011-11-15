@@ -42,8 +42,14 @@
    {$ENDIF}
 
 {$ELSE}
-  {$MODE DELPHI}
-  {$modeswitch nestedprocvars}
+  {$IFDEF DWS_OBJFPC}
+    {$MODE OBJFPC}
+    {$modeswitch advancedrecords,nestedprocvars}
+  {$ELSE}
+    {$MODE DELPHI}
+    {$modeswitch nestedprocvars}
+  {$ENDIF}
+
   {$DEFINE PUREPASCAL} //temp workaround
   {$INLINE OFF} //temp workaround
 {$ENDIF}

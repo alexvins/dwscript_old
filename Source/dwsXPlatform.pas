@@ -19,9 +19,11 @@
 {**********************************************************************}
 unit dwsXPlatform;
 
+{$define DWS_OBJFPC}
+
 {$I dws.inc}
 
-{$DEFINE USE_HELPER} //workaround for CodeTools bug
+{$DEFINE USE_HELPER} //workaround for CodeTools bug 20623
 
 //
 // This unit should concentrate all non-UI cross-platform aspects,
@@ -247,11 +249,20 @@ function dwsStringOfChar(c: WideChar; i: SizeInt):UnicodeString;
 Function dwsFormat (Const Fmt : UnicodeString; const Args : Array of const) : UnicodeString; overload; {$IFNDEF FPC} inline; {$ENDIF}
 Function dwsFormat (Const Fmt : UnicodeString; const Args : Array of const; Const FormatSettings: TFormatSettings) : UnicodeString; overload;{$IFNDEF FPC} inline; {$ENDIF}
 
+{$IFDEF FPC}
+operator :=(const source : UnicodeString) : variant;
+operator :=(const source : variant) : UnicodeString;
+{$ENDIF}
 
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 implementation
+
+{$IFDEF FPC}
+uses
+    varutils;
+{$ENDIF}
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
 // ------------------------------------------------------------------
@@ -311,8 +322,6 @@ begin
    Result:=CompareStringW(LOCALE_USER_DEFAULT, NORM_IGNORECASE, p1, n1, p2, n2)-CSTR_EQUAL;
 end;
 
-{$IFDEF FPC}
-
 function dwsSameText(const s1, s2: UnicodeString): boolean;
 begin
    {$IFDEF FPC}
@@ -353,6 +362,7 @@ begin
 {$ENDIF}
 end;
 
+{$IFDEF FPC}
 procedure VarCopy(var ADest: Variant; const ASource: Variant);
 begin
   ADest := ASource;
@@ -381,7 +391,7 @@ end;
 function VarDataToUniStr(vardata: PVarData): UnicodeString;
 begin
 {$IFDEF FPC}
-   Result := UnicodeString(varData.vstring);
+   Result := UnicodeString(varData^.vstring);
 {$ELSE}
    Result := UnicodeString(varData.VUString);
 {$ENDIF}
@@ -390,7 +400,7 @@ end;
 procedure UniStrToVarData(vardata: PVarData; AValue: UnicodeString);
 begin
   {$IFDEF FPC}
-     UnicodeString(varData.vstring):=AValue;
+     UnicodeString(varData^.vstring):=AValue;
   {$ELSE}
      UnicodeString(varData.VUString):=AValue;
   {$ENDIF}
@@ -399,7 +409,7 @@ end;
 function GetExceptObject: TObject;
 begin
   {$IFDEF FPC}
-  Result := RaiseList.FObject;
+  Result := SysUtils.ExceptObject;
   {$ELSE}
   Result := System.ExceptObject;
   {$ENDIF}
@@ -445,6 +455,24 @@ begin
   Result := Format(Fmt, Args, FormatSettings);
   {$ENDIF}
 end;
+
+{$IFDEF FPC}
+operator := (const source: UnicodeString): variant;
+begin
+   VarClear(Result);
+   with TVarData(Result) do begin
+    vType := varustring;
+    vstring := nil;
+    UnicodeString(vstring) := Source;
+  end;
+end;
+
+operator := (const source: variant): UnicodeString;
+begin
+  result := VariantToWideString(tvardata(source));
+end;
+
+{$ENDIF}
 
 // SetDecimalSeparator
 //
@@ -569,7 +597,7 @@ end;
 
 function TDwsCollectionItem.GetNamePath: UnicodeString;
 begin
-   Result := inherited GetNamePath;
+   Result :=  UnicodeString(inherited GetNamePath);
 end;
 
 procedure TDwsCollectionItem.SetCollection(AValue: TDwsOwnedCollection);
