@@ -3,7 +3,7 @@ unit URTTIExposeTests;
 interface
 
 uses Classes, SysUtils, TestFrameWork, dwsComp, dwsCompiler, dwsExprs,
-   dwsTokenizer, dwsRTTIExposer, dwsRTTIConnector, TypInfo, Types,
+   dwsTokenizer, dwsRTTIExposer, dwsRTTIConnector, TypInfo, Types, RTTI,
    Forms, StdCtrls;
 
 type
@@ -33,6 +33,10 @@ type
          procedure ConnectSimpleClassTyped;
          procedure ConnectTypeCheckFail;
          procedure ConnectFormCreateComponent;
+
+         procedure EnvironmentTest;
+
+         procedure ExposeGeneric;
    end;
 
 type
@@ -78,6 +82,23 @@ type
       class function RectWidth(const r : TMyRect) : Integer; static;
       class function UnitRect : TMyRect; static;
       class procedure InflateRect(var r : TMyRect); static;
+   end;
+
+   TGenericWrapper<T> = class
+      private
+         FField : T;
+      public
+         property Field : T read FField write FField;
+   end;
+
+   TWrappedObject = class(TGenericWrapper<TObject>)
+      procedure Stuff(obj : TGenericWrapper<Integer>);
+   end;
+
+   TTestEnvironment = class
+      public
+         FieldOne : TSimpleClass;
+         FieldTwo : String;
    end;
 
 // ------------------------------------------------------------------
@@ -146,6 +167,13 @@ end;
 procedure TSimpleClass.DecValue;
 begin
    Dec(FValue);
+end;
+
+// Stuff
+//
+procedure TWrappedObject.Stuff(obj : TGenericWrapper<Integer>);
+begin
+   //
 end;
 
 // ------------------
@@ -442,6 +470,53 @@ begin
    finally
       form.Free;
    end;
+end;
+
+// EnvironmentTest
+//
+procedure TRTTIExposeTests.EnvironmentTest;
+var
+   obj : TTestEnvironment;
+   enviro : TRTTIEnvironment;
+   prog : IdwsProgram;
+   exec : IdwsProgramExecution;
+begin
+   obj:=TTestEnvironment.Create;
+   obj.FieldOne:=TSimpleClass.Create(123);
+   obj.FieldTwo:='Hello';
+   try
+      enviro:=TRTTIEnvironment.Create;
+      enviro.Environment:=obj;
+      FCompiler.Extensions.Add(enviro);
+      try
+         prog:=FCompiler.Compile( 'PrintLn(FieldOne.Value);'#13#10
+                                 +'PrintLn(FieldTwo);');
+         try
+            CheckEquals('', prog.Msgs.AsInfo, 'compile');
+
+            exec:=prog.Execute(0);
+
+            CheckEquals('', exec.Msgs.AsInfo, 'exec');
+
+            CheckEquals('123'#13#10'Hello'#13#10, exec.Result.ToString, 'result');
+         finally
+            prog:=nil;
+         end;
+      finally
+         FCompiler.Extensions.Remove(enviro);
+         enviro.Free;
+      end;
+   finally
+      obj.FieldOne.Free;
+      obj.Free;
+   end;
+end;
+
+// ExposeGeneric
+//
+procedure TRTTIExposeTests.ExposeGeneric;
+begin
+   FUnit.ExposeRTTI(TypeInfo(TWrappedObject), [eoExposePublic]);
 end;
 
 // ------------------------------------------------------------------

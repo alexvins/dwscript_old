@@ -20,7 +20,8 @@ unit dwsCodeGen;
 interface
 
 uses Classes, SysUtils, dwsUtils, dwsSymbols, dwsExprs, dwsCoreExprs, dwsJSON,
-   dwsStrings, dwsXPlatform;
+   dwsXPlatform,
+   dwsStrings, dwsUnitSymbols;
 
    // experimental codegen support classes for DWScipt
 
@@ -636,13 +637,13 @@ end;
 //
 procedure TdwsCodeGen.CompileProgram(const prog : IdwsProgram);
 var
-   p : TdwsProgram;
+   p : TdwsMainProgram;
 begin
    p:=prog.ProgramObject;
 
    BeginProgramSession(prog);
    try
-      BeforeCompileProgram(prog.Table, p.SystemTable, p.UnitMains);
+      BeforeCompileProgram(prog.Table, p.SystemTable.SymbolTable, p.UnitMains);
 
       CompileProgramInSession(prog);
    finally
@@ -738,6 +739,8 @@ procedure TdwsCodeGen.MapInternalSymbolNames(progTable, systemTable : TSymbolTab
       i : Integer;
       sym : TSymbol;
    begin
+      if table is TLinkedSymbolTable then
+         table:=TLinkedSymbolTable(table).ParentSymbolTable;
       for i:=0 to table.Count-1 do begin
          sym:=table.Symbols[i];
          if (sym is TClassSymbol) or (sym is TRecordSymbol) then begin

@@ -120,6 +120,18 @@ end;
 //
 procedure TScriptTests.SetUp;
 begin
+   SetDecimalSeparator('.');
+
+   FTests:=TStringList.Create;
+   FFailures:=TStringList.Create;
+
+   CollectFiles(ExtractFilePath(ParamStr(0))+'SimpleScripts'+PathDelim, '*.pas', FTests);
+   CollectFiles(ExtractFilePath(ParamStr(0))+'InterfacesPass'+PathDelim, '*.pas', FTests);
+
+   CollectFiles(ExtractFilePath(ParamStr(0))+'FailureScripts'+PathDelim, 'class_missing*.pas', FFailures);
+   CollectFiles(ExtractFilePath(ParamStr(0))+'InterfacesFail'+PathDelim, '*.pas', FFailures);
+
+   FCompiler:=TDelphiWebScript.Create(nil);
    inherited;
    FCompiler.OnInclude:=DoInclude;
 end;

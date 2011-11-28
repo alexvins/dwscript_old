@@ -23,7 +23,9 @@ unit dwsVariantFunctions;
 
 interface
 
-uses Classes, Variants, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsUtils, dwsXPlatform;
+uses Classes, Variants, SysUtils, dwsFunctions, dwsExprs, dwsSymbols, dwsUtils,
+   dwsXPlatform,
+   dwsMagicExprs, dwsUnitSymbols;
 
 type
   TVarClearFunc = class(TInternalFunction)
@@ -124,7 +126,7 @@ end;
 { InitVariants }
 
 procedure InitVariants(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
-                       unitTable : TSymbolTable; operators : TOperators);
+                       unitTable : TSymbolTable);
 type
    TVarTypeRec = packed record n : UnicodeString; v : Word; end;
 const
@@ -154,7 +156,7 @@ end;
 
 initialization
 
-   RegisterInternalPreInitProc(InitVariants);
+   RegisterInternalSymbolsProc(InitVariants);
 
    RegisterInternalFunction(TVarClearFunc, 'VarClear', ['@v', cVariant], '');
    RegisterInternalBoolFunction(TVarIsNullFunc, 'VarIsNull', ['v', cVariant]);

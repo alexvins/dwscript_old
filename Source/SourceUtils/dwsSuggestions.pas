@@ -19,7 +19,8 @@ unit dwsSuggestions;
 
 interface
 
-uses Classes, SysUtils, dwsExprs, dwsSymbols, dwsErrors, dwsUtils, dwsTokenizer;
+uses Classes, SysUtils, dwsExprs, dwsSymbols, dwsErrors, dwsUtils, dwsTokenizer,
+   dwsUnitSymbols;
 
 type
 
@@ -428,7 +429,7 @@ begin
          table:=unitMains[i].Table;
          list.AddSymbolTable(table);
          if table is TLinkedSymbolTable then
-            list.AddSymbolTable(TLinkedSymbolTable(table).Parent);
+            list.AddSymbolTable(TLinkedSymbolTable(table).ParentSymbolTable);
       end;
       AddToList(list);
    finally
@@ -601,7 +602,7 @@ var
    sym : TSymbol;
 begin
    if table is TLinkedSymbolTable then
-      table:=TLinkedSymbolTable(table).Parent;
+      table:=TLinkedSymbolTable(table).ParentSymbolTable;
    for sym in table do begin
       if sym is TUnitSymbol then continue;
       Add(sym);

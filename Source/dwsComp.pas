@@ -26,7 +26,7 @@ interface
 uses  Windows,
   Variants, Classes, SysUtils, TypInfo, dwsCompiler, dwsExprs, dwsSymbols,
   dwsStack, dwsFunctions, dwsStrings, dwsLanguageExtension,
-  dwsTokenizer, dwsUtils, dwsOperators,
+  dwsTokenizer, dwsUtils, dwsOperators, dwsUnitSymbols,
   // Built-In functions
 {$IFNDEF DWS_NO_BUILTIN_FUNCTIONS}
   dwsMathFunctions, dwsStringFunctions, dwsTimeFunctions, dwsVariantFunctions,
@@ -114,6 +114,7 @@ type
          function Compile(const Text: UnicodeString): IdwsProgram; virtual;
          procedure RecompileInContext(const prog : IdwsProgram; const text : UnicodeString); virtual;
          function RemoveUnit(const Un: IdwsUnit): Boolean;
+         property Extensions : TdwsLanguageExtensionAggregator read FExtensions;
 
       published
          property Config: TdwsConfiguration read FConfig write SetConfig stored True;
@@ -155,7 +156,8 @@ type
   TdwsAbstractStaticUnit = class(TdwsAbstractUnit)
   private
     FStaticSymbols: Boolean;
-    FStaticTable: TStaticSymbolTable;
+         FStaticTable : IStaticSymbolTable;
+
   protected
       function GetUnitTable(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
                             operators : TOperators) : TUnitSymbolTable; override;
@@ -164,8 +166,8 @@ type
     procedure InitUnitTable(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
                             operators : TOperators; UnitTable: TUnitSymbolTable); virtual;
     procedure AddUnitSymbols(Table: TSymbolTable; operators : TOperators); virtual; abstract;
-    property StaticSymbols: Boolean read FStaticSymbols write SetStaticSymbols;
-    property StaticTable: TStaticSymbolTable read FStaticTable;
+         property StaticSymbols : Boolean read FStaticSymbols write SetStaticSymbols;
+         property StaticTable : IStaticSymbolTable read FStaticTable;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -1212,11 +1214,15 @@ begin
    if FExtensions.Count>0 then begin
       FCompiler.OnCreateBaseVariantSymbol:=FExtensions.CreateBaseVariantSymbol;
       FCompiler.OnReadInstr:=FExtensions.ReadInstr;
+      FCompiler.OnReadInstrSwitch:=FExtensions.ReadInstrSwitch;
+      FCompiler.OnFindUnknownName:=FExtensions.FindUnknownName;
       FCompiler.OnSectionChanged:=FExtensions.SectionChanged;
       FCompiler.OnReadScript:=FExtensions.ReadScript;
    end else begin
       FCompiler.OnCreateBaseVariantSymbol:=nil;
       FCompiler.OnReadInstr:=nil;
+      FCompiler.OnReadInstrSwitch:=nil;
+      FCompiler.OnFindUnknownName:=nil;
       FCompiler.OnSectionChanged:=nil;
       FCompiler.OnReadScript:=nil;
    end;
@@ -1491,16 +1497,18 @@ end;
 procedure TdwsUnit.GetClassTypes(List: TStrings);
 var
   x: Integer;
+   sysTable : TSystemSymbolTable;
 begin
   if not Assigned(List) then
     Exit;
 
-  if Assigned(FScript) then
-    for x := 0 to FScript.Config.SystemTable.Count - 1 do
-    begin
-      if FScript.Config.SystemTable[x] is TClassSymbol then
-        List.Add(Script.Config.SystemTable[x].Name);
+   if Assigned(FScript) then begin
+      sysTable:=FScript.Config.SystemTable.SymbolTable;
+      for x:=0 to sysTable.Count - 1 do begin
+         if sysTable[x] is TClassSymbol then
+            List.Add(sysTable[x].Name);
     end;
+   end;
 
   for x := 0 to FClasses.Count - 1 do
     List.Add(FClasses.Items[x].Name);
@@ -1510,17 +1518,20 @@ procedure TdwsUnit.GetDataTypes(List: TStrings);
 var
   x, y: Integer;
   coll: TdwsCollection;
+   sysTable : TSystemSymbolTable;
 begin
   if not Assigned(List) then
     Exit;
 
-  if Assigned(FScript) then
+  if Assigned(FScript) then begin
     // Add all type symbols from the systemtable
-    for x := 0 to FScript.Config.SystemTable.Count - 1 do
+    sysTable:=FScript.Config.SystemTable.SymbolTable;
+    for x := 0 to sysTable.Count - 1 do
     begin
-      if FScript.Config.SystemTable[x] is TTypeSymbol then
-        List.Add(FScript.Config.SystemTable[x].Name);
+      if sysTable[x] is TTypeSymbol then
+        List.Add(sysTable[x].Name);
     end;
+  end;
 
   // Only return array-, record- and class symbols, synonyms and enums
   for x := 1 to 5 do
@@ -4135,7 +4146,7 @@ function TdwsAbstractStaticUnit.GetUnitTable(systemTable : TSystemSymbolTable; u
                                              operators : TOperators) : TUnitSymbolTable;
 begin
    if StaticSymbols and InitStaticSymbols(SystemTable, UnitSyms, operators) then
-      Result := CreateUnitTable(FStaticTable, sttLinked) as TLinkedSymbolTable // typecheck
+      Result := CreateUnitTable(FStaticTable.SymbolTable, sttLinked) as TLinkedSymbolTable // typecheck
    else begin
       Result := CreateUnitTable(SystemTable); // sttDefault
       try
@@ -4160,7 +4171,7 @@ begin
     begin
       FStaticTable := CreateUnitTable(staticParent, sttStatic) as TStaticSymbolTable;
       try
-        InitUnitTable(SystemTable, UnitSyms, operators, FStaticTable);
+        InitUnitTable(SystemTable, UnitSyms, operators, FStaticTable.SymbolTable);
       except
         ReleaseStaticSymbols;
         raise;
@@ -4187,17 +4198,12 @@ begin
    AddUnitSymbols(unitTable, operators);
 end;
 
+// ReleaseStaticSymbols
+//
 procedure TdwsAbstractStaticUnit.ReleaseStaticSymbols;
-var
-  s: TStaticSymbolTable;
 begin
-  if Assigned(FStaticTable) then
-  begin
-    s := FStaticTable;
     FStaticTable := nil;
-    s._Release;
   end;
-end;
 
 procedure TdwsAbstractStaticUnit.SetStaticSymbols(const Value: Boolean);
 begin

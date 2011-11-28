@@ -222,8 +222,11 @@ function AnsiCompareText(const S1, S2 : UnicodeString) : Integer;
 function AnsiCompareStr(const S1, S2 : UnicodeString) : Integer;
 function UnicodeComparePChars(p1 : PWideChar; n1 : Integer; p2 : PWideChar; n2 : Integer) : Integer;
 
+function InterlockedIncrement(var val : Integer) : Integer;
+function InterlockedDecrement(var val : Integer) : Integer;
 function dwsSameText(const s1,s2: UnicodeString): boolean;
 function dwsCompareText(const S1, S2 : UnicodeString) : Integer;
+
 function dwsCompareStr(const S1, S2 : UnicodeString) : Integer;
 
 
@@ -320,6 +323,20 @@ const
    CSTR_EQUAL = 2;
 begin
    Result:=CompareStringW(LOCALE_USER_DEFAULT, NORM_IGNORECASE, p1, n1, p2, n2)-CSTR_EQUAL;
+end;
+
+// InterlockedIncrement
+//
+function InterlockedIncrement(var val : Integer) : Integer;
+begin
+   Result:=Windows.InterlockedIncrement(val);
+end;
+
+// InterlockedDecrement
+//
+function InterlockedDecrement(var val : Integer) : Integer;
+begin
+   Result:=Windows.InterlockedDecrement(val);
 end;
 
 function dwsSameText(const s1, s2: UnicodeString): boolean;

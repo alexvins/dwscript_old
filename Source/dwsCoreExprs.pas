@@ -24,7 +24,8 @@ unit dwsCoreExprs;
 interface
 
 uses Windows, Classes, Variants, SysUtils, dwsSymbols, dwsErrors, dwsStrings,
-   dwsStack, dwsExprs, dwsUtils, dwsTokenizer, dwsRelExprs, dwsXPlatform;
+   dwsXPlatform,
+   dwsStack, dwsExprs, dwsUtils, dwsTokenizer, dwsRelExprs, dwsUnitSymbols;
 
 type
 
@@ -47,8 +48,8 @@ type
          function GetData(exec : TdwsExecution) : TData; override;
 
       public
-         constructor Create(prog: TdwsProgram; typ: TTypeSymbol; dataSym : TDataSymbol);
-         class function CreateTyped(prog: TdwsProgram; typ: TTypeSymbol; dataSym : TDataSymbol) : TVarExpr;
+         constructor Create(prog : TdwsProgram; dataSym : TDataSymbol);
+         class function CreateTyped(prog: TdwsProgram; dataSym : TDataSymbol) : TVarExpr;
 
          procedure AssignData(exec : TdwsExecution; const SourceData: TData; SourceAddr: Integer); override;
          procedure AssignDataExpr(exec : TdwsExecution; DataExpr: TDataExpr); override;
@@ -89,7 +90,7 @@ type
          function  EvalAsFloat(exec : TdwsExecution) : Double; override;
    end;
 
-   TStrVarExpr = class (TVarExpr)
+   TStrVarExpr = class sealed (TVarExpr)
       protected
       public
          procedure AssignExpr(exec : TdwsExecution; Expr: TTypedExpr); override;
@@ -121,7 +122,7 @@ type
          FLevel: Integer;
          function GetAddr(exec : TdwsExecution) : Integer; override;
       public
-         constructor Create(Prog: TdwsProgram; Typ: TTypeSymbol; DataSym: TDataSymbol);
+         constructor Create(prog : TdwsProgram; dataSym : TDataSymbol);
          property Level : Integer read FLevel;
    end;
 
@@ -170,7 +171,7 @@ type
      function GetAddr(exec : TdwsExecution) : Integer; override;
      function GetData(exec : TdwsExecution) : TData; override;
    public
-     constructor Create(Prog: TdwsProgram; Typ: TTypeSymbol; DataSym: TDataSymbol);
+     constructor Create(prog : TdwsProgram; dataSym : TDataSymbol);
    end;
 
    TConstParamParentExpr = class(TVarParamParentExpr)
@@ -204,19 +205,6 @@ type
          class function CreateIntegerValue(prog : TdwsProgram; typ : TTypeSymbol; const value : Int64) : TConstExpr; overload; static;
 
          class function CreateBooleanValue(prog : TdwsProgram; const value : Boolean) : TConstExpr; overload; static;
-   end;
-
-   // TUnifiedConstList
-   //
-   {$IFDEF FPC}
-   TUnifiedConstList = class (TExprSortedList)
-   {$ELSE}
-   TUnifiedConstList = class (TSortedList<TExprBase>)
-   {$ENDIF}
-      protected
-         function Compare(const item1, item2 : TExprBase) : Integer; override;
-      public
-         destructor Destroy; override;
    end;
 
    TUnifiedConstExprClass = class of TUnifiedConstExpr;
@@ -278,6 +266,33 @@ type
          constructor Create(Prog: TdwsProgram; Typ: TTypeSymbol; const Value: Variant); override;
          procedure EvalAsString(exec : TdwsExecution; var Result : UnicodeString); override;
          property Value : UnicodeString read FValue write FValue;
+   end;
+
+   TStandardIntegersConstIntExprArray = array [-1..2] of TUnifiedConstExpr;
+
+   // TUnifiedConstList
+   //
+   {$IFDEF FPC}
+   TUnifiedConstList = class (TExprSortedList)
+   {$ELSE}
+   TUnifiedConstList = class (TSortedList<TExprBase>)
+   {$ENDIF
+      private
+         FEmptyString : TUnifiedConstExpr;
+         FIntegers : TStandardIntegersConstIntExprArray;
+         FZeroFloat : TUnifiedConstExpr;
+
+      protected
+         function Compare(const item1, item2 : TExprBase) : Integer; override;
+
+      public
+         destructor Destroy; override;
+
+         procedure Precharge(prog : TdwsMainProgram; systemTable : TSystemSymbolTable);
+
+         property EmptyString : TUnifiedConstExpr read FEmptyString;
+         property Integers : TStandardIntegersConstIntExprArray read FIntegers;
+         property ZeroFloat : TUnifiedConstExpr read FZeroFloat;
    end;
 
    TArrayConstantExpr = class sealed (TPosDataExpr)
@@ -836,7 +851,7 @@ type
    TAddStrExpr = class(TStringBinOpExpr)
       procedure EvalAsString(exec : TdwsExecution; var Result : UnicodeString); override;
    end;
-   TAddIntExpr = class(TIntegerBinOpExpr)
+   TAddIntExpr = class sealed (TIntegerBinOpExpr)
       function EvalAsInteger(exec : TdwsExecution) : Int64; override;
       function EvalAsFloat(exec : TdwsExecution) : Double; override;
    end;
@@ -848,7 +863,7 @@ type
    TSubVariantExpr = class(TVariantBinOpExpr)
       procedure EvalAsVariant(exec : TdwsExecution; var Result : Variant); override;
    end;
-   TSubIntExpr = class(TIntegerBinOpExpr)
+   TSubIntExpr = class sealed (TIntegerBinOpExpr)
      function EvalAsInteger(exec : TdwsExecution) : Int64; override;
      function EvalAsFloat(exec : TdwsExecution) : Double; override;
    end;
@@ -913,6 +928,9 @@ type
    TBoolAndExpr = class(TBooleanBinOpExpr)
      function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
+   TVariantAndExpr = class(TVariantBinOpExpr)
+     function Eval(exec : TdwsExecution) : Variant; override;
+   end;
 
    // a or b
    TIntOrExpr = class(TIntegerBinOpExpr)
@@ -921,6 +939,9 @@ type
    TBoolOrExpr = class(TBooleanBinOpExpr)
      function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
    end;
+   TVariantOrExpr = class(TVariantBinOpExpr)
+     function Eval(exec : TdwsExecution) : Variant; override;
+   end;
 
    // a xor b
    TIntXorExpr = class(TIntegerBinOpExpr)
@@ -928,6 +949,9 @@ type
    end;
    TBoolXorExpr = class(TBooleanBinOpExpr)
      function EvalAsBoolean(exec : TdwsExecution) : Boolean; override;
+   end;
+   TVariantXorExpr = class(TVariantBinOpExpr)
+     function Eval(exec : TdwsExecution) : Variant; override;
    end;
 
    // a implies b
@@ -976,6 +1000,12 @@ type
    // Variant(simple)
    TConvVariantExpr = class (TUnaryOpVariantExpr)
       procedure EvalAsVariant(exec : TdwsExecution; var Result : Variant); override;
+   end;
+
+   // Static Array to Dynamic Array
+   TConvStaticArrayToDynamicExpr = class (TUnaryOpExpr)
+      constructor Create(prog : TdwsProgram; expr : TArrayConstantExpr; toTyp : TDynamicArraySymbol); reintroduce;
+      function Eval(exec : TdwsExecution) : Variant; override;
    end;
 
    // Assert(condition, message);
@@ -1678,27 +1708,30 @@ uses dwsStringFunctions;
 
 // Create
 //
-constructor TVarExpr.Create(prog : TdwsProgram; typ : TTypeSymbol; dataSym : TDataSymbol);
+constructor TVarExpr.Create(prog : TdwsProgram; dataSym : TDataSymbol);
 begin
-   inherited Create(Prog, Typ);
+   inherited Create(prog, dataSym.Typ);
    FStackAddr:=DataSym.StackAddr;
 end;
 
 // CreateTyped
 //
-class function TVarExpr.CreateTyped(prog : TdwsProgram; typ : TTypeSymbol; dataSym : TDataSymbol) : TVarExpr;
+class function TVarExpr.CreateTyped(prog : TdwsProgram; dataSym : TDataSymbol) : TVarExpr;
+var
+   typ : TTypeSymbol;
 begin
+   typ:=dataSym.Typ;
    if typ.IsOfType(prog.TypInteger) then
-      Result:=TIntVarExpr.Create(prog, typ, dataSym)
+      Result:=TIntVarExpr.Create(prog, dataSym)
    else if typ.IsOfType(prog.TypFloat) then
-      Result:=TFloatVarExpr.Create(prog, typ, dataSym)
+      Result:=TFloatVarExpr.Create(prog, dataSym)
    else if typ.IsOfType(prog.TypString) then
-      Result:=TStrVarExpr.Create(prog, typ, dataSym)
+      Result:=TStrVarExpr.Create(prog, dataSym)
    else if typ.IsOfType(prog.TypBoolean) then
-      Result:=TBoolVarExpr.Create(prog, typ, dataSym)
+      Result:=TBoolVarExpr.Create(prog, dataSym)
    else if (typ is TClassSymbol) or (typ is TDynamicArraySymbol) then
-      Result:=TObjectVarExpr.Create(prog, typ, dataSym)
-   else Result:=TVarExpr.Create(prog, typ, dataSym);
+      Result:=TObjectVarExpr.Create(prog, dataSym)
+   else Result:=TVarExpr.Create(prog, dataSym);
 end;
 
 // Eval
@@ -2005,7 +2038,7 @@ end;
 
 // Create
 //
-constructor TVarParentExpr.Create(Prog: TdwsProgram; Typ: TTypeSymbol; DataSym: TDataSymbol);
+constructor TVarParentExpr.Create(prog : TdwsProgram; dataSym : TDataSymbol);
 begin
    inherited;
    FLevel:=DataSym.Level;
@@ -2124,7 +2157,7 @@ end;
 
 // Create
 //
-constructor TVarParamParentExpr.Create(Prog: TdwsProgram; Typ: TTypeSymbol; DataSym: TDataSymbol);
+constructor TVarParamParentExpr.Create(prog : TdwsProgram; dataSym : TDataSymbol);
 begin
    inherited;
    FLevel := DataSym.Level;
@@ -2158,6 +2191,17 @@ end;
 // ------------------
 // ------------------ TUnifiedConstList<TExprBase> ------------------
 // ------------------
+
+// Destroy
+//
+destructor TUnifiedConstList.Destroy;
+var
+   i : Integer;
+begin
+   for i:=0 to Count-1 do
+      TUnifiedConstExpr(Items[i]).DestroyTrue;
+   inherited;
+end;
 
 // Compare
 //
@@ -2200,15 +2244,20 @@ begin
    else Result:=-1;
 end;
 
-// Destroy
+// Precharge
 //
-destructor TUnifiedConstList.Destroy;
+procedure TUnifiedConstList.Precharge(prog : TdwsMainProgram; systemTable : TSystemSymbolTable);
+const
+   cEmptyString : UnicodeString = '';
+   cZeroFloat : Double = 0;
 var
    i : Integer;
 begin
-   for i:=0 to Count-1 do
-      TUnifiedConstExpr(Items[i]).DestroyTrue;
-   inherited;
+   inherited Create;
+   FEmptyString:=TConstStringExpr.CreateUnified(prog, systemTable.TypString, cEmptyString);
+   for i:=Low(FIntegers) to High(FIntegers) do
+      FIntegers[i]:=TConstIntExpr.CreateUnified(prog, systemTable.TypInteger, Int64(i));
+   FZeroFloat:=TConstFloatExpr.CreateUnified(prog, systemTable.TypFloat, cZeroFloat);
 end;
 
 // ------------------
@@ -3005,7 +3054,7 @@ end;
 //
 procedure TArrayConstantExpr.Prepare(Prog: TdwsProgram; ElementTyp : TTypeSymbol);
 var
-   x : Integer;
+   x, n : Integer;
    elemExpr : TTypedExpr;
 begin
    if (ElementTyp<>nil) and (FTyp.Typ<>ElementTyp) then begin
@@ -3020,7 +3069,10 @@ begin
          TArrayConstantExpr(elemExpr).Prepare(Prog, FTyp.Typ);
    end;
 
-   FArrayAddr := Prog.GetGlobalAddr(FElementExprs.Count * FTyp.Typ.Size + 1);
+   if FTyp.Typ<>nil then
+      n:=FElementExprs.Count * FTyp.Typ.Size
+   else n:=0;
+   FArrayAddr := Prog.GetGlobalAddr(n + 1);
 end;
 
 // GetData
@@ -3170,6 +3222,9 @@ var
    x : Integer;
    expr : TTypedExpr;
 begin
+   if Typ.Typ=nil then
+      prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_InvalidConstType, [SYS_VOID])
+   else begin
    for x:=0 to FElementExprs.Count-1 do begin
       expr:=TTypedExpr(FElementExprs.List[x]);
       if (Typ.Typ=Prog.TypFloat) and (expr.Typ=Prog.TypInteger) then begin
@@ -3180,6 +3235,7 @@ begin
          prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_AssignIncompatibleTypes,
                                               [expr.Typ.Caption, Typ.Typ.Caption]);
    end;
+end;
 end;
 
 // ------------------
@@ -3737,6 +3793,8 @@ class function TConvExpr.WrapWithConvCast(prog : TdwsProgram; const scriptPos : 
       prog.CompileMsgs.AddCompilerErrorFmt(scriptPos, CPE_AssignIncompatibleTypes, [cright, cleft]);
    end;
 
+var
+   arrayConst : TArrayConstantExpr;
 begin
    Result:=expr;
    if (toTyp=nil) or (expr.Typ=nil) then begin
@@ -3746,7 +3804,15 @@ begin
 
    if expr.Typ=toTyp then Exit;
 
-   if expr.Typ.UnAliasedType is TBaseVariantSymbol then begin
+   if expr.ClassType=TArrayConstantExpr then begin
+      arrayConst:=TArrayConstantExpr(expr);
+      if toTyp is TDynamicArraySymbol then begin
+         if    (toTyp.Typ=expr.Typ.Typ)
+            or ((arrayConst.ElementCount=0) and (arrayConst.Typ.Typ.IsOfType(prog.TypVariant)))  then
+            Result:=TConvStaticArrayToDynamicExpr.Create(prog, arrayConst,
+                                                         TDynamicArraySymbol(toTyp))
+      end;
+   end else if expr.Typ.UnAliasedType is TBaseVariantSymbol then begin
       if toTyp.IsOfType(prog.TypInteger) then
          Result:=TConvIntegerExpr.Create(prog, expr)
       else if toTyp.IsOfType(prog.TypFloat) then
@@ -3822,6 +3888,34 @@ end;
 procedure TConvVariantExpr.EvalAsVariant(exec : TdwsExecution; var Result : Variant);
 begin
    FExpr.EvalAsVariant(exec, Result);
+end;
+
+// ------------------
+// ------------------ TConvStaticArrayToDynamicExpr ------------------
+// ------------------
+
+// Create
+//
+constructor TConvStaticArrayToDynamicExpr.Create(prog : TdwsProgram; expr : TArrayConstantExpr;
+                                                 toTyp : TDynamicArraySymbol);
+begin
+   inherited Create(prog, expr);
+   Typ:=toTyp;
+end;
+
+// Eval
+//
+function TConvStaticArrayToDynamicExpr.Eval(exec : TdwsExecution) : Variant;
+var
+   arr : TArrayConstantExpr;
+   dynArray : TScriptDynamicArray;
+begin
+   arr:=TArrayConstantExpr(Expr);
+
+   dynArray:=TScriptDynamicArray.Create(TDynamicArraySymbol(Typ));
+   dynArray.Data:=arr.EvalAsTData(exec);
+
+   Result:=IUnknown(IScriptObj(dynArray));
 end;
 
 // ------------------
@@ -4358,6 +4452,13 @@ begin
    Result := Left.EvalAsBoolean(exec) and Right.EvalAsBoolean(exec);
 end;
 
+{ TVariantAndExpr }
+
+function TVariantAndExpr.Eval(exec : TdwsExecution) : Variant;
+begin
+   Result:=Left.Eval(exec) and Right.Eval(exec);
+end;
+
 { TIntOrExpr }
 
 function TIntOrExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
@@ -4372,6 +4473,13 @@ begin
    Result := Left.EvalAsBoolean(exec) or Right.EvalAsBoolean(exec);
 end;
 
+{ TVariantOrExpr }
+
+function TVariantOrExpr.Eval(exec : TdwsExecution) : Variant;
+begin
+   Result := Left.Eval(exec) or Right.Eval(exec);
+end;
+
 { TIntXorExpr }
 
 function TIntXorExpr.EvalAsInteger(exec : TdwsExecution) : Int64;
@@ -4384,6 +4492,13 @@ end;
 function TBoolXorExpr.EvalAsBoolean(exec : TdwsExecution) : Boolean;
 begin
    Result := FLeft.EvalAsBoolean(exec) xor FRight.EvalAsBoolean(exec);
+end;
+
+{ TVariantXorExpr }
+
+function TVariantXorExpr.Eval(exec : TdwsExecution) : Variant;
+begin
+   Result := FLeft.Eval(exec) xor FRight.Eval(exec);
 end;
 
 // ------------------
@@ -4473,7 +4588,7 @@ begin
    if FLeft.InheritsFrom(TVarExpr) then begin
       leftVarExpr:=TVarExpr(FLeft);
       if leftVarExpr.ClassType=TIntVarExpr then begin
-         if FRight.InheritsFrom(TAddIntExpr) then begin
+         if FRight.ClassType=TAddIntExpr then begin
             addIntExpr:=TAddIntExpr(FRight);
             if (addIntExpr.Left is TVarExpr) and (TVarExpr(addIntExpr.Left).SameVarAs(leftVarExpr)) then begin
                Result:=TIncIntVarExpr.Create(Prog, FScriptPos, FLeft, addIntExpr.Right);
@@ -4481,7 +4596,7 @@ begin
                addIntExpr.Right:=nil;
                Free;
             end;
-         end else if FRight.InheritsFrom(TSubIntExpr) then begin
+         end else if FRight.ClassType=TSubIntExpr then begin
             subIntExpr:=TSubIntExpr(FRight);
             if (subIntExpr.Left is TVarExpr) and (TVarExpr(subIntExpr.Left).SameVarAs(leftVarExpr)) then begin
                Result:=TDecIntVarExpr.Create(Prog, FScriptPos, FLeft, subIntExpr.Right);
