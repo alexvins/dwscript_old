@@ -116,6 +116,9 @@ type
 
    TInternalUnit = class(TObject, IdwsUnit)
       private
+         {$IFDEF FPC}
+         __CS: TRTLCriticalSection;
+         {$ENDIF}
          FDependencies : TStrings;
          FSymbolsRegistrationProcs : array of TSymbolsRegistrationProc;
          FOperatorsRegistrationProcs : array of TOperatorsRegistrationProc;
@@ -527,14 +530,24 @@ end;
 //
 procedure TInternalUnit.Lock;
 begin
+   {$IFDEF FPC}
+   //TODO:TInternalUnit.Lock
+   EnterCriticalsection(__CS);
+   {$ELSE}
    TMonitor.Enter(Self);
+   {$ENDIF}
 end;
 
 // UnLock
 //
 procedure TInternalUnit.UnLock;
 begin
+   {$IFDEF FPC}
+   //TODO:TInternalUnit.UnLock;
+   LeaveCriticalsection(__CS);
+   {$ELSE}
    TMonitor.Exit(Self);
+   {$ENDIF}
 end;
 
 // AddSymbolsRegistrationProc

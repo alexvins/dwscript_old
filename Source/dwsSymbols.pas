@@ -147,6 +147,8 @@ type
          function IndexOfSubExpr(expr : TExprBase) : Integer;
    end;
 
+   TSimpleStackExpr = TSimpleStack<TExprBase>;
+
    TExprBaseClass = class of TExprBase;
 
    // TExprBaseList
@@ -1297,7 +1299,7 @@ type
          FSelfScriptClassSymbol : TClassSymbol;
          FLastScriptError : TExprBase;
          FLastScriptCallStack : TdwsExprLocationArray;
-         FExceptionObjectStack : TSimpleStack<Variant>;
+         FExceptionObjectStack : TSimpleStackVariant;
 
          FDebugger : IDebugger;
          FIsDebugging : Boolean;
@@ -1344,7 +1346,7 @@ type
 
          property LastScriptError : TExprBase read FLastScriptError;
          property LastScriptCallStack : TdwsExprLocationArray read FLastScriptCallStack;
-         property ExceptionObjectStack : TSimpleStack<Variant> read FExceptionObjectStack;
+         property ExceptionObjectStack : TSimpleStackVariant read FExceptionObjectStack;
 
          property ProgramState : TProgramState read FProgramState;
 
@@ -4742,7 +4744,7 @@ begin
    inherited Create;
    FStack.Initialize(stackParams);
    FStack.Reset;
-   FExceptionObjectStack:=TSimpleStack<Variant>.Create;
+   FExceptionObjectStack:=TSimpleStackVariant.Create;
 end;
 
 // Destroy

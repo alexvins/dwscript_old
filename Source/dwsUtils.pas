@@ -218,6 +218,8 @@ type
          property Count : Integer read FCount;
    end;
 
+   TSimpleStackVariant = TSimpleStack<Variant>;
+
    TSimpleHashBucket<T> = record
       HashCode : Integer;
       Value : T;

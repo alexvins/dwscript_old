@@ -276,7 +276,7 @@ type
    TUnifiedConstList = class (TExprSortedList)
    {$ELSE}
    TUnifiedConstList = class (TSortedList<TExprBase>)
-   {$ENDIF
+   {$ENDIF}
       private
          FEmptyString : TUnifiedConstExpr;
          FIntegers : TStandardIntegersConstIntExprArray;

@@ -24,6 +24,7 @@ unit dwsInfo;
 interface
 
 uses Classes, SysUtils, Variants, dwsSymbols, dwsStack, dwsExprs, dwsFunctions,
+   dwsXPlatform,
    dwsStrings, dwsErrors, dwsUtils;
 
 type
@@ -534,7 +535,7 @@ begin
    if (FDataMaster=nil) and (FTypeSym<>nil) and (FTypeSym.Size=1) then begin
       varData:=@FData[FOffset];
       if varData.VType=varUString then
-         Result:=UnicodeString(varData.VUString)
+         Result:= VarDataToUniStr(varData)
       else Result:=PVariant(varData)^;
    end else Result:=inherited GetValueAsString;
 end;

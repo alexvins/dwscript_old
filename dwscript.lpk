@@ -50,7 +50,7 @@
     <Description Value="DWScript is an object-oriented scripting engine based on the Delphi language, with extensions borrowed from other Pascal languages (FreePascal, Prism, etc.). It introduces a few Pascal language extensions of its own as well."/>
     <License Value="MPL 1.1"/>
     <Version Major="2" Minor="3" Release="1"/>
-    <Files Count="32">
+    <Files Count="33">
       <Item1>
         <Filename Value="Source\dws.inc"/>
         <Type Value="Include"/>
@@ -179,6 +179,10 @@
         <Filename Value="Source\dwsMath3DFunctions.pas"/>
         <UnitName Value="dwsMath3DFunctions"/>
       </Item32>
+      <Item33>
+        <Filename Value="Source\dwsInfo.pas"/>
+        <UnitName Value="dwsInfo"/>
+      </Item33>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

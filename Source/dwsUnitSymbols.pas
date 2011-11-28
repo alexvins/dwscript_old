@@ -153,9 +153,9 @@ type
          function  RemoveParent(parent : TSymbolTable) : Integer; override;
          procedure ClearParents; override;
 
-         function QueryInterface(const IID : TGUID; out Obj) : HResult; stdcall;
-         function _AddRef : Integer; stdcall;
-         function _Release : Integer; stdcall;
+         function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
    end;
 
    // TLinkedSymbolTable
@@ -248,14 +248,14 @@ end;
 
 // _AddRef
 //
-function TStaticSymbolTable._AddRef : Integer;
+function TStaticSymbolTable._AddRef : longint;
 begin
    Result:=InterlockedIncrement(FRefCount);
 end;
 
 // _Release
 //
-function TStaticSymbolTable._Release : Integer;
+function TStaticSymbolTable._Release : longint;
 begin
    Result:=InterlockedDecrement(FRefCount);
    if Result=0 then
@@ -297,7 +297,7 @@ end;
 
 // QueryInterface
 //
-function TStaticSymbolTable.QueryInterface(const IID : TGUID; out Obj) : HResult;
+function TStaticSymbolTable.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;
 begin
    if GetInterface(IID, Obj) then
       Result:=0

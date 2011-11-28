@@ -14,7 +14,7 @@ uses
    dwsPascalTokenizer, dwsRelExprs, dwsStack, dwsStringFunctions, 
    dwsStringResult, dwsStrings, dwsSymbols, dwsTimeFunctions, dwsTokenizer, 
    dwsUtils, dwsVariantFunctions, dwsVCLGUIFunctions, dwsXPlatform, 
-   dwsMath3DFunctions;
+   dwsMath3DFunctions, dwsInfo;
 
 implementation
 
