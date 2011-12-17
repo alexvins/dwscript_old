@@ -270,8 +270,8 @@ type
 
    TStandardIntegersConstIntExprArray = array [-1..2] of TUnifiedConstExpr;
 
-   // TUnifiedConstList
-   //
+    //TUnifiedConstList
+
    {$IFDEF FPC}
    TUnifiedConstList = class (TExprSortedList)
    {$ELSE}

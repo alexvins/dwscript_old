@@ -42,6 +42,9 @@
    {$ENDIF}
 
 {$ELSE}
+  {$IF FPC_FULLVERSION <20701}
+  {$ERROR Non supported compiler version. Need 2.7+}
+  {$ENDIF}
   {$IFDEF DWS_OBJFPC}
     {$MODE OBJFPC}
     {$modeswitch advancedrecords,nestedprocvars}
@@ -51,7 +54,6 @@
   {$ENDIF}
 
   {$DEFINE PUREPASCAL} //temp workaround
-  {$INLINE OFF} //temp workaround
 {$ENDIF}
 
 {.$DEFINE PUREPASCAL}

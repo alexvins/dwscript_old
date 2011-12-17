@@ -584,11 +584,11 @@ type
          property MaxRecursionDepth : Integer read FStackParameters.MaxRecursionDepth write FStackParameters.MaxRecursionDepth;
          property MaxDataSize : Integer read FStackParameters.MaxByteSize write FStackParameters.MaxByteSize;
          property StackChunkSize : Integer read FStackParameters.ChunkSize write FStackParameters.ChunkSize;
-         {$IFDEF FPC}
-         property UnifiedConstList : TExprSortedList read FUnifiedConstList;
-         {$ELSE}
+         //{$IFDEF FPC}
+         //property UnifiedConstList : TExprSortedList read FUnifiedConstList;
+         //{$ELSE}
          property UnifiedConstList : TSortedList<TExprBase> read FUnifiedConstList;
-         {$ENDIF}
+         //{$ENDIF}
          property RuntimeFileSystem : TdwsCustomFileSystem read FRuntimeFileSystem write FRuntimeFileSystem;
 
          property SystemTable : ISystemSymbolTable read FSystemTable;

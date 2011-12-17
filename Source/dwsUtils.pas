@@ -172,7 +172,7 @@ type
       protected
          function GetItem(index : Integer) : T;
          function Find(const item : T; out index : Integer) : Boolean;
-         function Compare(const item1, item2 : T) : Integer; virtual; {$IFNDEF FPC} abstract;  {$ENDIF}
+         function Compare(const item1, item2 : T) : Integer; virtual; abstract;
          procedure InsertItem(index : Integer; const anItem : T);
       public
          function Add(const anItem : T) : Integer;
@@ -224,11 +224,9 @@ type
       HashCode : Integer;
       Value : T;
    end;
-   {$IFNDEF FPC}
    TSimpleHashBucketArray<T> = array of TSimpleHashBucket<T>;
-   {$ENDIF}
    {$IFDEF FPC}
-   //TSimpleHashProc<T> = procedure (const item : T) of object;// is nested;
+   TSimpleHashProc<T> = procedure (const item : T) of object;// is nested;
    {$ELSE}
    TSimpleHashProc<T> = reference to procedure (const item : T);
    {$ENDIF}
@@ -239,21 +237,8 @@ type
    { TSimpleHash }
 
    TSimpleHash<T> = class
-      {$IFDEF FPC}
       private
-        type
-          THashBucket = TSimpleHashBucket<T>;
-          THashBucketArray = array of THashBucket;
-      public
-         type
-           THashEnumProc = procedure (const item : T) of object;
-      {$ENDIF}
-      private
-         {$IFDEF FPC}
-         FBuckets : array of THashBucket;
-         {$ELSE}
          FBuckets : TSimpleHashBucketArray<T>;
-         {$ENDIF}
          FCount : Integer;
          FGrowth : Integer;
          FCapacity : Integer;
@@ -262,20 +247,16 @@ type
          procedure Grow;
          function HashBucket(const hashCode : Integer) : Integer; inline;
          function LinearFind(const item : T; var index : Integer) : Boolean;
-         function SameItem(const item1, item2 : T) : Boolean; virtual; {$IFNDEF FPC} abstract; {$ENDIF}
+         function SameItem(const item1, item2 : T) : Boolean; virtual; abstract;
          // hashCode must be non-null
-         function GetItemHashCode(const item1 : T) : Integer; virtual; {$IFNDEF FPC} abstract; {$ENDIF}
+         function GetItemHashCode(const item1 : T) : Integer; virtual; abstract;
 
       public
          function Add(const anItem : T) : Boolean; // true if added
          function Extract(const anItem : T) : Boolean; // true if extracted
          function Contains(const anItem : T) : Boolean;
          function Match(var anItem : T) : Boolean;
-         {$IFDEF FPC}
-         procedure Enumerate(const callBack : THashEnumProc);
-         {$ELSE}
          procedure Enumerate(const callBack : TSimpleHashProc<T>);
-         {$ENDIF}
          procedure Clear;
 
          property Count : Integer read FCount;
@@ -1077,13 +1058,6 @@ begin
    FCount:=0;
 end;
 
-{$IFDEF FPC}
-function TSortedList<T>.Compare(const item1, item2: T): Integer;
-begin
-  Result := 0;
-end;
-{$ENDIF}
-
 // Clean
 //
 procedure TSortedList<T>.Clean;
@@ -1453,11 +1427,11 @@ end;
 procedure TSimpleHash<T>.Grow;
 var
    i, j, n : Integer;
-   {$IFDEF FPC}
-   oldBuckets : THashBucketArray;
-   {$ELSE}
+   //{$IFDEF FPC}
+   //oldBuckets : THashBucketArray;
+   //{$ELSE}
    oldBuckets : TSimpleHashBucketArray<T>;
-   {$ENDIF}
+   //{$ENDIF}
 begin
    if FCapacity=0 then
       FCapacity:=16
@@ -1531,16 +1505,6 @@ begin
    end;
 end;
 
-{$IFDEF FPC}
-{$push}
-{$warnings off}
-function TSimpleHash<T>.GetItemHashCode(const item1: T): Integer;
-begin
-  Assert(False);
-  Result := 0;
-end;
-{$pop}
-{$ENDIF}
 
 // Contains
 //
@@ -1566,31 +1530,21 @@ begin
       anItem:=FBuckets[i].Value;
 end;
 
-{$IFDEF FPC}
-{$push}
-{$warnings off}
-function TSimpleHash<T>.SameItem(const item1, item2: T): Boolean;
-begin
-  Assert(False);
-  Result := False;
-end;
-{$pop}
-{$ENDIF}
 
 // Enumerate
 //
-{$IFDEF FPC}
-procedure TSimpleHash<T>.Enumerate(const callBack: THashEnumProc);
-var
-   i : Integer;
-  _cb:THashEnumProc;//TSimpleHashProc<T>; //TODO: remove ugly workaround
-begin
-   _cb := callBack;
-   for i:=0 to High(FBuckets) do
-      if FBuckets[i].HashCode<>0 then
-         _cb(FBuckets[i].Value);
-end;
-{$ELSE}
+//{$IFDEF FPC}
+//procedure TSimpleHash<T>.Enumerate(const callBack: THashEnumProc);
+//var
+//   i : Integer;
+//  _cb:THashEnumProc;//TSimpleHashProc<T>; //TODO: remove ugly workaround
+//begin
+//   _cb := callBack;
+//   for i:=0 to High(FBuckets) do
+//      if FBuckets[i].HashCode<>0 then
+//         _cb(FBuckets[i].Value);
+//end;
+//{$ELSE}
 procedure TSimpleHash<T>.Enumerate(const callBack : TSimpleHashProc<T>);
 var
    i : Integer;
@@ -1599,7 +1553,7 @@ begin
       if FBuckets[i].HashCode<>0 then
          callBack(FBuckets[i].Value);
 end;
-{$ENDIF}
+//{$ENDIF}
 
 // Clear
 //
