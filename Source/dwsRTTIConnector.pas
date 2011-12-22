@@ -44,7 +44,7 @@ type
          property StaticSymbols;
    end;
 
-   TdwsRTTIVariant = class(TInterfacedObject, IUnknown)
+   TdwsRTTIVariant = class(TInterfacedSelfObject)
       private
          FInstance : Pointer;
          FRTTIType : TRTTIType;
@@ -63,31 +63,90 @@ type
          function Specialize(table : TSymbolTable; const qualifier : UnicodeString) : TConnectorSymbol; override;
    end;
 
+   TRTTIEnvironmentOption = (eoAllowFieldWrite);
+   TRTTIEnvironmentOptions = set of TRTTIEnvironmentOption;
+
+   // can be attached to an execution by way of UserObject
    TRTTIEnvironment = class(TdwsLanguageExtension)
       private
-         FEnvironment : TValue;
+         FDefaultEnvironment : TValue;
          FRttiType : TRttiType;
+         FOptions : TRTTIEnvironmentOptions;
 
       protected
-         procedure SetEnvironment(const val : TValue);
+         procedure SetDefaultEnvironment(const val : TValue);
+         procedure SetRttiType(const val : TRttiType);
 
       public
          function FindUnknownName(compiler : TdwsCompiler; const name : String) : TSymbol; override;
+         procedure GetDefaultEnvironment(var enviro : IdwsEnvironment); override;
 
-         property Environment : TValue read FEnvironment write SetEnvironment;
+         procedure SetForClass(cls : TClass);
+
+         property DefaultEnvironment : TValue read FDefaultEnvironment write SetDefaultEnvironment;
+         property RttiType : TRttiType read FRttiType write SetRttiType;
+
+         property Options : TRTTIEnvironmentOptions read FOptions write FOptions;
    end;
 
-   TRTTIEnvironmentFieldCallable = class(TInterfacedSelfObject, IExecutable, ICallable)
+   TRTTIRuntimeEnvironment = class (TInterfacedSelfObject, IdwsEnvironment)
+      private
+         FValue : TValue;
+
+      public
+         constructor Create(const value : TValue);
+
+         class function Instance(exec : TdwsProgramExecution) : Pointer; static;
+
+         property Value : TValue read FValue write FValue;
+   end;
+
+   TRTTIEnvironmentCallable = class(TInterfacedSelfObject, IExecutable, ICallable)
       private
          FEnvironment : TRTTIEnvironment;
+
+      public
+         constructor Create(environment : TRTTIEnvironment);
+
+         procedure Call(exec : TdwsProgramExecution; func : TFuncSymbol); virtual; abstract;
+         procedure InitSymbol(symbol : TSymbol);
+         procedure InitExpression(expr : TExprBase);
+   end;
+
+   TRTTIEnvironmentField = class(TRTTIEnvironmentCallable)
+      private
          FField : TRttiField;
 
       public
          constructor Create(environment : TRTTIEnvironment; rttiField : TRttiField);
+   end;
 
-         procedure Call(exec : TdwsProgramExecution; func : TFuncSymbol);
-         procedure InitSymbol(symbol : TSymbol);
-         procedure InitExpression(expr : TExprBase);
+   TRTTIEnvironmentFieldRead = class(TRTTIEnvironmentField)
+      public
+         procedure Call(exec : TdwsProgramExecution; func : TFuncSymbol); override;
+   end;
+
+   TRTTIEnvironmentFieldWrite = class(TRTTIEnvironmentField)
+      public
+         procedure Call(exec : TdwsProgramExecution; func : TFuncSymbol); override;
+   end;
+
+   TRTTIEnvironmentProp = class(TRTTIEnvironmentCallable)
+      private
+         FProp : TRttiProperty;
+
+      public
+         constructor Create(environment : TRTTIEnvironment; rttiProp : TRttiProperty);
+   end;
+
+   TRTTIEnvironmentPropRead = class(TRTTIEnvironmentProp)
+      public
+         procedure Call(exec : TdwsProgramExecution; func : TFuncSymbol); override;
+   end;
+
+   TRTTIEnvironmentPropWrite = class(TRTTIEnvironmentProp)
+      public
+         procedure Call(exec : TdwsProgramExecution; func : TFuncSymbol); override;
    end;
 
    EdwsRTTIException = class(Exception) end;
@@ -102,6 +161,7 @@ implementation
 
 var
    vRTTIContext : TRttiContext;
+   vEmptyTValue : TValue;
 
 type
 
@@ -162,8 +222,10 @@ type
 procedure ValueToVariant(const v : TValue; var result : Variant);
 begin
    case v.Kind of
-      tkInteger, tkInt64, tkEnumeration :
-         if v.IsType<Boolean> then
+      tkInteger, tkInt64 :
+         result:=v.AsInt64;
+      tkEnumeration :
+         if v.TypeInfo=TypeInfo(Boolean) then
             result:=v.AsBoolean
          else result:=v.AsInt64;
       tkChar, tkString, tkUString, tkWChar, tkWString, tkLString :
@@ -173,9 +235,31 @@ begin
       tkVariant :
          result:=v.AsVariant;
       tkClass :
-         result:=IUnknown(TdwsRTTIVariant.From(v.AsObject, vRTTIContext.GetType(v.TypeInfo)));
+         result:=TdwsRTTIVariant.From(v.AsObject, vRTTIContext.GetType(v.TypeInfo));
    else
       result:=Null;
+   end;
+end;
+
+// RTTITypeToTypeSymbol
+//
+function RTTITypeToTypeSymbol(rttiType : TRttiType; table : TSymbolTable; default : TRTTIConnectorSymbol) : TTypeSymbol;
+begin
+   case rttiType.TypeKind of
+      tkInteger, tkInt64 :
+         Result:=table.FindTypeSymbol(SYS_INTEGER, cvMagic);
+      tkEnumeration :
+         if rttiType.Handle=TypeInfo(Boolean) then
+            Result:=table.FindTypeSymbol(SYS_BOOLEAN, cvMagic)
+         else Result:=table.FindTypeSymbol(SYS_INTEGER, cvMagic);
+      tkChar, tkString, tkUString, tkWChar, tkWString, tkLString :
+         Result:=table.FindTypeSymbol(SYS_STRING, cvMagic);
+      tkFloat :
+         Result:=table.FindTypeSymbol(SYS_FLOAT, cvMagic);
+      tkRecord, tkClass, tkInterface :
+         Result:=default.Specialize(table, rttiType.QualifiedName);
+   else
+      Result:=default;
    end;
 end;
 
@@ -313,24 +397,62 @@ end;
 //
 function TdwsRTTIConnectorType.HasMember(const memberName : UnicodeString; var typSym : TTypeSymbol;
                                       isWrite : Boolean) : IConnectorMember;
+var
+   connector : TdwsRTTIConnectorMember;
+   connSym : TRTTIConnectorSymbol;
+   rttiProp : TRttiProperty;
+   rttiField : TRttiField;
+   rttiMeth : TRttiMethod;
+   rttiType : TRttiType;
 begin
-   if FRttiType<>nil then
-      if     (FRttiType.GetProperty(memberName)=nil)
-         and (FRttiType.GetField(memberName)=nil) then
-      Exit(nil);
-   typSym:=FTable.FindTypeSymbol(SYS_RTTIVARIANT, cvMagic);
-   Result:=TdwsRTTIConnectorMember.Create(memberName);
+   connSym:=TRTTIConnectorSymbol(FTable.FindSymbol(SYS_RTTIVARIANT, cvMagic, TRTTIConnectorSymbol));
+
+   if FRttiType<>nil then begin
+      rttiProp:=FRttiType.GetProperty(memberName);
+      if rttiProp<>nil then
+         rttiType:=rttiProp.PropertyType
+      else begin
+         rttiField:=FRttiType.GetField(memberName);
+         if rttiField<>nil then
+            rttiType:=rttiField.FieldType
+         else begin
+            rttiMeth:=FRttiType.GetMethod(memberName);
+            if (rttiMeth<>nil) and (Length(rttiMeth.GetParameters)=0) then begin
+               rttiType:=rttiMeth.ReturnType;
+               if rttiType=nil then Exit;
+            end else Exit;
+         end
+end;
+      typSym:=RTTITypeToTypeSymbol(rttiType, FTable, connSym)
+   end else typSym:=connSym;
+
+   connector:=TdwsRTTIConnectorMember.Create(memberName);
+   Result:=connector;
 end;
 
 // HasMethod
 //
 function TdwsRTTIConnectorType.HasMethod(const methodName : UnicodeString; const params : TConnectorParamArray;
                                       var typSym : TTypeSymbol) : IConnectorCall;
+var
+   connSym : TRTTIConnectorSymbol;
+   rttiMethod : TRttiMethod;
+   connector : TdwsRTTIConnectorCall;
 begin
-   if (FRttiType<>nil) and (FRttiType.GetMethod(methodName)=nil) then
-      Exit(nil);
-   typSym:=FTable.FindTypeSymbol(SYS_RTTIVARIANT, cvMagic);
-   Result:=TdwsRTTIConnectorCall.Create(methodName, params, mtMethod);
+   connSym:=TRTTIConnectorSymbol(FTable.FindSymbol(SYS_RTTIVARIANT, cvMagic, TRTTIConnectorSymbol));
+   typSym:=connSym;
+
+   if FRttiType<>nil then begin
+      rttiMethod:=FRttiType.GetMethod(methodName);
+      if rttiMethod<>nil then begin
+         if rttiMethod.ReturnType<>nil then
+            typSym:=RTTITypeToTypeSymbol(rttiMethod.ReturnType, FTable, connSym)
+         else typSym:=nil;
+      end else Exit(nil);
+end;
+
+   connector:=TdwsRTTIConnectorCall.Create(methodName, params, mtMethod);
+   Result:=connector;
 end;
 
 // AcceptsParams
@@ -391,7 +513,9 @@ begin
       else paramData[i]:=TValue.FromVariant(args[i]);
    end;
 
-   resultValue:=meth.Invoke(TObject(instance.FInstance), paramData);
+   if meth.IsClassMethod then
+      resultValue:=meth.Invoke(TObject(instance.FInstance).ClassType, paramData)
+   else resultValue:=meth.Invoke(TObject(instance.FInstance), paramData);
 
    SetLength(Result, 1);
 
@@ -416,6 +540,7 @@ var
    instance : TdwsRTTIVariant;
    field : TRttiField;
    prop : TRttiProperty;
+   meth : TRttiMethod;
 begin
    instance:=IUnknown(base) as TdwsRTTIVariant;
    SetLength(Result, 1);
@@ -431,7 +556,12 @@ begin
                                               [instance.FRTTIType.Name, FMemberName]);
          ValueToVariant(prop.GetValue(instance.FInstance), Result[0])
       end else begin
-         raise EdwsRTTIException.CreateFmt('"%s" does not have member "%s" exposed via RTTI',
+         meth:=instance.FRTTIType.GetMethod(FMemberName);
+         if (meth<>nil) and (meth.ReturnType<>nil) and (Length(meth.GetParameters)=0) then begin
+            if meth.IsClassMethod then
+               ValueToVariant(meth.Invoke(TObject(instance.FInstance).ClassType, []), Result[0])
+            else ValueToVariant(meth.Invoke(instance.FInstance, []), Result[0])
+         end else raise EdwsRTTIException.CreateFmt('"%s" does not have member "%s" exposed via RTTI',
                                            [instance.FRTTIType.Name, FMemberName]);
       end;
    end;
@@ -554,7 +684,9 @@ end;
 function TRTTIEnvironment.FindUnknownName(compiler : TdwsCompiler; const name : String) : TSymbol;
 var
    rttiField : TRttiField;
+   rttiProp : TRttiProperty;
    rttiSymbol : TRTTIConnectorSymbol;
+   externalSymbol : TExternalVarSymbol;
    funcSymbol : TFuncSymbol;
    table : TSymbolTable;
 begin
@@ -564,67 +696,223 @@ begin
    rttiSymbol:=TRTTIConnectorSymbol(compiler.CurrentProg.Table.FindSymbol(SYS_RTTIVARIANT, cvMagic, TRTTIConnectorSymbol));
    if rttiSymbol=nil then Exit;
 
+   table:=compiler.CurrentProg.Root.Table;
+
    rttiField:=FRttiType.GetField(name);
    if rttiField<>nil then begin
-      table:=compiler.CurrentProg.Root.Table;
       funcSymbol:=TFuncSymbol.Create(name, fkFunction, 0);
-      funcSymbol.Typ:=rttiSymbol.Specialize(table, rttiField.FieldType.QualifiedName);
-      funcSymbol.Executable:=TRTTIEnvironmentFieldCallable.Create(Self, rttiField);
+      funcSymbol.Typ:=RTTITypeToTypeSymbol(rttiField.FieldType, table, rttiSymbol);
+      funcSymbol.Executable:=TRTTIEnvironmentFieldRead.Create(Self, rttiField);
+      if eoAllowFieldWrite in Options then begin
+         externalSymbol:=TExternalVarSymbol.Create(name, funcSymbol.Typ);
+         externalSymbol.ReadFunc:=funcSymbol;
+         funcSymbol:=TFuncSymbol.Create(name, fkProcedure, 0);
+         funcSymbol.AddParam(TParamSymbol.Create('v', externalSymbol.Typ));
+         funcSymbol.Executable:=TRTTIEnvironmentFieldWrite.Create(Self, rttiField);
+      end else begin
       table.AddSymbol(funcSymbol);
-      Result:=funcSymbol;
+         Exit(funcSymbol);
    end;
 end;
 
-// SetEnvironment
+   rttiProp:=FRttiType.GetProperty(name);
+   if rttiProp<>nil then begin
+      externalSymbol:=TExternalVarSymbol.Create(name, RTTITypeToTypeSymbol(rttiProp.PropertyType, table, rttiSymbol));
+      if rttiProp.IsReadable then begin
+         funcSymbol:=TFuncSymbol.Create(name, fkFunction, 0);
+         funcSymbol.Typ:=externalSymbol.Typ;
+         funcSymbol.Executable:=TRTTIEnvironmentPropRead.Create(Self, rttiProp);
+         externalSymbol.ReadFunc:=funcSymbol;
+      end;
+      if rttiProp.IsWritable then begin
+         funcSymbol:=TFuncSymbol.Create(name, fkProcedure, 0);
+         funcSymbol.AddParam(TParamSymbol.Create('v', externalSymbol.Typ));
+         funcSymbol.Executable:=TRTTIEnvironmentPropWrite.Create(Self, rttiProp);
+         externalSymbol.WriteFunc:=funcSymbol;
+      end;
+      table.AddSymbol(externalSymbol);
+      Exit(externalSymbol);
+   end;
+end;
+
+// GetDefaultEnvironment
 //
-procedure TRTTIEnvironment.SetEnvironment(const val : TValue);
+procedure TRTTIEnvironment.GetDefaultEnvironment(var enviro : IdwsEnvironment);
 begin
-   FEnvironment:=val;
+   Assert(enviro=nil);
+   enviro:=TRTTIRuntimeEnvironment.Create(FDefaultEnvironment);
+end;
+
+// SetForClass
+//
+procedure TRTTIEnvironment.SetForClass(cls : TClass);
+begin
+   RttiType:=vRTTIContext.GetType(cls.ClassInfo);
+end;
+
+// SetDefaultEnvironment
+//
+procedure TRTTIEnvironment.SetDefaultEnvironment(const val : TValue);
+begin
+   FDefaultEnvironment:=val;
    if val.IsEmpty then
       FRttiType:=nil
    else FRttiType:=vRTTIContext.GetType(val.TypeInfo);
 end;
 
+// SetRttiType
+//
+procedure TRTTIEnvironment.SetRttiType(const val : TRttiType);
+begin
+   if FRttiType=val then Exit;
+   FRttiType:=val;
+   FDefaultEnvironment:=vEmptyTValue;
+end;
+
 // ------------------
-// ------------------ TRTTIEnvironmentFieldCallable ------------------
+// ------------------ TRTTIEnvironmentCallable ------------------
 // ------------------
 
 // Create
 //
-constructor TRTTIEnvironmentFieldCallable.Create(environment : TRTTIEnvironment; rttiField : TRttiField);
+constructor TRTTIEnvironmentCallable.Create(environment : TRTTIEnvironment);
 begin
    FEnvironment:=environment;
-   FField:=rttiField;
-end;
-
-// Call
-//
-procedure TRTTIEnvironmentFieldCallable.Call(exec : TdwsProgramExecution; func : TFuncSymbol);
-var
-   info : TProgramInfo;
-   result : Variant;
-begin
-   info:=exec.AcquireProgramInfo(func);
-   try
-      ValueToVariant(FField.GetValue(FEnvironment.FEnvironment.AsObject), result);
-      info.ResultAsVariant:=result;
-   finally
-      exec.ReleaseProgramInfo(info);
-   end;
 end;
 
 // InitSymbol
 //
-procedure TRTTIEnvironmentFieldCallable.InitSymbol(symbol : TSymbol);
+procedure TRTTIEnvironmentCallable.InitSymbol(symbol : TSymbol);
 begin
    // nothing
 end;
 
 // InitExpression
 //
-procedure TRTTIEnvironmentFieldCallable.InitExpression(expr : TExprBase);
+procedure TRTTIEnvironmentCallable.InitExpression(expr : TExprBase);
 begin
    // nothing
+end;
+
+// ------------------
+// ------------------ TRTTIEnvironmentFieldRead ------------------
+// ------------------
+
+// Create
+//
+constructor TRTTIEnvironmentField.Create(environment : TRTTIEnvironment; rttiField : TRttiField);
+begin
+   inherited Create(environment);
+   FField:=rttiField;
+end;
+
+// ------------------
+// ------------------ TRTTIEnvironmentFieldRead ------------------
+// ------------------
+
+// Call
+//
+procedure TRTTIEnvironmentFieldRead.Call(exec : TdwsProgramExecution; func : TFuncSymbol);
+var
+   info : TProgramInfo;
+   result : Variant;
+begin
+   info:=exec.AcquireProgramInfo(func);
+   try
+      ValueToVariant(FField.GetValue(TRTTIRuntimeEnvironment.Instance(exec)), result);
+      info.ResultAsVariant:=result;
+   finally
+      exec.ReleaseProgramInfo(info);
+   end;
+end;
+
+// ------------------
+// ------------------ TRTTIEnvironmentFieldWrite ------------------
+// ------------------
+
+// Call
+//
+procedure TRTTIEnvironmentFieldWrite.Call(exec : TdwsProgramExecution; func : TFuncSymbol);
+var
+   info : TProgramInfo;
+begin
+   info:=exec.AcquireProgramInfo(func);
+   try
+      FField.SetValue(TRTTIRuntimeEnvironment.Instance(exec),
+                      TValue.FromVariant(info.ParamAsVariant[0]));
+   finally
+      exec.ReleaseProgramInfo(info);
+end;
+end;
+
+// ------------------
+// ------------------ TRTTIEnvironmentProp ------------------
+// ------------------
+
+// Create
+//
+constructor TRTTIEnvironmentProp.Create(environment : TRTTIEnvironment; rttiProp : TRttiProperty);
+begin
+   inherited Create(environment);
+   FProp:=rttiProp;
+end;
+
+// ------------------
+// ------------------ TRTTIEnvironmentPropRead ------------------
+// ------------------
+
+// Call
+//
+procedure TRTTIEnvironmentPropRead.Call(exec : TdwsProgramExecution; func : TFuncSymbol);
+var
+   info : TProgramInfo;
+   result : Variant;
+begin
+   info:=exec.AcquireProgramInfo(func);
+   try
+      ValueToVariant(FProp.GetValue(TRTTIRuntimeEnvironment.Instance(exec)), result);
+      info.ResultAsVariant:=result;
+   finally
+      exec.ReleaseProgramInfo(info);
+   end;
+end;
+
+// ------------------
+// ------------------ TRTTIEnvironmentPropWrite ------------------
+// ------------------
+
+// Call
+//
+procedure TRTTIEnvironmentPropWrite.Call(exec : TdwsProgramExecution; func : TFuncSymbol);
+var
+   info : TProgramInfo;
+begin
+   info:=exec.AcquireProgramInfo(func);
+   try
+      FProp.SetValue(TRTTIRuntimeEnvironment.Instance(exec),
+                     TValue.FromVariant(info.ParamAsVariant[0]));
+   finally
+      exec.ReleaseProgramInfo(info);
+   end;
+end;
+
+// ------------------
+// ------------------ TRTTIRuntimeEnvironment ------------------
+// ------------------
+
+// Create
+//
+constructor TRTTIRuntimeEnvironment.Create(const value : TValue);
+begin
+   inherited Create;
+   FValue:=value;
+end;
+
+// Instance
+//
+class function TRTTIRuntimeEnvironment.Instance(exec : TdwsProgramExecution) : Pointer;
+begin
+   Result:=(exec.Environment.GetSelf as TRTTIRuntimeEnvironment).Value.AsObject;
 end;
 
 end.

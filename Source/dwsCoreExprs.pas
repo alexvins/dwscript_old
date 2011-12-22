@@ -43,6 +43,7 @@ type
    TVarExpr = class (TDataExpr)
       protected
          FStackAddr : Integer;
+         FDataSym : TDataSymbol;
 
          function GetAddr(exec : TdwsExecution) : Integer; override;
          function GetData(exec : TdwsExecution) : TData; override;
@@ -66,6 +67,7 @@ type
          function SameVarAs(expr : TVarExpr) : Boolean;
 
          property StackAddr : Integer read FStackAddr;
+         property DataSym : TDataSymbol read FDataSym write FDataSym;
    end;
 
    TIntVarExpr = class (TVarExpr)
@@ -112,9 +114,13 @@ type
    end;
 
    TObjectVarExpr = class (TVarExpr)
-      protected
       public
          procedure EvalAsScriptObj(exec : TdwsExecution; var Result : IScriptObj); override;
+   end;
+
+   TSelfVarExpr = class (TVarExpr)
+      public
+         function IsWritable : Boolean; override;
    end;
 
    TVarParentExpr = class(TVarExpr)
@@ -129,12 +135,15 @@ type
    // Encapsulates a lazy parameter
    TLazyParamExpr = class(TTypedExpr)
       private
+         FDataSym : TLazyParamSymbol;
          FStackAddr : Integer;
          FLevel : Integer;
 
       public
-         constructor Create(Prog: TdwsProgram; aTyp : TTypeSymbol; level, stackAddr : Integer);
+         constructor Create(Prog: TdwsProgram; dataSym : TLazyParamSymbol);
          function Eval(exec : TdwsExecution) : Variant; override;
+
+         property DataSym : TLazyParamSymbol read FDataSym write FDataSym;
          property StackAddr : Integer read FStackAddr write FStackAddr;
          property Level : Integer read FLevel write FLevel;
    end;
@@ -1712,6 +1721,7 @@ constructor TVarExpr.Create(prog : TdwsProgram; dataSym : TDataSymbol);
 begin
    inherited Create(prog, dataSym.Typ);
    FStackAddr:=DataSym.StackAddr;
+   FDataSym:=dataSym;
 end;
 
 // CreateTyped
@@ -1729,6 +1739,8 @@ begin
       Result:=TStrVarExpr.Create(prog, dataSym)
    else if typ.IsOfType(prog.TypBoolean) then
       Result:=TBoolVarExpr.Create(prog, dataSym)
+   else if dataSym.ClassType=TSelfSymbol then
+      Result:=TSelfVarExpr.Create(prog, dataSym)
    else if (typ is TClassSymbol) or (typ is TDynamicArraySymbol) then
       Result:=TObjectVarExpr.Create(prog, dataSym)
    else Result:=TVarExpr.Create(prog, dataSym);
@@ -2033,6 +2045,17 @@ begin
 end;
 
 // ------------------
+// ------------------ TSelfVarExpr ------------------
+// ------------------
+
+// IsWritable
+//
+function TSelfVarExpr.IsWritable : Boolean;
+begin
+   Result:=False;
+end;
+
+// ------------------
 // ------------------ TVarParentExpr ------------------
 // ------------------
 
@@ -2061,6 +2084,7 @@ constructor TVarParamExpr.CreateFromVarExpr(expr : TVarExpr);
 begin
    FTyp:=expr.Typ;
    FStackAddr:=expr.FStackAddr;
+   FDataSym:=expr.DataSym;
 end;
 
 // GetVarParamDataPointer
@@ -3458,11 +3482,12 @@ end;
 
 // Create
 //
-constructor TLazyParamExpr.Create(Prog: TdwsProgram; aTyp : TTypeSymbol; level, stackAddr : Integer);
+constructor TLazyParamExpr.Create(Prog: TdwsProgram; dataSym : TLazyParamSymbol);
 begin
-   FTyp:=aTyp;
-   FLevel:=level;
-   FStackAddr:=stackAddr;
+   FDataSym:=dataSym;
+   FTyp:=dataSym.Typ;
+   FLevel:=dataSym.Level;
+   FStackAddr:=dataSym.StackAddr;
 end;
 
 // Eval
@@ -3807,7 +3832,7 @@ begin
    if expr.ClassType=TArrayConstantExpr then begin
       arrayConst:=TArrayConstantExpr(expr);
       if toTyp is TDynamicArraySymbol then begin
-         if    (toTyp.Typ=expr.Typ.Typ)
+         if    (toTyp.Typ.IsOfType(expr.Typ.Typ))
             or ((arrayConst.ElementCount=0) and (arrayConst.Typ.Typ.IsOfType(prog.TypVariant)))  then
             Result:=TConvStaticArrayToDynamicExpr.Create(prog, arrayConst,
                                                          TDynamicArraySymbol(toTyp))
@@ -6607,7 +6632,7 @@ var
    name : UnicodeString = '';
 begin
    Expr.EvalAsString(exec, name);
-   Result:=((exec as TdwsProgramExecution).Prog.ConditionalDefines.IndexOf(name)>=0);
+   Result:=((exec as TdwsProgramExecution).Prog.ConditionalDefines.Value.IndexOf(name)>=0);
 end;
 
 // ------------------

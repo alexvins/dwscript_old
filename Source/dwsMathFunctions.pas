@@ -23,7 +23,7 @@ unit dwsMathFunctions;
 
 interface
 
-uses Classes, Math, dwsFunctions, dwsExprs, dwsSymbols, dwsMagicExprs;
+uses Classes, Math, dwsFunctions, dwsExprs, dwsSymbols, dwsMagicExprs, dwsXPlatform;
 
 type
 
@@ -187,6 +187,22 @@ type
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
 
+   TGcdFunc = class(TInternalMagicIntFunction)
+      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
+   end;
+
+   TLcmFunc = class(TInternalMagicIntFunction)
+      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
+   end;
+
+   TIsPrimeFunc = class(TInternalMagicBoolFunction)
+      function DoEvalAsBoolean(args : TExprBaseList) : Boolean; override;
+   end;
+
+   TLeastFactorFunc = class(TInternalMagicIntFunction)
+      function DoEvalAsInteger(args : TExprBaseList) : Int64; override;
+   end;
+
    TRandomFunc = class(TInternalMagicFloatFunction)
       procedure DoEvalAsFloat(args : TExprBaseList; var Result : Double); override;
    end;
@@ -224,6 +240,68 @@ const // type constants
   cInteger = 'Integer';
   cString = 'String';
   cBoolean = 'Boolean';
+
+// Gcd
+//
+function Gcd(a, b : Int64) : Int64;
+var
+   r : Int64;
+begin
+   while b<>0 do begin
+      r:=a mod b;
+      a:=b;
+      b:=r;
+   end;
+   Result:=a;
+end;
+
+// Lcm
+//
+function Lcm(const a, b : Int64) : Int64;
+var
+   g : Int64;
+begin
+   g:=Gcd(a, b);
+   if g<>0 then
+      Result:=(a div g)*b
+   else Result:=0;
+end;
+
+// LeastFactor
+//
+function LeastFactor(const n : Int64) : Int64;
+var
+   i, lim : Int64;
+begin
+   if n<=1 then begin
+      if n=1 then
+         Result:=1
+      else Result:=0
+   end else if (n and 1)=0 then
+      Result:=2
+   else if (n mod 3)=0 then
+      Result:=3
+   else begin
+      lim:=Round(Sqrt(n));
+      i:=5;
+      while i<=lim do begin
+         if (n mod i)=0 then Exit(i);
+         Inc(i, 2);
+         if (n mod i)=0 then Exit(i);
+         Inc(i, 4);
+      end;
+      Result:=n;
+   end;
+end;
+
+// IsPrime
+//
+function IsPrime(const n : Int64) : Boolean;
+begin
+   if n<=3 then
+      Result:=(n>=2)
+   else Result:=((n and 1)<>0) and (LeastFactor(n)=n);
+end;
 
 { TOddFunc }
 
@@ -532,53 +610,85 @@ begin
    Result:=PI;
 end;
 
+{ TGcdFunc }
+
+function TGcdFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
+begin
+   Result:=Gcd(args.AsInteger[0], args.AsInteger[1]);
+end;
+
+{ TLcmFunc }
+
+function TLcmFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
+begin
+   Result:=Lcm(args.AsInteger[0], args.AsInteger[1]);
+end;
+
+{ TIsPrimeFunc }
+
+function TIsPrimeFunc.DoEvalAsBoolean(args : TExprBaseList) : Boolean;
+begin
+   Result:=IsPrime(args.AsInteger[0]);
+end;
+
+{ TLeastFactorFunc }
+
+function TLeastFactorFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
+begin
+   Result:=LeastFactor(args.AsInteger[0]);
+end;
+
 { TRandomFunc }
 
 procedure TRandomFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
 begin
-   Result:=Random;
+   Result:=args.Exec.Random;
 end;
 
 { TRandomIntFunc }
 
 function TRandomIntFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
-var
-   i : Int64;
 begin
-   i:=args.AsInteger[0];
-   if i<High(Integer) then
-      Result:=Random(i)
-   else Result:=Round(i*Random);
+   Result:=Trunc(args.Exec.Random*args.AsInteger[0]);
 end;
 
 { TRandomizeFunc }
 
-// DoEvalProc
-//
 procedure TRandomizeFunc.DoEvalProc(args : TExprBaseList);
+var
+   x : UInt64;
 begin
-   Randomize;
+   x:=GetSystemMilliseconds;
+   args.Exec.RandSeed:=(x shl 40) xor x;
 end;
 
 { TRandGFunc }
 
 procedure TRandGFunc.DoEvalAsFloat(args : TExprBaseList; var Result : Double);
+var
+   x, y, n : Double;
 begin
-   Result:=RandG(args.AsFloat[0], args.AsFloat[1]);
+   // Marsaglia-Bray
+   repeat
+      x:=2*args.Exec.Random-1;
+      y:=2*args.Exec.Random-1;
+      n:=sqr(x)+sqr(y);
+   until n<1;
+   Result:=Sqrt(-2*Ln(n)/n)*x*args.AsFloat[1]+args.AsFloat[0];
 end;
 
 { TRandSeedFunc }
 
 function TRandSeedFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
-   Result:=RandSeed;
+   Result:=Int64(args.Exec.RandSeed);
 end;
 
 { TSetRandSeedFunc }
 
 procedure TSetRandSeedFunc.DoEvalProc(args : TExprBaseList);
 begin
-   RandSeed:=args.AsInteger[0];
+   args.Exec.RandSeed:=args.AsInteger[0];
 end;
 
 // ------------------------------------------------------------------
@@ -635,6 +745,12 @@ initialization
    RegisterInternalIntFunction(TClampIntFunc, 'ClampInt', ['v', cInteger, 'min', cInteger, 'max', cInteger], True);
 
    RegisterInternalFloatFunction(TPiFunc, 'Pi', [], True);
+
+   RegisterInternalIntFunction(TGcdFunc, 'Gcd', ['a', cInteger, 'b', cInteger], True);
+   RegisterInternalIntFunction(TLcmFunc, 'Lcm', ['a', cInteger, 'b', cInteger], True);
+   RegisterInternalBoolFunction(TIsPrimeFunc, 'IsPrime', ['n', cInteger], True);
+   RegisterInternalIntFunction(TLeastFactorFunc, 'LeastFactor', ['n', cInteger], True);
+
    RegisterInternalFloatFunction(TRandomFunc, 'Random', []);
    RegisterInternalIntFunction(TRandomIntFunc, 'RandomInt', ['range', cInteger]);
    RegisterInternalFunction(TRandomizeFunc, 'Randomize', [], '');

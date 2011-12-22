@@ -1,12 +1,5 @@
 unit UBuildTests;
 
-//  Todo
-//      Scope implementation to main
-//      Scope implementation unit to unit
-//      SymbolTable for unit implementation
-//      Conditional define locality
-//      JS CodeGen of units code
-
 interface
 
 uses Classes, SysUtils, dwsXPlatformTests, dwsComp, dwsCompiler, dwsExprs,

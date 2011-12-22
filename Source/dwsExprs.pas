@@ -40,6 +40,7 @@ type
    TdwsMainProgram = class;
    IdwsProgram = interface;
    TdwsProgramExecution = class;
+   IdwsProgramExecution = interface;
    TSymbolPositionList = class;
    TFuncExprBase = class;
    TScriptObj = class;
@@ -53,7 +54,7 @@ type
    PNoResultExprList = ^TNoResultExprList;
    PNoResultExpr = ^TNoResultExpr;
 
-   TScriptSourceType = (stMain, stInclude, stUnit);
+   TScriptSourceType = (stMain, stUnit, stRecompile);
 
   // A specific ScriptSource entry. The text of the script contained in that unit.
   TScriptSourceItem = class
@@ -296,22 +297,45 @@ type
          function CreateProgResult: TdwsResult; override;
    end;
 
-   // TTerminatorThread
+   TdwsGuardedExecution = class
+      Exec : IdwsProgramExecution;
+      TimeOutAt : TDateTime;
+   end;
+
+   TdwsGuardedExecutionList = class(TSortedList<TdwsGuardedExecution>)
+      protected
+         function Compare(const item1, item2 : TdwsGuardedExecution) : Integer; override;
+   end;
+
+   // TdwsGuardianThread
    //
    // Stops the script after given time (Timeout)
-   TTerminatorThread = class(TThread)
+   TdwsGuardianThread = class(TThread)
       private
-         FExecutionContext : TdwsProgramExecution;
          FEvent : TEvent;
-         FMillisecondsToLive : Integer;
+         FExecutions : TdwsGuardedExecutionList;
+         FExecutionsLock : TFixedCriticalSection;
 
       protected
          procedure Execute; override;
-         procedure DoTerminate; override;
+
+         class var vThreadLock : Integer;
+         class var vThread : TdwsGuardianThread;
 
       public
-         constructor Create(anExecutionContext : TdwsProgramExecution; aMilliSecToLive : Integer);
+         constructor Create;
          destructor Destroy; override;
+
+         class procedure Initialize; static;
+         class procedure Finalize; static;
+
+         class procedure GuardExecution(const exec : IdwsProgramExecution; aMilliSecToLive : Integer); static;
+         class procedure ForgetExecution(const exec : IdwsProgramExecution); static;
+   end;
+
+   // Attached and owned by its program execution
+   IdwsEnvironment = interface (IGetSelf)
+      ['{CCAA438D-76F4-49C2-A3A2-82445BC2976A}']
    end;
 
    TProgramInfo = class;
@@ -322,6 +346,8 @@ type
       function GetResult : TdwsResult;
       function GetObjectCount : Integer;
       function GetProg : IdwsProgram;
+      function GetEnvironment : IdwsEnvironment;
+      procedure SetEnvironment(const env : IdwsEnvironment);
 
       procedure Execute(aTimeoutMilliSeconds : Integer = 0); overload;
       procedure ExecuteParam(const params : TVariantDynArray; aTimeoutMilliSeconds : Integer = 0); overload;
@@ -336,12 +362,13 @@ type
       property Info : TProgramInfo read GetInfo;
       property Result : TdwsResult read GetResult;
       property ObjectCount : Integer read GetObjectCount;
+      property Environment : IdwsEnvironment read GetEnvironment write SetEnvironment;
    end;
 
    IdwsProgram = interface
       ['{AD513983-F033-44AF-9F2B-9CFFF94B9BB3}']
       function GetMsgs : TdwsMessageList;
-      function GetConditionalDefines : TStringList;
+      function GetConditionalDefines : IAutoStrings;
       function GetLineCount : Integer;
       function GetTable : TSymbolTable;
       function GetTimeoutMilliseconds : Integer;
@@ -362,7 +389,7 @@ type
 
       property Table : TSymbolTable read GetTable;
       property Msgs : TdwsMessageList read GetMsgs;
-      property ConditionalDefines : TStringList read GetConditionalDefines;
+      property ConditionalDefines : IAutoStrings read GetConditionalDefines;
       property TimeoutMilliseconds : Integer read GetTimeoutMilliseconds write SetTimeoutMilliseconds;
       property DefaultUserObject : TObject read GetDefaultUserObject write SetDefaultUserObject;
 
@@ -388,6 +415,7 @@ type
          FParameters : TData;
          FResult : TdwsResult;
          FFileSystem : IdwsFileSystem;
+         FEnvironment : IdwsEnvironment;
 
          FMsgs : TdwsRuntimeMessageList;
 
@@ -399,6 +427,8 @@ type
          procedure DestroyScriptObj(const scriptObj: IScriptObj);
 
          function GetMsgs : TdwsRuntimeMessageList; override;
+         function GetEnvironment : IdwsEnvironment;
+         procedure SetEnvironment(const val : IdwsEnvironment);
 
          // for interface only, script exprs use direct properties
          function GetProg : IdwsProgram;
@@ -441,6 +471,7 @@ type
          property Parameters : TData read FParameters;
          property Result : TdwsResult read FResult;
          property FileSystem : IdwsFileSystem read FFileSystem;
+         property Environment : IdwsEnvironment read GetEnvironment write SetEnvironment;
 
          property ObjectCount : Integer read FObjectCount;
    end;
@@ -537,15 +568,16 @@ type
 
          FSystemTable : ISystemSymbolTable;
          FOperators : TObject;
-         FConditionalDefines : TStringList;
+         FConditionalDefines : IAutoStrings;
          FSourceFiles : TTightList;
          FSourceList : TScriptSourceList;
          FLineCount : Integer;
          FCompiler : TObject;
 
+         FDefaultEnvironment : IdwsEnvironment;
+
       protected
-         procedure SetConditionalDefines(const val : TStringList);
-         function GetConditionalDefines : TStringList;
+         function GetConditionalDefines : IAutoStrings;
          function GetDefaultUserObject : TObject;
          procedure SetDefaultUserObject(const val : TObject);
 
@@ -593,13 +625,14 @@ type
 
          property SystemTable : ISystemSymbolTable read FSystemTable;
          property Operators : TObject read FOperators write FOperators;
-         property ConditionalDefines : TStringList read FConditionalDefines write SetConditionalDefines;
+         property ConditionalDefines : IAutoStrings read FConditionalDefines;
          property Compiler : TObject read FCompiler write FCompiler;
          property ContextMap : TContextMap read FContextMap;
          property SymbolDictionary: TSymbolDictionary read FSymbolDictionary;
          property SourceList : TScriptSourceList read FSourceList;
          property LineCount : Integer read FLineCount write FLineCount;
 
+         property DefaultEnvironment : IdwsEnvironment read FDefaultEnvironment write FDefaultEnvironment;
          property DefaultUserObject : TObject read FDefaultUserObject write FDefaultUserObject;
    end;
 
@@ -715,6 +748,18 @@ type
 
    TTypedExprClass = class of TTypedExpr;
 
+   // hosts a type reference
+   TTypeReferenceExpr = class(TTypedExpr)
+      private
+         FPos : TScriptPos;
+
+      public
+         constructor Create(aTyp : TTypeSymbol; const scriptPos : TScriptPos);
+
+         function  Eval(exec : TdwsExecution) : Variant; override;
+         function ScriptPos : TScriptPos; override;
+  end;
+
    // base class of expressions that return no result
    TNoResultExpr = class(TProgramExpr)
       protected
@@ -733,23 +778,6 @@ type
    // Does nothing! E. g.: "for x := 1 to 10 do {TNullExpr};"
    TNullExpr = class(TNoResultExpr)
       procedure EvalNoResult(exec : TdwsExecution); override;
-   end;
-
-   // Expr that hosts a type symbol reference
-   TTypeSymbolExpr = class(TProgramExpr)
-      protected
-         FTyp : TTypeSymbol;
-         FPos : TScriptPos;
-
-         function GetType : TTypeSymbol; override;
-
-      public
-         constructor Create(const scriptPos : TScriptPos; const aType : TTypeSymbol);
-
-         function Eval(exec : TdwsExecution) : Variant; override;
-         function ScriptPos : TScriptPos; override;
-
-         property Typ : TTypeSymbol read FTyp write FTyp;
    end;
 
    // statement; statement; statement;
@@ -847,7 +875,7 @@ type
          procedure AddArg(arg : TTypedExpr); virtual; abstract;
          procedure ClearArgs;
          function ExpectedArg : TParamSymbol; virtual; abstract;
-         procedure TypeCheckArgs(prog : TdwsProgram); virtual;
+         procedure TypeCheckArgs(prog : TdwsProgram; const argPosArray : TScriptPosArray);
          function Optimize(prog : TdwsProgram; exec : TdwsExecution) : TProgramExpr; override;
          function IsConstant : Boolean; override;
 
@@ -1635,7 +1663,8 @@ type
 
    EdwsVariantTypeCastError = class(EVariantTypeCastError)
       public
-         constructor Create(const v : Variant; const desiredType, errMessage : UnicodeString);
+         constructor Create(const v : Variant; const desiredType : UnicodeString;
+                            originalException : Exception);
    end;
 
    EScriptStopped = class (EScriptError)
@@ -1960,6 +1989,7 @@ begin
    FProgInfoPool.Free;
    FResult.Free;
    FMsgs.Free;
+   FEnvironment:=nil;
 
    FProg._Release;
    inherited;
@@ -2078,8 +2108,6 @@ end;
 // RunProgram
 //
 procedure TdwsProgramExecution.RunProgram(aTimeoutMilliSeconds : Integer);
-var
-   terminator : TTerminatorThread;
 begin
    if FProgramState<>psRunning then begin
       Msgs.AddRuntimeError('Program state psRunning expected');
@@ -2089,8 +2117,7 @@ begin
    if aTimeoutMilliSeconds=0 then
       aTimeOutMilliseconds:=FProg.TimeoutMilliseconds;
    if aTimeoutMilliSeconds>0 then
-      terminator:=TTerminatorThread.Create(Self, aTimeoutMilliSeconds)
-   else terminator:=nil;
+      TdwsGuardianThread.GuardExecution(Self, aTimeoutMilliSeconds);
 
    try
       Status:=esrNone;
@@ -2127,8 +2154,8 @@ begin
       end;
 
    finally
-      if Assigned(terminator) then
-         terminator.Terminate;
+      if aTimeoutMilliSeconds>0 then
+         TdwsGuardianThread.ForgetExecution(Self);
    end;
 
    ClearScriptError;
@@ -2382,6 +2409,20 @@ begin
    Result:=FMsgs;
 end;
 
+// GetEnvironment
+//
+function TdwsProgramExecution.GetEnvironment : IdwsEnvironment;
+begin
+   Result:=FEnvironment;
+end;
+
+// SetEnvironment
+//
+procedure TdwsProgramExecution.SetEnvironment(const val : IdwsEnvironment);
+begin
+   FEnvironment:=val;
+end;
+
 // GetProg
 //
 function TdwsProgramExecution.GetProg : IdwsProgram;
@@ -2550,6 +2591,7 @@ constructor TdwsMainProgram.Create(const systemTable : ISystemSymbolTable;
 var
    systemUnitTable : TLinkedSymbolTable;
    systemUnit : TUnitMainSymbol;
+   sl : TStringList;
 begin
    inherited Create(systemTable);
 
@@ -2566,10 +2608,11 @@ begin
 
    FSymbolDictionary:=TSymbolDictionary.Create;
 
-   FConditionalDefines:=TStringList.Create;
-   FConditionalDefines.Sorted:=True;
-   FConditionalDefines.CaseSensitive:=False;
-   FConditionalDefines.Duplicates:=dupIgnore;
+   sl:=TStringList.Create;
+   sl.Sorted:=True;
+   sl.CaseSensitive:=False;
+   sl.Duplicates:=dupIgnore;
+   FConditionalDefines:=TAutoStore<TStrings>.Create(sl);
 
    FSourceList:=TScriptSourceList.Create;
 
@@ -2606,7 +2649,6 @@ begin
    FOperators.Free;
    FContextMap.Free;
    FSymbolDictionary.Free;
-   FConditionalDefines.Free;
    FUnifiedConstList.Free;
    FSourceFiles.Clean;
    FSourceList.Free;
@@ -2622,6 +2664,7 @@ begin
       raise EScriptException.Create(RTE_CantRunScript);
    exec:=TdwsProgramExecution.Create(Self, FStackParameters);
    exec.UserObject:=DefaultUserObject;
+   exec.Environment:=DefaultEnvironment;
    FExecutionsLock.Enter;
    try
       FExecutions.Add(exec);
@@ -2766,20 +2809,6 @@ begin
    Result:=FLineCount;
 end;
 
-// GetConditionalDefines
-//
-function TdwsMainProgram.GetConditionalDefines : TStringList;
-begin
-   Result:=FConditionalDefines;
-end;
-
-// SetConditionalDefines
-//
-procedure TdwsMainProgram.SetConditionalDefines(const val : TStringList);
-begin
-   FConditionalDefines.Assign(val);
-end;
-
 // GetDefaultUserObject
 //
 function TdwsMainProgram.GetDefaultUserObject : TObject;
@@ -2801,6 +2830,13 @@ begin
    Result:=level+1;
    if Result>FStackParameters.MaxLevel then
       FStackParameters.MaxLevel:=Result;
+end;
+
+// GetConditionalDefines
+//
+function TdwsMainProgram.GetConditionalDefines : IAutoStrings;
+begin
+   Result:=FConditionalDefines;
 end;
 
 // ------------------
@@ -3045,48 +3081,155 @@ begin
    Result:=FTextBuilder.ToString;
 end;
 
-{ TTerminatorThread }
+// ------------------
+// ------------------ TdwsGuardedExecutionList ------------------
+// ------------------
+
+// Compare
+//
+function TdwsGuardedExecutionList.Compare(const item1, item2 : TdwsGuardedExecution) : Integer;
+begin
+   if item1.TimeOutAt<item2.TimeOutAt then
+      Result:=1
+   else if item1.TimeOutAt>item2.TimeOutAt then
+      Result:=-1
+   else Result:=0;
+end;
+
+// ------------------
+// ------------------ TdwsGuardianThread ------------------
+// ------------------
 
 // Create
 //
-constructor TTerminatorThread.Create(anExecutionContext : TdwsProgramExecution; aMilliSecToLive : Integer);
+constructor TdwsGuardianThread.Create;
 begin
-   FExecutionContext:=anExecutionContext;
    FEvent:=TEvent.Create(nil, False, False, '');
-   FMillisecondsToLive:=aMilliSecToLive;
-   FreeOnTerminate:=True;
-   inherited Create(False);
+   FExecutionsLock:=TFixedCriticalSection.Create;
+   FExecutions:=TdwsGuardedExecutionList.Create;
+   FreeOnTerminate:=False;
+
+   inherited Create(True);
+
    Priority:=tpTimeCritical;
 end;
 
 // Destroy
 //
-destructor TTerminatorThread.Destroy;
+destructor TdwsGuardianThread.Destroy;
 begin
+   FExecutions.Clear;
+   FExecutions.Free;
    FEvent.Free;
+   FExecutionsLock.Free;
    inherited;
+end;
+
+// Initialize
+//
+class procedure TdwsGuardianThread.Initialize;
+begin
+   vThread:=TdwsGuardianThread.Create;
+   vThread.Start;
+end;
+
+// Finalize
+//
+class procedure TdwsGuardianThread.Finalize;
+begin
+   if vThread<>nil then begin
+      vThread.Terminate;
+      vThread.FEvent.SetEvent;
+      vThread.WaitFor;
+      vThread.Destroy;
+      vThread:=nil;
+   end;
+end;
+
+// GuardExecution
+//
+class procedure TdwsGuardianThread.GuardExecution(const exec : IdwsProgramExecution; aMilliSecToLive : Integer);
+var
+   thread : TdwsGuardianThread;
+   item : TdwsGuardedExecution;
+begin
+   thread:=vThread;
+   item:=TdwsGuardedExecution.Create;
+   item.Exec:=exec;
+   item.TimeOutAt:=Now+aMilliSecToLive*(1/(86400*1000));
+   thread.FExecutionsLock.Enter;
+   try
+      thread.FExecutions.Add(item);
+      thread.FEvent.SetEvent;
+   finally
+      thread.FExecutionsLock.Leave;
+end;
+end;
+
+// ForgetExecution
+//
+class procedure TdwsGuardianThread.ForgetExecution(const exec : IdwsProgramExecution);
+var
+   thread : TdwsGuardianThread;
+begin
+   thread:=vThread;
+   thread.FExecutionsLock.Enter;
+   try
+      thread.FExecutions.Enumerate(function (var item : TdwsGuardedExecution) : TSimpleCallbackStatus
+                                   begin
+                                      if item.Exec=exec then begin
+                                         item.Exec:=nil;
+                                         Result:=csAbort;
+                                      end else Result:=csContinue;
+                                   end);
+   finally
+      thread.FExecutionsLock.Leave;
+end;
 end;
 
 // Execute
 //
-procedure TTerminatorThread.Execute;
+procedure TdwsGuardianThread.Execute;
+var
+   currentTime : TDateTime;
+   item : TdwsGuardedExecution;
+   n, millisecs : Integer;
 begin
-   FEvent.WaitFor(FMillisecondsToLive);
+   while not Terminated do begin
 
-   if (not Terminated) and Assigned(FExecutionContext) then
-      FExecutionContext.Stop;
+      currentTime:=Now;
+      item:=nil;
 
-   // Wait until TdwsProgram terminates the thread
-   while not Terminated do
-      FEvent.WaitFor(1000);
-end;
+      FExecutionsLock.Enter;
+      try
+         while FExecutions.Count>0 do begin
+            n:=FExecutions.Count;
+            item:=FExecutions[n-1];
+            if item.Exec=nil then begin
+               FExecutions.Extract(n-1);
+               FreeAndNil(item);
+            end else begin
+               if item.TimeOutAt<=currentTime then begin
+                  item.Exec.Stop;
+                  FExecutions.Extract(n-1);
+                  FreeAndNil(item);
+               end else Break;
+            end;
+         end;
+      finally
+         FExecutionsLock.Leave;
+      end;
 
-// DoTerminate
-//
-procedure TTerminatorThread.DoTerminate;
-begin
-   inherited;
-   FEvent.SetEvent;
+      if item=nil then
+         FEvent.WaitFor(INFINITE)
+      else begin
+         millisecs:=Round((item.TimeOutAt-currentTime)*(86400*1000));
+         if millisecs<0 then
+            millisecs:=0;
+         FEvent.WaitFor(millisecs);
+      end;
+
+   end;
 end;
 
 // ------------------
@@ -3190,7 +3333,7 @@ begin
       // workaround for RTL bug that will sometimes report a failed cast to Int64
       // as being a failed cast to Boolean
       on E : EVariantError do begin
-         raise EdwsVariantTypeCastError.Create(v, 'Integer', E.ClassName);
+         raise EdwsVariantTypeCastError.Create(v, 'Integer', E);
       end else raise;
    end;
 end;
@@ -3207,7 +3350,7 @@ begin
    except
       // standardize RTL message
       on E : EVariantError do begin
-         raise EdwsVariantTypeCastError.Create(v, 'Boolean', E.ClassName);
+         raise EdwsVariantTypeCastError.Create(v, 'Boolean', E);
       end else raise;
    end;
 end;
@@ -3224,7 +3367,7 @@ begin
    except
       // standardize RTL message
       on E : EVariantError do begin
-         raise EdwsVariantTypeCastError.Create(v, 'Float', E.ClassName);
+         raise EdwsVariantTypeCastError.Create(v, 'Float', E);
       end else raise;
    end;
 end;
@@ -3241,7 +3384,7 @@ begin
    except
       // standardize RTL message
       on E : EVariantError do begin
-         raise EdwsVariantTypeCastError.Create(v, 'String', E.ClassName);
+         raise EdwsVariantTypeCastError.Create(v, 'String', E);
       end else raise;
    end;
 end;
@@ -3414,6 +3557,33 @@ end;
 function TTypedExpr.GetType : TTypeSymbol;
 begin
    Result:=FTyp;
+end;
+
+// ------------------
+// ------------------ TTypeReferenceExpr ------------------
+// ------------------
+
+// Create
+//
+constructor TTypeReferenceExpr.Create(aTyp : TTypeSymbol; const scriptPos : TScriptPos);
+begin
+   inherited Create;
+   Typ:=aTyp;
+   FPos:=scriptPos;
+end;
+
+// Eval
+//
+function TTypeReferenceExpr.Eval(exec : TdwsExecution) : Variant;
+begin
+   Assert(False);
+end;
+
+// ScriptPos
+//
+function TTypeReferenceExpr.ScriptPos : TScriptPos;
+begin
+   Result:=FPos;
 end;
 
 // ------------------
@@ -3681,7 +3851,7 @@ end;
 
 // TypeCheckArgs
 //
-procedure TFuncExprBase.TypeCheckArgs(prog : TdwsProgram);
+procedure TFuncExprBase.TypeCheckArgs(prog : TdwsProgram; const argPosArray : TScriptPosArray);
 var
    arg : TTypedExpr;
    x, paramCount, nbParamsToCheck : Integer;
@@ -3689,6 +3859,7 @@ var
    argTyp : TSymbol;
    initialErrorCount : Integer;
    tooManyArguments, tooFewArguments : Boolean;
+   argPos : TScriptPos;
 begin
    paramCount:=FFunc.Params.Count;
 
@@ -3723,6 +3894,9 @@ begin
    for x:=0 to nbParamsToCheck-1 do begin
       arg:=TTypedExpr(FArgs.ExprBase[x]);
       paramSymbol:=TParamSymbol(FFunc.Params[x]);
+      if x<Length(argPosArray) then
+         argPos:=argPosArray[x]
+      else argPos:=Self.Pos;
 
       if arg is TArrayConstantExpr then
          TArrayConstantExpr(arg).Prepare(Prog, paramSymbol.Typ.Typ);
@@ -3730,23 +3904,23 @@ begin
       argTyp:=arg.Typ;
       // Wrap-convert arguments if necessary and possible
       if paramSymbol.ClassType<>TVarParamSymbol then begin
-         arg:=TConvExpr.WrapWithConvCast(prog, Pos, paramSymbol.Typ, arg, False);
+         arg:=TConvExpr.WrapWithConvCast(prog, argPos, paramSymbol.Typ, arg, False);
       end;
       FArgs.ExprBase[x]:=arg;
 
       if argTyp=nil then begin
-         prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_WrongArgumentType,
+         prog.CompileMsgs.AddCompilerErrorFmt(argPos, CPE_WrongArgumentType,
                                               [x, paramSymbol.Typ.Caption]);
          continue;
       end;
       if not paramSymbol.Typ.IsCompatible(arg.Typ) then begin
-         prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_WrongArgumentType_Long,
+         prog.CompileMsgs.AddCompilerErrorFmt(argPos, CPE_WrongArgumentType_Long,
                                               [x, paramSymbol.Typ.Caption, arg.Typ.Caption]);
          continue;
       end;
       if paramSymbol.ClassType=TVarParamSymbol then begin
          if not paramSymbol.Typ.IsOfType(arg.Typ) then
-            prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_WrongArgumentType_Long,
+            prog.CompileMsgs.AddCompilerErrorFmt(argPos, CPE_WrongArgumentType_Long,
                                                  [x, paramSymbol.Typ.Caption, argTyp.Caption]);
          if arg is TDataExpr then begin
             // Record methods ignore the IsWritable constraints, as in Delphi
@@ -3754,8 +3928,8 @@ begin
                and (   (x>0)
                     or (not (FuncSym is TMethodSymbol))
                     or (not (TMethodSymbol(FuncSym).StructSymbol is TRecordSymbol))) then
-               prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_ConstVarParam, [x, paramSymbol.Name]);
-         end else prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_ConstVarParam, [x, paramSymbol.Name]);
+               prog.CompileMsgs.AddCompilerErrorFmt(argPos, CPE_ConstVarParam, [x, paramSymbol.Name]);
+         end else prog.CompileMsgs.AddCompilerErrorFmt(argPos, CPE_ConstVarParam, [x, paramSymbol.Name]);
       end;
 
    end;
@@ -6136,7 +6310,7 @@ end;
 //
 function TConnectorCallExpr.AssignConnectorSym(prog : TdwsProgram; const connectorType : IConnectorType): Boolean;
 var
-   x : Integer;
+   i : Integer;
    typSym, paramTyp : TTypeSymbol;
    arg : TTypedExpr;
 begin
@@ -6145,11 +6319,11 @@ begin
       prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_ConnectorTooManyArguments, [FArgs.Count]);
 
    SetLength(FConnectorParams, FArgs.Count);
-   for x:=0 to FArgs.Count-1 do begin
-      arg:=TTypedExpr(FArgs.List[x]);
-      FConnectorParams[x].IsVarParam:=(arg is TDataExpr) and TDataExpr(arg).IsWritable
+   for i:=0 to FArgs.Count-1 do begin
+      arg:=TTypedExpr(FArgs.List[i]);
+      FConnectorParams[i].IsVarParam:=(arg is TDataExpr) and TDataExpr(arg).IsWritable
                                       and not (arg.Typ is TArraySymbol);
-      FConnectorParams[x].TypSym:=arg.Typ;
+      FConnectorParams[i].TypSym:=arg.Typ;
    end;
 
    if not connectorType.AcceptsParams(FConnectorParams) then begin
@@ -6171,19 +6345,18 @@ begin
    end;
 
    Result := Assigned(FConnectorCall);
-   if not Result then
-      prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_ConnectorCall,
-                                          [FName, connectorType.ConnectorCaption]);
-
-   // Prepare the arguments for the method call
    if Result then begin
+   // Prepare the arguments for the method call
       SetLength(FConnectorArgs, FArgs.Count);
-      for x:=0 to FArgs.Count-1 do begin
-         paramTyp:=FConnectorParams[x].TypSym;
+      for i:=0 to FArgs.Count-1 do begin
+         paramTyp:=FConnectorParams[i].TypSym;
          if paramTyp<>nil then
-            SetLength(FConnectorArgs[x], paramTyp.Size);
+            SetLength(FConnectorArgs[i], paramTyp.Size);
       end;
       FTyp := typSym;
+   end else begin
+      prog.CompileMsgs.AddCompilerErrorFmt(Pos, CPE_ConnectorCall,
+                                           [FName, connectorType.ConnectorCaption])
    end;
 end;
 
@@ -6226,7 +6399,7 @@ begin
 
       try
          // The call itself
-         if FBaseExpr is TDataExpr then
+         if (FBaseExpr is TDataExpr) and (Typ=nil) or (Typ.Size>1) then
             FResultData := FConnectorCall.Call(TDataExpr(FBaseExpr).Data[exec][TDataExpr(FBaseExpr).Addr[exec]], FConnectorArgs)
          else begin
             FBaseExpr.EvalAsVariant(exec, buf);
@@ -7420,10 +7593,11 @@ end;
 
 // Create
 //
-constructor EdwsVariantTypeCastError.Create(const v : Variant; const desiredType, errMessage : UnicodeString);
+constructor EdwsVariantTypeCastError.Create(const v : Variant;
+      const desiredType : UnicodeString; originalException : Exception);
 begin
    inherited CreateFmt(RTE_VariantCastFailed,
-                       [VarTypeAsText(VarType(v)), desiredType, errMessage])
+                       [VarTypeAsText(VarType(v)), desiredType, originalException.ClassName])
 
 end;
 
@@ -7471,39 +7645,18 @@ begin
    raise e;
 end;
 
-// ------------------
-// ------------------ TTypeSymbolExpr ------------------
-// ------------------
+// ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// ------------------------------------------------------------------
+initialization
+// ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// ------------------------------------------------------------------
 
-// Create
-//
-constructor TTypeSymbolExpr.Create(const scriptPos : TScriptPos; const aType : TTypeSymbol);
-begin
-   inherited Create;
-   FTyp:=aType;
-   FPos:=scriptPos;
-end;
+   TdwsGuardianThread.Initialize;
 
-// Eval
-//
-function TTypeSymbolExpr.Eval(exec : TdwsExecution) : Variant;
-begin
-   Assert(False); // not intended for execution
-   Result := Unassigned;
-end;
+finalization
 
-// ScriptPos
-//
-function TTypeSymbolExpr.ScriptPos : TScriptPos;
-begin
-   Result:=FPos;
-end;
-
-// GetType
-//
-function TTypeSymbolExpr.GetType : TTypeSymbol;
-begin
-   Result:=FTyp;
-end;
+   TdwsGuardianThread.Finalize;
 
 end.

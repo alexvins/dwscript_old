@@ -23,6 +23,7 @@ type
          procedure TokenizerSpecials;
          procedure TimeOutTestFinite;
          procedure TimeOutTestInfinite;
+         procedure TimeOutTestSequence;
          procedure IncludeViaEvent;
          procedure IncludeViaFile;
          procedure IncludeViaFileRestricted;
@@ -56,6 +57,31 @@ type
    TTokenBufferWrapper = class
       Buffer : TTokenBuffer;
    end;
+
+   TScriptThread = class (TThread)
+      FProg : IdwsProgram;
+      FTimeOut : Integer;
+      FTimeStamp : TDateTime;
+      constructor Create(const prog : IdwsProgram; timeOut : Integer);
+      procedure Execute; override;
+   end;
+
+// Create
+//
+constructor TScriptThread.Create(const prog : IdwsProgram; timeOut : Integer);
+begin
+   inherited Create(True);
+   FProg:=prog;
+   FTimeOut:=timeOut;
+end;
+
+// Execute
+//
+procedure TScriptThread.Execute;
+begin
+   FProg.Execute(FTimeOut);
+   FTimeStamp:=Now;
+end;
 
 // ------------------
 // ------------------ TCornerCasesTests ------------------
@@ -137,8 +163,10 @@ begin
    sourceFile:=TSourceFile.Create;
    sourceFile.Code:='@ @= %= ^ ^= $(';
    rules:=TPascalTokenizerStateRules.Create;
-   t:=rules.CreateTokenizer(sourceFile, msgs);
+   t:=rules.CreateTokenizer(msgs);
    try
+      t.BeginSourceFile(sourceFile);
+
       CheckTrue(t.TestDelete(ttAT), '@');
       CheckTrue(t.TestDelete(ttAT_ASSIGN), '@=');
       CheckTrue(t.TestDelete(ttPERCENT_ASSIGN), '%=');
@@ -150,6 +178,7 @@ begin
       CheckTrue(t.TestAny([ttNAME])=ttNone, 'Any at end');
       CheckTrue(t.TestDeleteAny([ttNAME])=ttNone, 'DeleteAny at end');
 
+      t.EndSourceFile;
    finally
       sourceFile.Free;
       t.Free;
@@ -180,6 +209,43 @@ begin
 
    prog.TimeoutMilliseconds:=100;
    prog.Execute;
+end;
+
+// TimeOutTestSequence
+//
+procedure TCornerCasesTests.TimeOutTestSequence;
+var
+   prog : IdwsProgram;
+   threads : array [1..3] of TScriptThread;
+   i : Integer;
+begin
+   prog:=FCompiler.Compile('while true do;');
+
+   for i:=1 to 3 do
+      threads[i]:=TScriptThread.Create(prog, i*50);
+   for i:=1 to 3 do
+      threads[i].Start;
+   while threads[3].FTimeStamp=0 do
+      Sleep(25);
+
+   Check(threads[1].FTimeStamp<threads[2].FTimeStamp, '1 < 2');
+   Check(threads[2].FTimeStamp<threads[3].FTimeStamp, '2 < 3');
+
+   for i:=1 to 3 do
+      threads[i].Free;
+
+   for i:=1 to 3 do
+      threads[i]:=TScriptThread.Create(prog, 200-i*50);
+   for i:=1 to 3 do
+      threads[i].Start;
+   while threads[1].FTimeStamp=0 do
+      Sleep(25);
+
+   Check(threads[1].FTimeStamp>threads[2].FTimeStamp, '1 > 2');
+   Check(threads[2].FTimeStamp>threads[3].FTimeStamp, '2 > 3');
+
+   for i:=1 to 3 do
+      threads[i].Free;
 end;
 
 // DoOnInclude
@@ -216,6 +282,12 @@ begin
    CheckEquals('', prog.Msgs.AsInfo, 'include via event');
    exec:=prog.Execute;
    CheckEquals('hello', exec.Result.ToString, 'exec include via event');
+
+   prog:=FCompiler.Compile('{$include ''test.dummy''}print(" world");');
+
+   CheckEquals('', prog.Msgs.AsInfo, 'include via event followup');
+   exec:=prog.Execute;
+   CheckEquals('hello world', exec.Result.ToString, 'exec include via event followup');
 end;
 
 // IncludeViaFile
@@ -251,6 +323,11 @@ begin
    CheckEquals('', prog.Msgs.AsInfo, 'include via file');
    exec:=prog.Execute;
    CheckEquals('world', exec.Result.ToString, 'exec include via file');
+
+   prog:=FCompiler.Compile('{$include ''test.dummy''}print(" happy");');
+   CheckEquals('', prog.Msgs.AsInfo, 'include via file followup');
+   exec:=prog.Execute;
+   CheckEquals('world happy', exec.Result.ToString, 'exec include via file followup');
 
    FCompiler.Config.ScriptPaths.Clear;
    DeleteFile(tempFile);

@@ -27,14 +27,17 @@ type
          procedure SimpleClass;
          procedure SimpleEnumeration;
          procedure SimpleRecord;
+         procedure SimpleInterface;
          procedure ExposeInstances;
 
          procedure ConnectSimpleClass;
          procedure ConnectSimpleClassTyped;
          procedure ConnectTypeCheckFail;
          procedure ConnectFormCreateComponent;
+         procedure ConnectClassMethod;
 
          procedure EnvironmentTest;
+         procedure EnvironmentTest2;
 
          procedure ExposeGeneric;
    end;
@@ -99,6 +102,20 @@ type
       public
          FieldOne : TSimpleClass;
          FieldTwo : String;
+         FieldBool : Boolean;
+         FieldFloat : Double;
+         FieldInteger : Integer;
+   end;
+
+   ISimpleInterface = interface
+      ['{4AF21B43-EE4E-4B24-836F-06DF97685315}']
+      function GetHello : String;
+      property Hello : String read GetHello;
+   end;
+
+   TSimpleInterface = class(TInterfacedObject, ISimpleInterface)
+      public
+         function GetHello : String;
    end;
 
 // ------------------------------------------------------------------
@@ -174,6 +191,17 @@ end;
 procedure TWrappedObject.Stuff(obj : TGenericWrapper<Integer>);
 begin
    //
+end;
+
+// ------------------
+// ------------------ TSimpleInterface ------------------
+// ------------------
+
+// GetHello
+//
+function TSimpleInterface.GetHello : String;
+begin
+   Result:='Hello World';
 end;
 
 // ------------------
@@ -311,8 +339,36 @@ begin
 
    exec:=prog.Execute;
 
-   CheckEquals('', prog.Msgs.AsInfo, 'Exec Msgs');
+   CheckEquals('', exec.Msgs.AsInfo, 'Exec Msgs');
    CheckEquals('1, 2, 3, 4, 2, 0, 0, 1, 1, -1, -1, 2, 2', exec.Result.ToString, 'Exec Result');
+end;
+
+// SimpleInterface
+//
+procedure TRTTIExposeTests.SimpleInterface;
+//var
+//   prog : IdwsProgram;
+//   exec : IdwsProgramExecution;
+begin
+{   FUnit.ExposeRTTI(TypeInfo(ISimpleInterface));
+
+   prog:=FCompiler.Compile( 'var i : ISimpleInterface'#13#10
+                           +'PrintLn(i.Hello);'#13#10
+                           +'Print(i.GetHello);');
+
+   CheckEquals('', prog.Msgs.AsInfo, 'Compile');
+
+   exec:=prog.BeginNewExecution;
+   try
+      exec.Info.Vars['i'].Value:=IUnknown(nil);
+
+      exec.RunProgram(0);
+
+      CheckEquals('', exec.Msgs.AsInfo, 'Exec Msgs');
+      CheckEquals('1, 2, 3, 4, 2, 0, 0, 1, 1, -1, -1, 2, 2', exec.Result.ToString, 'Exec Result');
+   finally
+      exec.EndProgram;
+   end; }
 end;
 
 var
@@ -472,6 +528,33 @@ begin
    end;
 end;
 
+// ConnectClassMethod
+//
+procedure TRTTIExposeTests.ConnectClassMethod;
+var
+   prog : IdwsProgram;
+   exec : IdwsProgramExecution;
+   obj : TTestInstance;
+begin
+   prog:=FCompiler.Compile('var obj: RttiVariant; Print(obj.ClassName());');
+
+   obj:=TTestInstance.Create;
+   try
+      exec:=prog.BeginNewExecution;
+      try
+         exec.Info.ValueAsVariant['obj']:=TdwsRTTIVariant.FromObject(obj);
+         exec.RunProgram(0);
+         CheckEquals(obj.ClassName, exec.Result.ToString, 'exec');
+         CheckFalse(exec.Msgs.HasErrors, exec.Msgs.AsInfo);
+      finally
+         exec.EndProgram;
+         exec:=nil;
+      end;
+   finally
+      obj.Free;
+   end;
+end;
+
 // EnvironmentTest
 //
 procedure TRTTIExposeTests.EnvironmentTest;
@@ -484,13 +567,21 @@ begin
    obj:=TTestEnvironment.Create;
    obj.FieldOne:=TSimpleClass.Create(123);
    obj.FieldTwo:='Hello';
+   obj.FieldBool:=True;
+   obj.FieldFloat:=3.14;
+   obj.FieldInteger:=314;
    try
       enviro:=TRTTIEnvironment.Create;
-      enviro.Environment:=obj;
+      enviro.DefaultEnvironment:=obj;
       FCompiler.Extensions.Add(enviro);
       try
          prog:=FCompiler.Compile( 'PrintLn(FieldOne.Value);'#13#10
-                                 +'PrintLn(FieldTwo);');
+                                 +'PrintLn(FieldTwo);'#13#10
+                                 +'PrintLn(FieldTwo[1]);'#13#10
+                                 +'PrintLn(FieldOne.ClassName());'#13#10
+                                 +'PrintLn(FieldBool);'#13#10
+                                 +'PrintLn(FieldFloat);'#13#10
+                                 +'PrintLn(FieldInteger*2);'#13#10);
          try
             CheckEquals('', prog.Msgs.AsInfo, 'compile');
 
@@ -498,7 +589,11 @@ begin
 
             CheckEquals('', exec.Msgs.AsInfo, 'exec');
 
-            CheckEquals('123'#13#10'Hello'#13#10, exec.Result.ToString, 'result');
+            CheckEquals( '123'#13#10'Hello'#13#10'H'#13#10'TSimpleClass'#13#10
+                        +'True'#13#10
+                        +'3.14'#13#10
+                        +'628'#13#10
+                        , exec.Result.ToString, 'result');
          finally
             prog:=nil;
          end;
@@ -509,6 +604,64 @@ begin
    finally
       obj.FieldOne.Free;
       obj.Free;
+   end;
+end;
+
+// EnvironmentTest2
+//
+procedure TRTTIExposeTests.EnvironmentTest2;
+var
+   obj1, obj2 : TTestEnvironment;
+   enviro : TRTTIEnvironment;
+   prog : IdwsProgram;
+   exec : IdwsProgramExecution;
+begin
+   obj1:=TTestEnvironment.Create;
+   obj1.FieldOne:=TSimpleClass.Create(123);
+   obj1.FieldTwo:='Hello';
+   obj2:=TTestEnvironment.Create;
+   obj2.FieldOne:=TSimpleClass.Create(456);
+   obj2.FieldTwo:='World';
+   try
+      enviro:=TRTTIEnvironment.Create;
+      enviro.DefaultEnvironment:=obj1;
+      FCompiler.Extensions.Add(enviro);
+      try
+         prog:=FCompiler.Compile( 'PrintLn(FieldOne.Value);'#13#10
+                                 +'PrintLn(FieldTwo);'#13#10
+                                 +'PrintLn(FieldOne.ClassName);');
+         try
+            CheckEquals('', prog.Msgs.AsInfo, 'compile');
+
+            exec:=prog.BeginNewExecution;
+            exec.Environment:=TRTTIRuntimeEnvironment.Create(obj2);
+
+            exec.RunProgram(0);
+            exec.EndProgram;
+
+            CheckEquals('', exec.Msgs.AsInfo, 'exec 2');
+            CheckEquals( '456'#13#10'World'#13#10'TSimpleClass'#13#10, exec.Result.ToString, 'result 2');
+
+            exec:=prog.BeginNewExecution;
+            exec.Environment:=TRTTIRuntimeEnvironment.Create(obj1);
+
+            exec.RunProgram(0);
+            exec.EndProgram;
+
+            CheckEquals('', exec.Msgs.AsInfo, 'exec 1');
+            CheckEquals( '123'#13#10'Hello'#13#10'TSimpleClass'#13#10, exec.Result.ToString, 'result 1');
+         finally
+            prog:=nil;
+         end;
+      finally
+         FCompiler.Extensions.Remove(enviro);
+         enviro.Free;
+      end;
+   finally
+      obj1.FieldOne.Free;
+      obj1.Free;
+      obj2.FieldOne.Free;
+      obj2.Free;
    end;
 end;
 

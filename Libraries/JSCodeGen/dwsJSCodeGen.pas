@@ -460,7 +460,7 @@ type
    end;
    PJSRTLDependency = ^TJSRTLDependency;
 const
-   cJSRTLDependencies : array [1..134] of TJSRTLDependency = (
+   cJSRTLDependencies : array [1..138] of TJSRTLDependency = (
       // codegen utility functions
       (Name : '$CheckStep';
        Code : 'function $CheckStep(s,z) { if (s>0) return s; throw Exception.Create$1($New(Exception),"FOR loop STEP should be strictly positive: "+s.toString()+z); }';
@@ -517,10 +517,6 @@ const
       (Name : '$CondFailed';
        Code : 'function $CondFailed(z,m) { throw Exception.Create$1($New(EAssertionFailed),z+m); }';
        Dependency : 'EAssertionFailed' ),
-      (Name : '$Inc';
-       Code : 'function $Inc(v,i) { v.value+=i; return v.value }'),
-      (Name : '$Dec';
-       Code : 'function $Dec(v,i) { v.value-=i; return v.value }'),
       (Name : '$Inh';
        Code : 'function $Inh(s,c) {'#13#10
                +#9'if (s===null) return false;'#13#10
@@ -677,6 +673,8 @@ const
               +#9'c-=0x10000;'#13#10
               +#9'return String.fromCharCode(0xD800+(c>>10))+String.fromCharCode(0xDC00+(c&0x3FF));'#13#10
               +'}'),
+      (Name : 'Clamp';
+       Code : 'function Clamp(v,mi,ma) { if (v<mi) return mi; else if (v>ma) return ma; else return v }'),
       (Name : 'ClampInt';
        Code : 'function ClampInt(v,mi,ma) { if (v<mi) return mi; else if (v>ma) return ma; else return v }'),
       (Name : 'CompareStr';
@@ -716,6 +714,10 @@ const
        Dependency : '!formatDateTime_js'),
       (Name : 'Frac';
        Code : 'function Frac(v) { return v-((v>0)?Math.floor(v):Math.ceil(v)) }'),
+      (Name : 'FindDelimiter';
+       Code : 'function FindDelimiter(d,s,x) { var n=d.length,r=ns=s.length,i,p; for (i=0;i<n;i++) { p=s.indexOf(d.charAt(i),x-1); if (p>=0&&p<r) r=p; } return (r==ns)?-1:r+1; }'),
+      (Name : 'Gcd';
+       Code : 'function Gcd(a, b) { var r; while (b!=0) { r=a%b; a=b; b=r; } return a }'),
       (Name : 'HexToInt';
        Code : 'function HexToInt(v) { return parseInt(v,16) }'),
       (Name : 'Hypot';
@@ -735,6 +737,25 @@ const
        Code : 'function IntToStr(i) { return i.toString() }'),
       (Name : 'IsDelimiter';
        Code : 'function IsDelimiter(d,s,i) { if ((i<=0)||(i>s.length)) return false; else return d.indexOf(s.charAt(i-1))>=0; }'),
+      (Name : 'IsPrime';
+       Code : 'function IsPrime(n) { if (n<=3) { return (n>=2) } else return ((n&1)&&(LeastFactor(n)==n)) }';
+       Dependency : 'LeastFactor' ),
+      (Name : 'Lcm';
+       Code : 'function Lcm(a, b) { var g=Gcd(a,b); return (g!=0)?(Math.floor(a/g)*b):0 }';
+       Dependency : 'Gcd' ),
+      (Name : 'LeastFactor';
+       Code : 'function LeastFactor(n) {'#13#10
+               +#9'if (n<=1) return (n==1)?1:0;'#13#10
+               +#9'if (!(n&1)) return 2;'#13#10
+               +#9'if (!(n%3)) return 3;'#13#10
+               +#9'var lim=Math.sqrt(n);'#13#10
+               +#9'for (var i=5; i<=lim; i+=4) {'#13#10
+                  +#9#9'if (!(n%i)) return i;'#13#10
+                  +#9#9'i+=2;'#13#10
+                  +#9#9'if (!(n%i)) return i;'#13#10
+               +#9'}'#13#10
+               +'return n'#13#10
+               +'}'),
       (Name : 'Ln';
        Code : 'function Ln(v) { return Math.log(v) }'),
       (Name : 'LastDelimiter';
@@ -1022,6 +1043,7 @@ begin
    RegisterCodeGen(TAssignArrayConstantExpr, TdwsExprGenericCodeGen.Create([0, '=', 1, ';'], True));
 
    RegisterCodeGen(TVarExpr,              TJSVarExpr.Create);
+   RegisterCodeGen(TSelfVarExpr,          TJSVarExpr.Create);
    RegisterCodeGen(TVarParentExpr,        TJSVarParentExpr.Create);
    RegisterCodeGen(TVarParamExpr,         TJSVarParamExpr.Create);
    RegisterCodeGen(TVarParamParentExpr,   TJSVarParamParentExpr.Create);
@@ -1787,7 +1809,7 @@ begin
             InsertDependency(jsRTL)
          else if dependency='$ConditionalDefines' then begin
             destStream.WriteString('var $ConditionalDefines=');
-            WriteStringArray(destStream, (prog as TdwsProgram).Root.ConditionalDefines);
+            WriteStringArray(destStream, (prog as TdwsProgram).Root.ConditionalDefines.Value);
             destStream.WriteString(';'#13#10);
          end;
          Dependencies.Delete(i);
@@ -1839,16 +1861,14 @@ begin
                   right:=TMagicIteratorFuncExpr(parent).Args[1];
                   if (right is TConstIntExpr) and (TConstIntExpr(right).Value=1) then
                      Exit // special case handled via ++ or --, no need to pass by ref
-                  else varSym:=FindSymbolAtStackAddr(TVarExpr(expr).StackAddr, Context.Level);
+                  else varSym:=TVarExpr(expr).DataSym; // FindSymbolAtStackAddr(TVarExpr(expr).StackAddr, Context.Level);
                end else begin
                   // else not supported yet
                   Exit;
                end;
             end else begin
                if funcSym.Params[i] is TVarParamSymbol then begin
-                  varSym:=FindSymbolAtStackAddr(TVarExpr(expr).StackAddr, Context.Level);
-//                  varSym:=FindSymbolAtStackAddr(TVarParamSymbol(funcSym.Params[i]).StackAddr
-//                                                +funcSym.ParamSize, Context.Level);
+                  varSym:=TVarExpr(expr).DataSym; // FindSymbolAtStackAddr(TVarExpr(expr).StackAddr, Context.Level);
                end else Exit;
             end;
          end else if (expr is TExitExpr) then begin
@@ -1880,7 +1900,7 @@ begin
       end else begin
          Assert((curExpr is TAssignExpr) or (curExpr is TInitDataExpr));
          expr:=curExpr.SubExpr[0] as TVarExpr;
-         varSym:=FindSymbolAtStackAddr(expr.StackAddr, Context.Level);
+         varSym:=expr.DataSym; // FindSymbolAtStackAddr(expr.StackAddr, Context.Level);
          FDeclaredLocalVars.Add(varSym);
       end;
    end;
@@ -2446,7 +2466,7 @@ var
    varExpr : TVarExpr;
 begin
    varExpr:=TVarExpr(expr);
-   Result:=codeGen.FindSymbolAtStackAddr(varExpr.StackAddr, codeGen.Context.Level);
+   Result:=varExpr.DataSym; // codeGen.FindSymbolAtStackAddr(varExpr.StackAddr, codeGen.Context.Level);
    if Result=nil then
       raise ECodeGenUnsupportedSymbol.CreateFmt('Var not found at StackAddr %d', [varExpr.StackAddr]);
 end;
@@ -2509,8 +2529,13 @@ end;
 // CodeGen
 //
 procedure TJSLazyParamExpr.CodeGen(codeGen : TdwsCodeGen; expr : TExprBase);
+var
+   sym : TDataSymbol;
 begin
-   inherited;
+   sym:=TLazyParamExpr(expr).DataSym;
+   codeGen.WriteSymbolName(sym);
+   if IsLocalVarParam(codeGen, sym) then
+      codeGen.WriteString('.value');
    codeGen.WriteString('()');
 end;
 
@@ -3663,19 +3688,19 @@ end;
 procedure TJSIncVarFuncExpr.CodeGen(codeGen : TdwsCodeGen; expr : TExprBase);
 var
    e : TIncVarFuncExpr;
-   right : TExprBase;
+   left, right : TExprBase;
 begin
    e:=TIncVarFuncExpr(expr);
+   left:=e.Args[0];
    right:=e.Args[1];
    if (right is TConstIntExpr) and (TConstIntExpr(right).Value=1) then begin
       codeGen.WriteString('++');
-      codeGen.Compile(e.Args[0]);
+      codeGen.Compile(left);
    end else begin
-      codeGen.Dependencies.Add('$Inc');
-      codeGen.WriteString('$Inc(');
-      TJSVarExpr.CodeGenName(codeGen, TVarExpr(e.Args[0]));
-      codeGen.WriteString(',');
-      codeGen.Compile(e.Args[1]);
+      codeGen.WriteString('(');
+      codeGen.Compile(left);
+      codeGen.WriteString('+=');
+      codeGen.Compile(right);
       codeGen.WriteString(')');
    end;
 end;
@@ -3689,19 +3714,19 @@ end;
 procedure TJSDecVarFuncExpr.CodeGen(codeGen : TdwsCodeGen; expr : TExprBase);
 var
    e : TDecVarFuncExpr;
-   right : TExprBase;
+   left, right : TExprBase;
 begin
    e:=TDecVarFuncExpr(expr);
+   left:=e.Args[0];
    right:=e.Args[1];
    if (right is TConstIntExpr) and (TConstIntExpr(right).Value=1) then begin
       codeGen.WriteString('--');
-      codeGen.Compile(e.Args[0]);
+      codeGen.Compile(left);
    end else begin
-      codeGen.Dependencies.Add('$Dec');
-      codeGen.WriteString('$Dec(');
-      TJSVarExpr.CodeGenName(codeGen, TVarExpr(e.Args[0]));
-      codeGen.WriteString(',');
-      codeGen.Compile(e.Args[1]);
+      codeGen.WriteString('(');
+      codeGen.Compile(left);
+      codeGen.WriteString('-=');
+      codeGen.Compile(right);
       codeGen.WriteString(')');
    end;
 end;

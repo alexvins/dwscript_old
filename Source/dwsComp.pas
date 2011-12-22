@@ -159,13 +159,13 @@ type
          FStaticTable : IStaticSymbolTable;
 
   protected
-      function GetUnitTable(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
-                            operators : TOperators) : TUnitSymbolTable; override;
-    function CreateUnitTable(Parent: TSymbolTable; Typ: TSymbolTableType = sttDefault): TUnitSymbolTable; virtual;
-    procedure SetStaticSymbols(const Value: Boolean); // static symbols
-    procedure InitUnitTable(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
-                            operators : TOperators; UnitTable: TUnitSymbolTable); virtual;
-    procedure AddUnitSymbols(Table: TSymbolTable; operators : TOperators); virtual; abstract;
+         function GetUnitTable(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
+                               operators : TOperators) : TUnitSymbolTable; override;
+         function CreateUnitTable(Parent: TSymbolTable; Typ: TSymbolTableType = sttDefault): TUnitSymbolTable; virtual;
+         procedure SetStaticSymbols(const Value: Boolean); // static symbols
+         procedure InitUnitTable(systemTable : TSystemSymbolTable; unitSyms : TUnitMainSymbols;
+                                 operators : TOperators; UnitTable: TUnitSymbolTable); virtual;
+         procedure AddUnitSymbols(table : TSymbolTable; operators : TOperators); virtual; abstract;
          property StaticSymbols : Boolean read FStaticSymbols write SetStaticSymbols;
          property StaticTable : IStaticSymbolTable read FStaticTable;
 
@@ -757,6 +757,41 @@ type
 
    TdwsClassesClass = class of TdwsClasses;
 
+   // TdwsInterface
+   //
+   TdwsInterface = class(TdwsSymbol)
+      private
+         FAncestor : UnicodeString;
+         FMethods : TdwsMethods;
+         FProperties : TdwsProperties;
+
+      protected
+         function GetDisplayName : UnicodeString; override;
+         function StoreMethods : Boolean;
+         function StoreProperties : Boolean;
+
+      public
+         constructor Create(Collection: TCollection); override;
+         destructor Destroy; override;
+
+         procedure Assign(Source: TPersistent); override;
+         function DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol; override;
+
+      published
+         property Ancestor : UnicodeString read FAncestor write FAncestor;
+         property Methods : TdwsMethods read FMethods write FMethods stored StoreMethods;
+         property Properties: TdwsProperties read FProperties write FProperties stored StoreProperties;
+   end;
+
+   TdwsInterfaces = class(TdwsCollection)
+      protected
+         class function GetSymbolClass : TdwsSymbolClass; override;
+      public
+         function Add : TdwsInterface;
+   end;
+
+   TdwsInterfacesClass = class of TdwsInterfaces;
+
    TdwsMember = class(TdwsVariable)
       private
          FVisibility : TdwsVisibility;
@@ -942,6 +977,7 @@ type
         FFunctions: TdwsFunctions;
         FInstances: TdwsInstances;
         FRecords: TdwsRecords;
+        FInterfaces : TdwsInterfaces;
         FSynonyms: TdwsSynonyms;
         FVariables: TdwsVariables;
         FOperators : TdwsOperators;
@@ -949,7 +985,7 @@ type
         FOnAfterInitUnitTable : TNotifyEvent;
 
       protected
-        FCollections: array[0..10] of TdwsCollection;
+        FCollections : array[0..11] of TdwsCollection;
 
         class function GetArraysClass: TdwsArraysClass; virtual;
         class function GetClassesClass: TdwsClassesClass; virtual;
@@ -959,6 +995,7 @@ type
         class function GetFunctionsClass: TdwsFunctionsClass; virtual;
         class function GetInstancesClass: TdwsInstancesClass; virtual;
         class function GetRecordsClass: TdwsRecordsClass; virtual;
+        class function GetInterfacesClass : TdwsInterfacesClass; virtual;
         class function GetVariablesClass: TdwsVariablesClass; virtual;
         class function GetSynonymsClass: TdwsSynonymsClass; virtual;
         class function GetOperatorsClass: TdwsOperatorsClass; virtual;
@@ -970,6 +1007,7 @@ type
         procedure SetForwards(const Value: TdwsForwards);
         procedure SetFunctions(const Value: TdwsFunctions);
         procedure SetRecords(const Value: TdwsRecords);
+        procedure SetInterfaces(const value : TdwsInterfaces);
         procedure SetVariables(const Value: TdwsVariables);
         procedure SetInstances(const Value: TdwsInstances);
         procedure SetSynonyms(const Value: TdwsSynonyms);
@@ -981,6 +1019,7 @@ type
         function StoreEnumerations : Boolean;
         function StoreFunctions : Boolean;
         function StoreRecords : Boolean;
+        function StoreInterfaces : Boolean;
         function StoreVariables : Boolean;
         function StoreInstances : Boolean;
         function StoreSynonyms : Boolean;
@@ -1018,6 +1057,7 @@ type
         property Instances: TdwsInstances read FInstances write SetInstances stored StoreInstances;
         property Operators : TdwsOperators read FOperators write SetOperators stored StoreOperators;
         property Records: TdwsRecords read FRecords write SetRecords stored StoreRecords;
+        property Interfaces : TdwsInterfaces read FInterfaces write SetInterfaces stored StoreInterfaces;
         property Synonyms: TdwsSynonyms read FSynonyms write SetSynonyms stored StoreSynonyms;
         property UnitName;
         property Variables: TdwsVariables read FVariables write SetVariables stored StoreVariables;
@@ -1184,7 +1224,7 @@ end;
 
 function TDelphiWebScript.GetVersion: UnicodeString;
 begin
-  Result := '2.2';
+  Result := '2.3';
 end;
 
 procedure TDelphiWebScript.SetVersion(const Value: UnicodeString);
@@ -1218,6 +1258,7 @@ begin
       FCompiler.OnFindUnknownName:=FExtensions.FindUnknownName;
       FCompiler.OnSectionChanged:=FExtensions.SectionChanged;
       FCompiler.OnReadScript:=FExtensions.ReadScript;
+      FCompiler.OnGetDefaultEnvironment:=FExtensions.DefaultEnvironment;
    end else begin
       FCompiler.OnCreateBaseVariantSymbol:=nil;
       FCompiler.OnReadInstr:=nil;
@@ -1225,6 +1266,7 @@ begin
       FCompiler.OnFindUnknownName:=nil;
       FCompiler.OnSectionChanged:=nil;
       FCompiler.OnReadScript:=nil;
+      FCompiler.OnGetDefaultEnvironment:=nil;
    end;
 end;
 
@@ -1419,6 +1461,7 @@ begin
    FForwards := GetForwardsClass.Create(Self);
    FFunctions := GetFunctionsClass.Create(Self);
    FRecords := GetRecordsClass.Create(Self);
+   FInterfaces := GetInterfacesClass.Create(Self);
    FVariables := GetVariablesClass.Create(Self);
    FInstances := GetInstancesClass.Create(Self);
    FSynonyms := GetSynonymsClass.Create(Self);
@@ -1428,29 +1471,23 @@ begin
    FCollections[1] := FEnumerations;
    FCollections[2] := FArrays;
    FCollections[3] := FRecords;
-   FCollections[4] := FClasses;
-   FCollections[5] := FSynonyms;
-   FCollections[6] := FFunctions;
-   FCollections[7] := FVariables;
-   FCollections[8] := FConstants;
-   FCollections[9] := FInstances;
-   FCollections[10] := FOperators;
+   FCollections[4] := FInterfaces;
+   FCollections[5] := FClasses;
+   FCollections[6] := FSynonyms;
+   FCollections[7] := FFunctions;
+   FCollections[8] := FVariables;
+   FCollections[9] := FConstants;
+   FCollections[10] := FInstances;
+   FCollections[11] := FOperators;
 
 end;
 
 destructor TdwsUnit.Destroy;
+var
+   i : Integer;
 begin
-  FArrays.Free;
-  FClasses.Free;
-  FConstants.Free;
-  FEnumerations.Free;
-  FForwards.Free;
-  FRecords.Free;
-  FFunctions.Free;
-  FVariables.Free;
-  FInstances.Free;
-  FSynonyms.Free;
-  FOperators.Free;
+   for i:=Low(FCollections) to High(FCollections) do
+      FCollections[i].Free;
   inherited;
 end;
 
@@ -1609,6 +1646,13 @@ begin
   FRecords.Assign(Value);
 end;
 
+// SetInterfaces
+//
+procedure TdwsUnit.SetInterfaces(const value : TdwsInterfaces);
+begin
+   FInterfaces.Assign(value);
+end;
+
 procedure TdwsUnit.SetVariables(const Value: TdwsVariables);
 begin
   FVariables.Assign(Value);
@@ -1662,6 +1706,13 @@ end;
 class function TdwsUnit.GetRecordsClass: TdwsRecordsClass;
 begin
   Result := TdwsRecords;
+end;
+
+// GetInterfacesClass
+//
+class function TdwsUnit.GetInterfacesClass : TdwsInterfacesClass;
+begin
+   Result:=TdwsInterfaces;
 end;
 
 class function TdwsUnit.GetVariablesClass: TdwsVariablesClass;
@@ -1733,6 +1784,13 @@ end;
 function TdwsUnit.StoreRecords : Boolean;
 begin
    Result:=FRecords.Count>0;
+end;
+
+// StoreInterfaces
+//
+function TdwsUnit.StoreInterfaces : Boolean;
+begin
+   Result:=(FInterfaces.Count>0);
 end;
 
 // StoreVariables
@@ -3112,7 +3170,9 @@ begin
       FVisibility := TdwsMember(Source).Visibility;
 end;
 
-{ TdwsRecord }
+// ------------------
+// ------------------ TdwsRecord ------------------
+// ------------------
 
 constructor TdwsRecord.Create;
 begin
@@ -3162,7 +3222,88 @@ begin
   Result := 'Record ' + Name;
 end;
 
-{ TdwsArray }
+// ------------------
+// ------------------ TdwsInterface ------------------
+// ------------------
+
+// Create
+//
+constructor TdwsInterface.Create(Collection: TCollection);
+begin
+   inherited;
+   FMethods:=TdwsMethods.Create(Self);
+   FProperties:=TdwsProperties.Create(Self);
+end;
+
+// Destroy
+//
+destructor TdwsInterface.Destroy;
+begin
+   FMethods.Free;
+   FProperties.Free;
+   inherited;
+end;
+
+// Assign
+//
+procedure TdwsInterface.Assign(Source: TPersistent);
+begin
+   inherited;
+   if Source is TdwsInterface then begin
+      FMethods.Assign(TdwsInterface(Source).Methods);
+      FProperties.Assign(TdwsInterface(Source).Properties);
+   end;
+end;
+
+// DoGenerate
+//
+function TdwsInterface.DoGenerate(Table: TSymbolTable; ParentSym: TSymbol = nil): TSymbol;
+begin
+   Result:=nil; // TODO
+end;
+
+// GetDisplayName
+//
+function TdwsInterface.GetDisplayName : UnicodeString;
+begin
+   Result:='Interface '+Name;
+end;
+
+// StoreMethods
+//
+function TdwsInterface.StoreMethods : Boolean;
+begin
+   Result:=(FMethods.Count>0);
+end;
+
+// StoreProperties
+//
+function TdwsInterface.StoreProperties : Boolean;
+begin
+   Result:=(FProperties.Count>0);
+end;
+
+// ------------------
+// ------------------ TdwsInterfaces ------------------
+// ------------------
+
+// GetSymbolClass
+//
+class function TdwsInterfaces.GetSymbolClass : TdwsSymbolClass;
+begin
+   Result:=TdwsInterface;
+end;
+
+// Add
+//
+function TdwsInterfaces.Add : TdwsInterface;
+begin
+   Result:=TdwsInterface(inherited Add);
+end;
+
+// ------------------
+// ------------------ TdwsArray ------------------
+// ------------------
 
 procedure TdwsArray.Assign(Source: TPersistent);
 begin

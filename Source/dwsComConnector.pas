@@ -115,8 +115,10 @@ type
     FIsInitialized: Boolean;
     FMethodName: WideString;
     FMethodType: Cardinal;
+
   protected
     function Call(Const Base: Variant; Args: TConnectorArgs): TData;
+
   public
     constructor Create(const MethodName: UnicodeString; const Params: TConnectorParamArray;
       MethodType: Cardinal = DISPATCH_METHOD);

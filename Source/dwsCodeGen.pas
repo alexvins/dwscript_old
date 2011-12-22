@@ -161,7 +161,7 @@ type
 
          procedure RegisterCodeGen(expr : TExprBaseClass; codeGen : TdwsExprCodeGen);
          function  FindCodeGen(expr : TExprBase) : TdwsExprCodeGen;
-         function  FindSymbolAtStackAddr(stackAddr, level : Integer) : TDataSymbol;
+         function  FindSymbolAtStackAddr(stackAddr, level : Integer) : TDataSymbol; deprecated;
          function  SymbolMappedName(sym : TSymbol; scope : TdwsCodeGenSymbolScope) : UnicodeString; virtual;
 
          procedure Compile(expr : TExprBase);
@@ -799,6 +799,7 @@ begin
    for sym in table do begin
       if sym is TUnitSymbol then begin
          unitSym:=TUnitSymbol(sym).Main;
+         if unitSym=nil then continue;
          if not (unitSym.Table is TStaticSymbolTable) then begin
             if FMappedUnits.IndexOf(unitSym)<0 then begin
                FMappedUnits.Add(unitSym);
