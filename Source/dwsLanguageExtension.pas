@@ -33,7 +33,7 @@ type
          function CreateBaseVariantSymbol(table : TSystemSymbolTable) : TBaseVariantSymbol; virtual;
          function ReadInstr(compiler : TdwsCompiler) : TNoResultExpr; virtual;
          function ReadInstrSwitch(compiler : TdwsCompiler) : Boolean; virtual;
-         function FindUnknownName(compiler : TdwsCompiler; const name : String) : TSymbol; virtual;
+         function FindUnknownName(compiler : TdwsCompiler; const name : UnicodeString) : TSymbol; virtual;
          procedure SectionChanged(compiler : TdwsCompiler); virtual;
          procedure ReadScript(compiler : TdwsCompiler; sourceFile : TSourceFile;
                               scriptType : TScriptSourceType); virtual;
@@ -59,7 +59,7 @@ type
          function CreateBaseVariantSymbol(table : TSystemSymbolTable) : TBaseVariantSymbol; override;
          function ReadInstr(compiler : TdwsCompiler) : TNoResultExpr; override;
          function ReadInstrSwitch(compiler : TdwsCompiler) : Boolean; override;
-         function FindUnknownName(compiler : TdwsCompiler; const name : String) : TSymbol; override;
+         function FindUnknownName(compiler : TdwsCompiler; const name : UnicodeString) : TSymbol; override;
          procedure SectionChanged(compiler : TdwsCompiler); override;
          procedure ReadScript(compiler : TdwsCompiler; sourceFile : TSourceFile;
                               scriptType : TScriptSourceType); override;
@@ -111,7 +111,7 @@ end;
 
 // FindUnknownName
 //
-function TdwsLanguageExtension.FindUnknownName(compiler : TdwsCompiler; const name : String) : TSymbol;
+function TdwsLanguageExtension.FindUnknownName(compiler : TdwsCompiler; const name : UnicodeString) : TSymbol;
 begin
    Result:=nil;
 end;
@@ -233,7 +233,7 @@ end;
 
 // FindUnknownName
 //
-function TdwsLanguageExtensionAggregator.FindUnknownName(compiler : TdwsCompiler; const name : String) : TSymbol;
+function TdwsLanguageExtensionAggregator.FindUnknownName(compiler : TdwsCompiler; const name : UnicodeString) : TSymbol;
 var
    i : Integer;
    ext : TdwsLanguageExtension;

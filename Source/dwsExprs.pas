@@ -2612,7 +2612,7 @@ begin
    sl.Sorted:=True;
    sl.CaseSensitive:=False;
    sl.Duplicates:=dupIgnore;
-   FConditionalDefines:=TAutoStore<TStrings>.Create(sl);
+   FConditionalDefines:=TAutoStrings.Create(sl);
 
    FSourceList:=TScriptSourceList.Create;
 
@@ -3171,10 +3171,23 @@ end;
 class procedure TdwsGuardianThread.ForgetExecution(const exec : IdwsProgramExecution);
 var
    thread : TdwsGuardianThread;
+
+   {$IFDEF FPC}
+   function CB(var item : TdwsGuardedExecution) : TSimpleCallbackStatus;
+                                   begin
+                                      if item.Exec=exec then begin
+                                         item.Exec:=nil;
+                                         Result:=csAbort;
+                                      end else Result:=csContinue;
+                                   end;
+   {$ENDIF}
 begin
    thread:=vThread;
    thread.FExecutionsLock.Enter;
    try
+      {$IFDEF FPC}
+      thread.FExecutions.Enumerate(@cb);
+      {$ELSE}
       thread.FExecutions.Enumerate(function (var item : TdwsGuardedExecution) : TSimpleCallbackStatus
                                    begin
                                       if item.Exec=exec then begin
@@ -3182,6 +3195,7 @@ begin
                                          Result:=csAbort;
                                       end else Result:=csContinue;
                                    end);
+      {$ENDIF}
    finally
       thread.FExecutionsLock.Leave;
 end;
@@ -3206,12 +3220,12 @@ begin
             n:=FExecutions.Count;
             item:=FExecutions[n-1];
             if item.Exec=nil then begin
-               FExecutions.Extract(n-1);
+               FExecutions.Extract2(n-1);
                FreeAndNil(item);
             end else begin
                if item.TimeOutAt<=currentTime then begin
                   item.Exec.Stop;
-                  FExecutions.Extract(n-1);
+                  FExecutions.Extract2(n-1);
                   FreeAndNil(item);
                end else Break;
             end;

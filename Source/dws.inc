@@ -42,6 +42,7 @@
    {$ENDIF}
 
 {$ELSE}
+  {$INLINE OFF}
   {$IF FPC_FULLVERSION <20701}
   {$ERROR Non supported compiler version. Need 2.7+}
   {$ENDIF}

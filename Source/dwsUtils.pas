@@ -47,14 +47,14 @@ type
 
    // IAutoStore
    //
-   IAutoStore<T: class> = interface
+   IAutoStore<T{$IFNDEF FPC} : class {$ENDIF}> = interface
       function GetValue : T;
       property Value : T read GetValue;
    end;
 
    // TAutoStore
    //
-   TAutoStore<T: class> = class(TInterfacedSelfObject, IAutoStore<T>)
+   TAutoStore<T{$IFNDEF FPC} : class {$ENDIF}> = class(TInterfacedSelfObject, IAutoStore<T>)
       private
          FValue : T;
       protected
@@ -65,6 +65,7 @@ type
    end;
 
    IAutoStrings = IAutoStore<TStrings>;
+   TAutoStrings = TAutoStore<TStrings>;
 
    // TVarRecArrayContainer
    //
@@ -151,7 +152,11 @@ type
 
    TSimpleCallbackStatus = (csContinue, csAbort);
 
+   {$IFDEF FPC}
+   TSimpleCallback<T> = function (var item : T) : TSimpleCallbackStatus;
+   {$ELSE}
    TSimpleCallback<T> = reference to function (var item : T) : TSimpleCallbackStatus;
+   {$ENDIF}
 
    // TSimpleQueue
    //
@@ -235,7 +240,7 @@ type
          function Add(const anItem : T) : Integer;
          function AddOrFind(const anItem : T; var added : Boolean) : Integer;
          function Extract(const anItem : T) : Integer; overload;
-         function Extract(index : Integer) : T; overload;
+         function Extract2(index : Integer) : T; overload;
          function IndexOf(const anItem : T) : Integer;
          procedure Clear;
          procedure Clean;
@@ -1095,13 +1100,13 @@ end;
 function TSortedList<T>.Extract(const anItem : T) : Integer;
 begin
    if Find(anItem, Result) then
-      Extract(Result)
+      Extract2(Result)
    else Result:=-1;
 end;
 
 // Extract
 //
-function TSortedList<T>.Extract(index : Integer) : T;
+function TSortedList<T>.Extract2(index : Integer) : T;
 begin
    Result:=FItems[index];
    Move(FItems[index+1], FItems[index], (FCount-index-1)*SizeOf(T));

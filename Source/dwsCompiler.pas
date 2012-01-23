@@ -1233,7 +1233,7 @@ begin
       FTok.SwitchProcessor:=ReadInstrSwitch;
       if scriptType=stMain then
          FTok.ConditionalDefines:=FMainProg.ConditionalDefines
-      else FTok.ConditionalDefines:=TAutoStore<TStrings>.Create(TStringList.Create);
+      else FTok.ConditionalDefines:=TAutoStrings.Create(TStringList.Create);
 
       FMainProg.SourceList.Add(sourceFile.Name, sourceFile, scriptType);
 

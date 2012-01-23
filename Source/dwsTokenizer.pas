@@ -206,7 +206,7 @@ type
          FSwitchHandler : TSwitchHandler;
          FSwitchProcessor : TSwitchHandler;
          FMsgs : TdwsCompileMessageList;
-         FConditionalDefines : IAutoStore<TStrings>;
+         FConditionalDefines : IAutoStrings;
          FConditionalDepth : TSimpleStack<TTokenizerConditional>;
 
          FTokenStore : array of TToken;
@@ -260,7 +260,7 @@ type
 
          property SwitchHandler : TSwitchHandler read FSwitchHandler write FSwitchHandler;
          property SwitchProcessor : TSwitchHandler read FSwitchProcessor write FSwitchProcessor;
-         property ConditionalDefines : IAutoStore<TStrings> read FConditionalDefines write FConditionalDefines;
+         property ConditionalDefines : IAutoStrings read FConditionalDefines write FConditionalDefines;
    end;
 
 const

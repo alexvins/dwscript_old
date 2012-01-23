@@ -605,7 +605,12 @@ end;
 
 function TFindDelimiterFunc.DoEvalAsInteger(args : TExprBaseList) : Int64;
 begin
+   {$IFDEF FPC}
+   Result:=0;//FindDelimiter(args.AsString[0], args.AsString[1], args.AsInteger[2]);
+   {$ELSE}
    Result:=FindDelimiter(args.AsString[0], args.AsString[1], args.AsInteger[2]);
+   {$ENDIF}
+   //TODO:FindDelimiter
 end;
 
 { TQuotedStrFunc }
